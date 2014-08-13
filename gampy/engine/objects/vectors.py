@@ -172,15 +172,58 @@ class Matrix4:
 
         return self
 
+    def initRotation(self, x, y, z):
+        rx = Matrix4()
+        ry = Matrix4()
+        rz = Matrix4()
+
+        x = radians(x)
+        y = radians(y)
+        z = radians(z)
+
+        rz.set(0, 0, cos(z));   rz.set(0, 1, -sin(z));      rz.set(0, 2, 0.);       rz.set(0, 3, 0.)
+        rz.set(1, 0, sin(z));   rz.set(1, 1, cos(z));       rz.set(1, 2, 0.);       rz.set(1, 3, 0.)
+        rz.set(2, 0, 0.);       rz.set(2, 1, 0.);           rz.set(2, 2, 1.);       rz.set(2, 3, 0.)
+        rz.set(3, 0, 0.);       rz.set(3, 1, 0.);           rz.set(3, 2, 0.);       rz.set(3, 3, 1.)
+        
+        rx.set(0, 0, 1.);       rx.set(0, 1, 0.);           rx.set(0, 2, 0.);       rx.set(0, 3, 0.)
+        rx.set(1, 0, 0.);       rx.set(1, 1, cos(x));       rx.set(1, 2, -sin(x));  rx.set(1, 3, 0.)
+        rx.set(2, 0, 0.);       rx.set(2, 1, sin(x));       rx.set(2, 2, cos(x));   rx.set(2, 3, 0.)
+        rx.set(3, 0, 0.);       rx.set(3, 1, 0.);           rx.set(3, 2, 0.);       rx.set(3, 3, 1.)
+        
+        ry.set(0, 0, cos(y));   ry.set(0, 1, 0.);           ry.set(0, 2, sin(y));   ry.set(0, 3, 0.)
+        ry.set(1, 0, 0.);       ry.set(1, 1, 1.);           ry.set(1, 2, 0.);       ry.set(1, 3, 0.)
+        ry.set(2, 0, -sin(y));  ry.set(2, 1, 0.);           ry.set(2, 2, cos(y));   ry.set(2, 3, 0.)
+        ry.set(3, 0, 0.);       ry.set(3, 1, 0.);           ry.set(3, 2, 0.);       ry.set(3, 3, 1.)
+
+        tmp = rz * ry * rx
+        self.m = tmp.m
+
+        return self
+
+    def initScale(self, x, y, z):
+        for i, j in self.item_loop():
+            if i == j:
+                if i == 0:
+                    self.m[i][j] = x
+                elif i == 1:
+                    self.m[i][j] = y
+                elif i == 2:
+                    self.m[i][j] = z
+                elif i == 3:
+                    self.m[i][j] = 1.
+
+        return self
+
     def __mul__(self, other):
         if isinstance(other, Matrix4):
             res = Matrix4()
 
             for i, j in self.item_loop():
-                res.set(i, j, self.get(i, 0) * other.get(0, j) + \
-                              self.get(i, 1) * other.get(1, j)  + \
-                              self.get(i, 2) * other.get(2, j)  + \
-                              self.get(i, 3) * other.get(3, j) )
+                res.set(i, j, self.m[i][0] * other.get(0, j) + \
+                              self.m[i][1] * other.get(1, j)  + \
+                              self.m[i][2] * other.m[2][j]  + \
+                              self.m[i][3] * other.get(3, j))
 
             return res
 

@@ -46,7 +46,9 @@ class Game:
 
     def update(self, dt):
         self.tmp += dt
-        self.transform.set_translation(math.sin(self.tmp), 0, 0)
+        self.transform.set_translation(math.cos(self.tmp), 0, 0)
+        self.transform.set_rotation(0, 0, math.cos(self.tmp) * 180)
+        self.transform.set_scale(math.cos(self.tmp), math.cos(self.tmp), math.cos(self.tmp))
         self.mesh.update(dt)
 
     def render(self):
