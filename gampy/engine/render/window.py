@@ -1,6 +1,5 @@
 __author__ = 'michiel'
 
-import tkinter
 import OpenGL.Tk
 
 
@@ -11,11 +10,6 @@ class Window:
     display = None
 
     def __init__(self, width: int, height: int, title: str):
-        # self.root = tkinter.Tk()
-        # self.root.title = title
-        # self.root.minsize(self.MIN_WIDTH, self.MIN_HEIGHT)
-        # self.root.geometry("{width}x{height}".format(width=width, height=height))
-        # self.root.protocol('WM_DELETE_WINDOW', self.display_closed)
 
         self.is_display_open = True
         self.display = OpenGL.Tk.Togl(width=width, height=height)
@@ -24,12 +18,11 @@ class Window:
         self.root.minsize(self.MIN_WIDTH, self.MIN_HEIGHT)
         self.root.geometry("{width}x{height}".format(width=width, height=height))
         self.root.protocol('WM_DELETE_WINDOW', self.display_closed)
-        # self.display.master = self.root
-        # self.display.master.title = title
 
     def render(self):
         self.display.update()
         self.display.render()
+        self.display.swapbuffers()
 
     def display_closed(self):
         self.is_display_open = False

@@ -14,8 +14,6 @@ class MainComponent:
     FRAME_CAP = 5000.
 
     def __init__(self, width=0, height=0, title=None):
-        render_util.init_graphics()
-
         if width == 0:
             width = MainComponent.WIDTH
         if height == 0:
@@ -24,6 +22,7 @@ class MainComponent:
             title = MainComponent.TITLE
 
         self.window = window.Window(width, height, title)
+        render_util.init_graphics()
         self.is_running = False
         self.game = game.Game()
         self.input = game_input.Input()
