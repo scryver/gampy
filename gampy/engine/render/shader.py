@@ -1,7 +1,9 @@
 __author__ = 'michiel'
 
 import OpenGL.GL as gl
-from OpenGL.GL import shaders
+from gampy.engine.objects.vectors import Vector3, Matrix4
+from gampy.engine.objects.util import cast_matrix
+import ctypes
 
 
 class ShaderException(Exception):
@@ -25,10 +27,18 @@ class ShaderCompileError(ShaderException):
         super(ShaderCompileError, self).__init__(message)
 
 
+class UniformAddError(ShaderException):
+
+    def __init__(self, message='ERROR'):
+        message = '\n\tUniform Add Failed: ' + str(message)
+        super(UniformAddError, self).__init__(message)
+
+
 class Shader:
 
     def __init__(self):
         self.program = gl.glCreateProgram()
+        self.uniforms = dict()
 
         if self.program == 0:
             raise ShaderCreateError('Could not find valid memory location in constructor')
@@ -38,6 +48,16 @@ class Shader:
 
     def unbind(self):
         gl.glUseProgram(0)
+
+    def add_uniform(self, uniform):
+        uniform_location = gl.glGetUniformLocation(self.program, uniform)
+
+        if uniform_location == -1:
+            raise UniformAddError('Could not find uniform "{}"'.format(uniform))
+
+        updateDict = { uniform: uniform_location }
+        self.uniforms.update(updateDict)
+        print(self.uniforms)
 
     def add_vertex_shader(self, text):
         self._add_program(text, gl.GL_VERTEX_SHADER)
@@ -72,3 +92,18 @@ class Shader:
             raise ShaderCreateError(gl.glGetShaderInfoLog(shader))
 
         gl.glAttachShader(self.program, shader)
+
+    def set_uniform(self, uniform, value):
+        if uniform in self.uniforms.keys():
+            if isinstance(value, int):
+                gl.glUniform1i(self.uniforms.get(uniform), value)
+            elif isinstance(value, float):
+                gl.glUniform1f(self.uniforms.get(uniform), value)
+            elif isinstance(value, Vector3):
+                gl.glUniform3f(self.uniforms.get(uniform), value.x, value.y, value.z)
+            elif isinstance(value, Matrix4):
+                gl.glUniformMatrix4fv(self.uniforms.get(uniform), 1, True, cast_matrix(value))
+            else:
+                raise AttributeError('Value "{}" is not an int, float, Vector3 or Matrix'.format(value))
+        else:
+            raise AttributeError('Uniform "{}" is not added to the list'.format(uniform))

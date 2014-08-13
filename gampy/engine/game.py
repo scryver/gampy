@@ -1,9 +1,14 @@
 __author__ = 'michiel'
 
 import gampy.engine.input.input as gameinput
+import gampy.engine.events.time as time
 import gampy.engine.objects.meshes as meshes
 import gampy.engine.objects.vectors as vec
 import sdl2
+import math
+from gampy.engine.render.shader import Shader
+from gampy.engine.resource_loader import load_shader
+from gampy.engine.objects.transform import Transform
 
 class Game:
 
@@ -17,6 +22,17 @@ class Game:
         ]
         self.mesh.add_vertices(data)
 
+        self.shader = Shader()
+
+        self.shader.add_vertex_shader(load_shader('basic_vertex.vs', 'vertex'))
+        self.shader.add_fragment_shader(load_shader('basic_fragment.fs', 'fragment'))
+        self.shader.compile_shader()
+
+        self.shader.add_uniform('transform')
+
+        self.transform = Transform()
+        self.tmp = 0.
+
     def input(self, inputs):
         mouse_pos = inputs.mouse_position
         if inputs.get_key_down(sdl2.SDLK_DOWN):
@@ -28,11 +44,18 @@ class Game:
         if inputs.get_mouse_up(1):
             print('We\'ve just released mouse Left at {}'.format(mouse_pos))
 
-    def update(self):
-        pass
+    def update(self, dt):
+        self.tmp += dt
+        self.transform.set_translation(math.sin(self.tmp), 0, 0)
+        self.mesh.update(dt)
 
     def render(self):
-        self.mesh.draw()
+        self.shader.bind()
+        self.shader.set_uniform('transform', self.transform.get_transformation())
+        try:
+            self.mesh.draw()
+        finally:
+            self.shader.unbind()
 
     def destroy(self):
         pass

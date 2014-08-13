@@ -152,9 +152,23 @@ class Matrix4:
                 self.m[i].append(0.)
 
     def initIdentity(self):
-        for i, j in self._item_loop():
+        for i, j in self.item_loop():
             if i == j:
                 self.m[i][j] = 1.
+
+        return self
+
+    def initTranslation(self, x, y, z):
+        for i, j in self.item_loop():
+            if i == j:
+                self.m[i][j] = 1.
+            if j == 3:
+                if i == 0:
+                    self.set(i, j, x)
+                elif i == 1:
+                    self.m[i][j] = y
+                elif i == 2:
+                    self.m[i][j] = z
 
         return self
 
@@ -162,7 +176,7 @@ class Matrix4:
         if isinstance(other, Matrix4):
             res = Matrix4()
 
-            for i, j in self._item_loop():
+            for i, j in self.item_loop():
                 res.set(i, j, self.get(i, 0) * other.get(0, j) + \
                               self.get(i, 1) * other.get(1, j)  + \
                               self.get(i, 2) * other.get(2, j)  + \
@@ -178,7 +192,8 @@ class Matrix4:
     def set(self, x, y, value):
         self.m[x][y] = value
 
-    def _item_loop(self):
+    @staticmethod
+    def item_loop():
         for i in range(4):
             for j in range(4):
                 yield i, j

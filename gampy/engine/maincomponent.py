@@ -93,7 +93,7 @@ class MainComponent:
                 self.game.input(self.input)
                 self.input.update()
 
-                self.game.update()
+                self.game.update(self.time.delta)
 
                 if frame_counter >= 1.0:
                     # Frame Rate
