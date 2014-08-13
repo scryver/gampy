@@ -1,43 +1,61 @@
 __author__ = 'michiel'
 
-import OpenGL.Tk
+import sdl2
 
 
 class Window:
 
     MIN_WIDTH = 100
     MIN_HEIGHT = 100
-    display = None
 
     def __init__(self, width: int, height: int, title: str):
+        if sdl2.SDL_Init(sdl2.SDL_INIT_VIDEO) != 0:
+            print(sdl2.SDL_GetError())
+            exit(1)
 
         self.is_display_open = True
-        self.display = OpenGL.Tk.Togl(width=width, height=height)
-        self.root = self.display.master
-        self.root.title(title)
-        self.root.minsize(self.MIN_WIDTH, self.MIN_HEIGHT)
-        self.root.geometry("{width}x{height}".format(width=width, height=height))
-        self.root.protocol('WM_DELETE_WINDOW', self.display_closed)
+        self.display = sdl2.SDL_CreateWindow(bytes(title, 'utf8'),
+                                             sdl2.SDL_WINDOWPOS_UNDEFINED,
+                                             sdl2.SDL_WINDOWPOS_UNDEFINED,
+                                             width, height,
+                                             sdl2.SDL_WINDOW_OPENGL)
+
+        if not self.display:
+            print(sdl2.SDL_GetError())
+            exit(1)
+
+        self.context = sdl2.SDL_GL_CreateContext(self.display)
 
     def render(self):
-        self.display.update()
-        self.display.render()
-        self.display.swapbuffers()
+        sdl2.SDL_GL_SwapWindow(self.display)
+        sdl2.SDL_Delay(10)
 
     def display_closed(self):
         self.is_display_open = False
 
     def dispose(self):
-        self.display.destroy()
+        sdl2.SDL_GL_DeleteContext(self.context)
+        sdl2.SDL_DestroyWindow(self.display)
 
-    @property
-    def width(self):
-        return self.display.winfo_width()
+    def resize(self, event):
+        pass
+        # width = self.display.winfo_width()
+        # height = self.display.winfo_height()
+        # if width != event.width or height != event.height:
+        #     self.display.config(width=event.width, height=event.height)
+        #     gl.glViewport(0, 0, event.width, event.height)
+        #     gl.glMatrixMode(gl.GL_PROJECTION)
+        #     gl.glLoadIdentity()
+        #     gl.glOrtho(-1, 1, -1, 1, -1, 1)
 
-    @property
-    def height(self):
-        return self.display.winfo_height()
-
-    @property
-    def title(self):
-        return self.display.title()
+    # @property
+    # def width(self):
+    #     return self.display.winfo_width()
+    #
+    # @property
+    # def height(self):
+    #     return self.display.winfo_height()
+    #
+    # @property
+    # def title(self):
+    #     return self.display.title()

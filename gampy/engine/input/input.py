@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 __author__ = 'michiel'
 
-import os
 import gampy.engine.objects.vectors as vectors
-
+import sdl2
 
 # http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/event-types.html
 # name          keysym_num  Description
@@ -145,10 +144,8 @@ class Input:
     NUM_KEY_CODES = 256
     NUM_MOUSE_BUTTONS = 5
 
-    def __init__(self):
-        # HACK FOR REPEATING KEYS
-        os.system('xset r off')
-
+    def __init__(self, events):
+        self.events = events
         self._event_keys = {}
         self._last_keys = {}
         self._event_mouse = {}
@@ -219,15 +216,16 @@ class Input:
         self._last_mouse = self._event_mouse.copy()
 
     def bind_window(self, window):
-        window.display.bind_all('<Key>', self._key_press_event)
-        window.display.bind_all('<KeyRelease>', self._key_release_event)
-
-        for i in range(1, Input.NUM_MOUSE_BUTTONS + 1):
-            window.display.bind_all('<Button-{button}>'.format(button=i), self._mouse_click_event)
-            window.display.bind_all('<ButtonRelease-{button}>'.format(button=i), self._mouse_release_event)
-            window.display.bind_all('<Double-Button-{button}>'.format(button=i), self._mouse_event)
-            window.display.bind_all('<Triple-Button-{button}>'.format(button=i), self._mouse_event)
-            window.display.bind_all('<Motion>'.format(button=i), self._mouse_position_event)
+        pass
+        # window.display.bind_all('<Key>', self._key_press_event)
+        # window.display.bind_all('<KeyRelease>', self._key_release_event)
+        #
+        # for i in range(1, Input.NUM_MOUSE_BUTTONS + 1):
+        #     window.display.bind_all('<Button-{button}>'.format(button=i), self._mouse_click_event)
+        #     window.display.bind_all('<ButtonRelease-{button}>'.format(button=i), self._mouse_release_event)
+        #     window.display.bind_all('<Double-Button-{button}>'.format(button=i), self._mouse_event)
+        #     window.display.bind_all('<Triple-Button-{button}>'.format(button=i), self._mouse_event)
+        #     window.display.bind_all('<Motion>'.format(button=i), self._mouse_position_event)
 
     @property
     def mouse_position(self):
@@ -240,5 +238,12 @@ class Input:
             print(err.with_traceback(None))
 
     def destroy(self):
-        # HACK FOR REPEATING KEYS
-        os.system('xset r on')
+        pass
+
+
+class KeyboardEvents(sdl2.SDL_KeyboardEvent):
+
+    def __init__(self):
+        super(KeyboardEvents, self).__init__()
+
+        self.keys = []
