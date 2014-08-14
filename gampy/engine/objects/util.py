@@ -3,7 +3,7 @@ __author__ = 'michiel'
 import numpy
 from gampy.engine.objects.vectors import Matrix4
 
-def cast_object_array(vertices):
+def cast_object_vertexes(vertices):
     size = len(vertices)
     num_array = []
 
@@ -13,6 +13,15 @@ def cast_object_array(vertices):
                           vertices[i].pos.z])
 
     return numpy.array(num_array, dtype=numpy.float32)
+
+def cast_object_indices(indices):
+    size = len(indices)
+    num_array = []
+
+    for i in range(size):
+        num_array.append(indices[i])
+
+    return numpy.array(num_array, dtype=numpy.uint32)
 
 def cast_matrix(matrix):
     if isinstance(matrix, Matrix4):

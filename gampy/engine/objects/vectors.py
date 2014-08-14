@@ -1,6 +1,6 @@
 __author__ = 'michiel'
 
-from math import sqrt, radians, sin, cos
+from math import sqrt, radians, sin, cos, tan
 from numbers import Number
 
 
@@ -201,7 +201,7 @@ class Matrix4:
 
         return self
 
-    def initScale(self, x, y, z):
+    def init_scale(self, x, y, z):
         for i, j in self.item_loop():
             if i == j:
                 if i == 0:
@@ -215,14 +215,31 @@ class Matrix4:
 
         return self
 
+    def init_projection(self, fov, width, height, z_near, z_far):
+        aspect_ratio = width / height
+        tan_half_fov = tan(radians(fov / 2))
+        z_range = z_near - z_far
+
+        x = 1 / (tan_half_fov * aspect_ratio)
+        y = 1 / tan_half_fov
+        z = (-z_near - z_far) / z_range
+        zw = 2 * z_far * z_near / z_range
+
+        self.set(0, 0, x);          self.set(0, 1, 0.);     self.set(0, 2, 0.);       self.set(0, 3, 0.)
+        self.set(1, 0, 0.);         self.set(1, 1, y);      self.set(1, 2, 0.);       self.set(1, 3, 0.)
+        self.set(2, 0, 0.);         self.set(2, 1, 0.);     self.set(2, 2, z);        self.set(2, 3, zw)
+        self.set(3, 0, 0.);         self.set(3, 1, 0.);     self.set(3, 2, 1.);       self.set(3, 3, 0.)
+
+        return self
+
     def __mul__(self, other):
         if isinstance(other, Matrix4):
             res = Matrix4()
 
             for i, j in self.item_loop():
-                res.set(i, j, self.m[i][0] * other.get(0, j) + \
-                              self.m[i][1] * other.get(1, j)  + \
-                              self.m[i][2] * other.m[2][j]  + \
+                res.set(i, j, self.m[i][0] * other.get(0, j) +
+                              self.m[i][1] * other.get(1, j) +
+                              self.m[i][2] * other.get(2, j) +
                               self.m[i][3] * other.get(3, j))
 
             return res

@@ -7,20 +7,14 @@ import gampy.engine.objects.vectors as vec
 import sdl2
 import math
 from gampy.engine.render.shader import Shader
-from gampy.engine.resource_loader import load_shader
+from gampy.engine.resource_loader import load_shader, load_mesh
 from gampy.engine.objects.transform import Transform
+import gampy.engine.objects.util as util
 
 class Game:
 
-    def __init__(self):
-        self.mesh = meshes.Mesh()
-
-        data = [
-            meshes.Vertex(vec.Vector3(1., -1., 0.)),
-            meshes.Vertex(vec.Vector3(-1., -1., 0.)),
-            meshes.Vertex( vec.Vector3(0., 1., 0.)),
-        ]
-        self.mesh.add_vertices(data)
+    def __init__(self, width, height):
+        self.mesh = load_mesh('cube.obj')
 
         self.shader = Shader()
 
@@ -30,6 +24,7 @@ class Game:
 
         self.shader.add_uniform('transform')
 
+        Transform.set_projection(70.,width, height, 0.1, 1000.)
         self.transform = Transform()
         self.tmp = 0.
 
@@ -46,14 +41,14 @@ class Game:
 
     def update(self, dt):
         self.tmp += dt
-        self.transform.set_translation(math.cos(self.tmp), 0, 0)
-        self.transform.set_rotation(0, 0, math.cos(self.tmp) * 180)
-        self.transform.set_scale(math.cos(self.tmp), math.cos(self.tmp), math.cos(self.tmp))
+        self.transform.set_translation(math.cos(self.tmp), 0, 5)
+        self.transform.set_rotation(0, math.cos(self.tmp) * 180, 0)
+        # self.transform.set_scale(0.6 * math.cos(self.tmp), 0.6 * math.cos(self.tmp), 0.6 * math.cos(self.tmp))
         self.mesh.update(dt)
 
     def render(self):
         self.shader.bind()
-        self.shader.set_uniform('transform', self.transform.get_transformation())
+        self.shader.set_uniform('transform', self.transform.get_projected_transformation())
         try:
             self.mesh.draw()
         finally:

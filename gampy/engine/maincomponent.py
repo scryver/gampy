@@ -34,7 +34,7 @@ class MainComponent:
         render_util.init_graphics()
 
         self.is_running = False
-        self.game = game.Game()
+        self.game = game.Game(MainComponent.WIDTH, MainComponent.HEIGHT)
         self.time = time.Time()
 
     @timings
