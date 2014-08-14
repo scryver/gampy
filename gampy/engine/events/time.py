@@ -59,11 +59,11 @@ class Timing:
 
 
     def __str__(self):
-        s = 'Timings:\n'
+        s = '\nTimings:\n'
         for key in self.timings.keys():
-            s += '{timingKey} | '.format(timingKey=key)
+            s += '{timingKey:20} | '.format(timingKey=key)
             ts = self.timings[key]['timings']
             count = self.timings[key]['count']
             total = self.timings[key]['total']
-            s += 'average: {avg} | total: {tot} | count: {cnt}\n'.format(avg=total / count, tot=total, cnt=count)
+            s += 'average: {avg:10.2f} | total: {tot:10.2f} | count: {cnt:9}\n'.format(avg=total / count, tot=total, cnt=count)
         return '{}'.format(s)

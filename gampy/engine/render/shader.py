@@ -56,7 +56,6 @@ class Shader:
 
         updateDict = { uniform: uniform_location }
         self.uniforms.update(updateDict)
-        print(self.uniforms)
 
     def add_vertex_shader(self, text):
         self._add_program(text, gl.GL_VERTEX_SHADER)

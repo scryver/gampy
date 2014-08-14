@@ -38,6 +38,8 @@ class MainComponent:
         self.game = game.Game(MainComponent.WIDTH, MainComponent.HEIGHT)
         self.input = game_input.Input()
         self.time = time.Time()
+        self.framerater = 0.
+        self.framerater_count = 0.
 
     @timings
     def start(self):
@@ -75,6 +77,7 @@ class MainComponent:
 
             unprocessed_time += passed_time
             frame_counter += passed_time
+            self.framerater_count += passed_time
 
             while unprocessed_time > frame_time:
                 render = True
@@ -101,6 +104,7 @@ class MainComponent:
             if render:
                 self._render()
                 frames += 1
+                self.framerater += 1
             else:
                 time.Time.sleep()
 
@@ -122,6 +126,11 @@ class MainComponent:
     def main(*args, **kwargs):
         game = MainComponent()
         game.start()
+
+    def __del__(self):
+        print(timings)
+        print('Average FPS: {avg:7.2f} | Total frames rendered: {tot:.0f}'.format(avg=self.framerater / self.framerater_count,
+                                                                         tot=self.framerater))
 
 
 if __name__ == '__main__':

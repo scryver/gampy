@@ -13,17 +13,16 @@ import gampy.engine.objects.util as util
 class Game:
 
     def __init__(self, width, height):
-        self.mesh = load_mesh('cube.obj')
+        self.mesh = load_mesh('sphere.obj')
 
         self.shader = Shader()
 
-        self.shader.add_vertex_shader(load_shader('basic_vertex.vs', 'vertex'))
-        self.shader.add_fragment_shader(load_shader('basic_fragment.fs', 'fragment'))
+        self.shader.add_vertex_shader(load_shader('basic_vertex_120.vs', 'vertex'))
+        self.shader.add_fragment_shader(load_shader('basic_fragment_120.fs', 'fragment'))
         self.shader.compile_shader()
 
         self.shader.add_uniform('transform')
 
-        Transform.set_projection(70.,width, height, 0.1, 1000.)
         self.transform = Transform()
         self.tmp = 0.
 
@@ -52,12 +51,6 @@ class Game:
             self.mesh.draw()
         finally:
             self.shader.unbind()
-        # gl.glColor3f(1.0, 0.0, 0.0)
-        # gl.glBegin(gl.GL_TRIANGLES)
-        # gl.glVertex3f(-1.0 ,-1.0 ,0.0)
-        # gl.glVertex3f(1.0, 1.0, 0.0)
-        # gl.glVertex3f(1.0, -1.0, 0.0)
-        # gl.glEnd()
 
     def destroy(self):
         pass

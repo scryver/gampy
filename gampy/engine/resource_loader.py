@@ -53,9 +53,16 @@ def load_mesh(fileName: str):
                              float(tokens[2]),
                              float(tokens[3])])
         elif tokens[0] == 'f':
-            indices.append(int(tokens[1]) - 1)
-            indices.append(int(tokens[2]) - 1)
-            indices.append(int(tokens[3]) - 1)
+            indices.append(int(tokens[1].split('/')[0]) - 1)
+            indices.append(int(tokens[2].split('/')[0]) - 1)
+            indices.append(int(tokens[3].split('/')[0]) - 1)
+
+            # For quad faces
+            if len(tokens) > 4:
+                indices.append(int(tokens[1].split('/')[0]) - 1)
+                indices.append(int(tokens[3].split('/')[0]) - 1)
+                indices.append(int(tokens[4].split('/')[0]) - 1)
+
 
     mesh_reader.close()
 
