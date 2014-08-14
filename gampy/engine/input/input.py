@@ -214,7 +214,7 @@ class Input:
     def get_mouse_up(self, mouse_button):
         return not self.get_mouse(mouse_button) and self._last_mouse.get(mouse_button, False)
 
-    def update(self):
+    def update(self, delta):
         self._last_keys = self._event_keys.copy()
         self._last_mouse = self._event_mouse.copy()
 

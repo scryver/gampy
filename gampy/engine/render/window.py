@@ -1,6 +1,9 @@
 __author__ = 'michiel'
 
 import OpenGL.Tk
+import tkinter
+import OpenGL.GL as gl
+from gampy.engine.objects.transform import Transform
 
 
 class Window:
@@ -13,13 +16,15 @@ class Window:
 
         self.is_display_open = True
         self.display = OpenGL.Tk.Togl(width=width, height=height)
+        self.display.pack(fill=tkinter.BOTH, expand=True)
         self.root = self.display.master
         self.root.title(title)
         self.root.minsize(self.MIN_WIDTH, self.MIN_HEIGHT)
         self.root.geometry("{width}x{height}".format(width=width, height=height))
         self.root.protocol('WM_DELETE_WINDOW', self.display_closed)
+        self.root.bind('<Configure>', self.resize)
 
-    def update(self):
+    def update(self, delta):
         self.display.update()
 
     def render(self):
@@ -32,14 +37,20 @@ class Window:
     def dispose(self):
         self.display.destroy()
 
+    def resize(self, event):
+        width = event.width
+        height = event.height
+        self.display.setvar('width', width)
+        Transform.set_projection(70., width, height, 0.1, 1000.)
+
     @property
     def width(self):
-        return self.display.winfo_width()
+        return self.root.winfo_width()
 
     @property
     def height(self):
-        return self.display.winfo_height()
+        return self.root.winfo_height()
 
     @property
     def title(self):
-        return self.display.title()
+        return self.root.title()
