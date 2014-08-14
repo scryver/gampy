@@ -1,6 +1,7 @@
 __author__ = 'michiel'
 
 import gampy.engine.input.input as gameinput
+import OpenGL.GL as gl
 
 class Game:
 
@@ -22,7 +23,12 @@ class Game:
         pass
 
     def render(self):
-        pass
+        gl.glColor3f(1.0, 0.0, 0.0)
+        gl.glBegin(gl.GL_TRIANGLES)
+        gl.glVertex3f(-1.0 ,-1.0 ,0.0)
+        gl.glVertex3f(1.0, 1.0, 0.0)
+        gl.glVertex3f(1.0, -1.0, 0.0)
+        gl.glEnd()
 
     def destroy(self):
         pass

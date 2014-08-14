@@ -77,6 +77,8 @@ class MainComponent:
 
                 self.game.update()
 
+                self.window.update()
+
                 if frame_counter >= 1.0:
                     # Frame Rate
                     print('Frame rate: ', frames)

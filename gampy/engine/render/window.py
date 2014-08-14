@@ -19,8 +19,10 @@ class Window:
         self.root.geometry("{width}x{height}".format(width=width, height=height))
         self.root.protocol('WM_DELETE_WINDOW', self.display_closed)
 
-    def render(self):
+    def update(self):
         self.display.update()
+
+    def render(self):
         self.display.render()
         self.display.swapbuffers()
 

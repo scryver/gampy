@@ -16,7 +16,7 @@ def init_graphics():
     gl.glCullFace(gl.GL_BACK)
     gl.glEnable(gl.GL_CULL_FACE)
     # let open gl test the depth for new objects
-    gl.glEnable(gl.GL_DEPTH_TEST)
+    # gl.glEnable(gl.GL_DEPTH_TEST)
 
     # todo: Depth Clamp
 
