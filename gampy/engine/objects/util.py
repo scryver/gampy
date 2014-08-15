@@ -10,7 +10,10 @@ def cast_object_vertexes(vertices):
                   vertices[i].pos.y,
                   vertices[i].pos.z,
                   vertices[i].tex_coord.x,
-                  vertices[i].tex_coord.y
+                  vertices[i].tex_coord.y,
+                  vertices[i].normal.x,
+                  vertices[i].normal.y,
+                  vertices[i].normal.z,
                  ] for i in range(size)]
 
     return numpy.array(num_array, dtype=numpy.float32)

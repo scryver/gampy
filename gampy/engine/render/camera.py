@@ -33,13 +33,13 @@ class Camera:
 
     def input(self, inputs, dt, widget, width, height):
         sensitivity = 0.5
-        move_amount = 1000. * dt
+        move_amount = 10 * dt
         # rot_amount = 100. * dt
 
         if inputs.get_key(gameinput.KEY_ESCAPE):
             inputs.set_cursor(widget, True)
             self.mouse_locked = False
-        if inputs.get_mouse_down(gameinput.MOUSE_LEFT):
+        if inputs.get_mouse_down(gameinput.MOUSE_MIDDLE):
             inputs.set_cursor(widget, False)
             inputs.set_mouse_position(widget, width / 2, height / 2)
             self.mouse_locked = True
@@ -65,6 +65,11 @@ class Camera:
 
             if rot:
                 inputs.set_mouse_position(widget, width / 2, height / 2)
+
+            if inputs.get_mouse(gameinput.MOUSE_LEFT):
+                self.move(self.forward, move_amount)
+            if inputs.get_mouse(gameinput.MOUSE_RIGHT):
+                self.move(self.forward, -move_amount)
 
 
     def move(self, direction, amount):

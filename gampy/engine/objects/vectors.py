@@ -24,7 +24,10 @@ class Vector2:
     def normalized(self):
         length = self.length
 
-        return self / length
+        if length > 0:
+            return self / length
+        else:
+            return Vector2(0, 0, 0)
 
     def rotate(self, angle):
         rad = radians(angle)
@@ -100,7 +103,10 @@ class Vector3:
     def normalized(self):
         length = self.length
 
-        return self.copy() / length
+        if length > 0:
+            return self / length
+        else:
+            return Vector3(0, 0, 0)
 
     def rotate(self, angle, axis):
         if isinstance(axis, Vector3):
@@ -352,7 +358,11 @@ class Quaternion:
     def normalized(self):
         length = self.length
 
-        return self / length
+        if length > 0:
+            norm = self / length
+        else:
+            norm = Quaternion(0, 0, 0, 0)
+        return norm
 
     def conjugate(self):
         return Quaternion(-self.x, -self.y, -self.z, self.w)

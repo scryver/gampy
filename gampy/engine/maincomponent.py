@@ -56,8 +56,9 @@ class MainComponent:
         self.is_running = False
 
     def _input_updater(self, delta):
-        self.game.input(self.input, self.time.delta, self.window.display)
-        self.input.update(self.time.delta)
+        time_delta = delta / 1000
+        self.game.input(self.input, time_delta, self.window.display)
+        self.input.update(time_delta)
         self.window.root.after(delta, self._input_updater, delta)
 
 

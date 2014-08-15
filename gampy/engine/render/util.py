@@ -25,11 +25,12 @@ def init_graphics():
     gl.glDepthFunc(gl.GL_LESS)
     gl.glEnable(gl.GL_DEPTH_TEST)
 
-    # todo: Depth Clamp
+    gl.glEnable(gl.GL_DEPTH_CLAMP)
 
     gl.glEnable(gl.GL_TEXTURE_2D)
     # Gamma correction so linear colors can be used (instead of exponential)
-    gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
+    # gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
+
     # gl.glMatrixMode(gl.GL_PROJECTION | gl.GL_MODELVIEW)
     # gl.glLoadIdentity()
     # gl.glOrtho(-1, 1, -1, 1, 0.1, 1)
