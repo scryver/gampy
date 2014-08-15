@@ -33,7 +33,7 @@ class Camera:
 
     def input(self, inputs, dt, widget, width, height):
         sensitivity = 0.5
-        move_amount = 10. * dt
+        move_amount = 1000. * dt
         # rot_amount = 100. * dt
 
         if inputs.get_key(gameinput.KEY_ESCAPE):

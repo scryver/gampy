@@ -50,8 +50,8 @@ class Game:
         self.transform = Transform()
         self.tmp = 0.
 
-    def input(self, inputs, dt, widget, width, height):
-        self.camera.input(inputs, dt, widget, width, height)
+    def input(self, inputs, dt, widget):
+        self.camera.input(inputs, dt, widget, Transform.width, Transform.height)
         # mouse_pos = inputs.mouse_position
         # if inputs.get_key_down(gameinput.KEY_DOWN):
         #     print('We\'ve just pressed key DOWN')

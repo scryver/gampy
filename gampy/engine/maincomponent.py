@@ -55,10 +55,17 @@ class MainComponent:
 
         self.is_running = False
 
+    def _input_updater(self, delta):
+        self.game.input(self.input, self.time.delta, self.window.display)
+        self.input.update(self.time.delta)
+        self.window.root.after(delta, self._input_updater, delta)
+
+
     @timings
     def _run(self):
         self.is_running = True
         self.input.bind_window(self.window)
+        self._input_updater(50)
 
         frames = 0
         frame_counter = 0.
@@ -88,8 +95,6 @@ class MainComponent:
 
                 self.time.delta = frame_time
 
-                self.game.input(self.input, self.time.delta, self.window.display, self.WIDTH, self.HEIGHT)
-
                 self.game.update(self.time.delta)
 
                 self.window.update(self.time.delta)
@@ -99,10 +104,6 @@ class MainComponent:
                     print('Frame rate: ', frames)
                     frames = 0
                     frame_counter = 0.
-
-                # limiting the input reader (doesn't do that much)
-                if (frame_counter * 20) % 2 == 0:
-                    self.input.update(self.time.delta)
 
             if render:
                 self._render()
