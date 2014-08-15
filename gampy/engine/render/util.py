@@ -8,6 +8,10 @@ def clear_screen():
     gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
 
+def set_clear_color(color):
+    gl.glClearColor(color.x, color.y, color.z, 1.0)
+
+
 def init_graphics():
     gl.glClearColor(0., 0., 0., 0.)
     #
@@ -23,12 +27,21 @@ def init_graphics():
 
     # todo: Depth Clamp
 
+    gl.glEnable(gl.GL_TEXTURE_2D)
     # Gamma correction so linear colors can be used (instead of exponential)
     gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
-    gl.glMatrixMode(gl.GL_PROJECTION | gl.GL_MODELVIEW)
-    gl.glLoadIdentity()
+    # gl.glMatrixMode(gl.GL_PROJECTION | gl.GL_MODELVIEW)
+    # gl.glLoadIdentity()
     # gl.glOrtho(-1, 1, -1, 1, 0.1, 1)
     # gl.glFrustum(-1, 1, -1, 1, 0.1, 1)
 
+
 def get_open_gl_version():
     return gl.glGetString(gl.GL_VERSION)
+
+
+def set_textures(enabled=False):
+    if enabled:
+        gl.glEnable(gl.GL_TEXTURE_2D)
+    else:
+        gl.glDisable(gl.GL_TEXTURE_2D)

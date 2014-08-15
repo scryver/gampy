@@ -1,24 +1,53 @@
 __author__ = 'michiel'
 
 import gampy.engine.input.input as gameinput
-import gampy.engine.events.time as time
-import gampy.engine.objects.meshes as meshes
-import gampy.engine.objects.vectors as vec
 import math
 from gampy.engine.render.shader import Shader
-from gampy.engine.resource_loader import load_shader, load_mesh
+from gampy.engine.render.texture import Texture
+from gampy.engine.resource_loader import load_shader, load_mesh, load_texture
 from gampy.engine.objects.transform import Transform
-import gampy.engine.objects.util as util
+from gampy.engine.render.camera import Camera
+import gampy.engine.render.util as render_util
+
+
+# Temp function
+def test_mesh():
+    import numpy
+    from gampy.engine.objects.meshes import Mesh, Vertex
+    from gampy.engine.objects.vectors import Vector2, Vector3
+    mesh = Mesh()
+
+    vertices = [
+        Vertex(Vector3(-1, -1, -1), Vector2(0, 0)),
+        Vertex(Vector3(0, 1, 0), Vector2(0.5, 0)),
+        Vertex(Vector3(1, -1, -1), Vector2(1.0, 0)),
+        Vertex(Vector3(0, -1, 1), Vector2(0, 0.5)),
+    ]
+
+    indices =[
+        3, 1, 0,
+        2, 1, 3,
+        0, 1, 2,
+        0, 2, 3,
+    ]
+
+    mesh.add_vertices(vertices, indices)
+
+    return mesh
+
 
 class Game:
 
     def __init__(self, width, height):
-        self.mesh = load_mesh('sphere.obj')
+        self.mesh = test_mesh() # load_mesh('cube.obj')
+        self.texture = Texture(load_texture('test.png'))
 
         self.shader = Shader()
+        self.camera = Camera()
+        Transform.camera = self.camera
 
-        self.shader.add_vertex_shader(load_shader('basic_vertex_120.vs', 'vertex'))
-        self.shader.add_fragment_shader(load_shader('basic_fragment_120.fs', 'fragment'))
+        self.shader.add_vertex_shader(load_shader('basic_vertex.vs', 'vertex'))
+        self.shader.add_fragment_shader(load_shader('basic_fragment.fs', 'fragment'))
         self.shader.compile_shader()
 
         self.shader.add_uniform('transform')
@@ -26,16 +55,17 @@ class Game:
         self.transform = Transform()
         self.tmp = 0.
 
-    def input(self, inputs):
-        mouse_pos = inputs.mouse_position
-        if inputs.get_key_down(gameinput.KEY_DOWN):
-            print('We\'ve just pressed key DOWN')
-        if inputs.get_key_up(gameinput.KEY_DOWN):
-            print('We\'ve just released key DOWN')
-        if inputs.get_mouse_down(1):
-            print('We\'ve just pressed mouse Left at {}'.format(mouse_pos))
-        if inputs.get_mouse_up(1):
-            print('We\'ve just released mouse Left at {}'.format(mouse_pos))
+    def input(self, inputs, dt):
+        self.camera.input(inputs, dt)
+        # mouse_pos = inputs.mouse_position
+        # if inputs.get_key_down(gameinput.KEY_DOWN):
+        #     print('We\'ve just pressed key DOWN')
+        # if inputs.get_key_up(gameinput.KEY_DOWN):
+        #     print('We\'ve just released key DOWN')
+        # if inputs.get_mouse_down(1):
+        #     print('We\'ve just pressed mouse Left at {}'.format(mouse_pos))
+        # if inputs.get_mouse_up(1):
+        #     print('We\'ve just released mouse Left at {}'.format(mouse_pos))
 
     def update(self, dt):
         self.tmp += dt
@@ -45,8 +75,11 @@ class Game:
         self.mesh.update(dt)
 
     def render(self):
+        render_util.set_clear_color(abs(Transform.camera.pos / 2048.0))
         self.shader.bind()
         self.shader.set_uniform('transform', self.transform.get_projected_transformation())
+
+        self.texture.bind()
         try:
             self.mesh.draw()
         finally:

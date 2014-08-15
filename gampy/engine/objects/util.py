@@ -6,24 +6,18 @@ from gampy.engine.objects.vectors import Matrix4
 
 def cast_object_vertexes(vertices):
     size = len(vertices)
-    num_array = []
-
-    for i in range(size):
-        num_array.append([vertices[i].pos.x,
-                          vertices[i].pos.y,
-                          vertices[i].pos.z])
+    num_array = [[vertices[i].pos.x,
+                  vertices[i].pos.y,
+                  vertices[i].pos.z,
+                  vertices[i].tex_coord.x,
+                  vertices[i].tex_coord.y
+                 ] for i in range(size)]
 
     return numpy.array(num_array, dtype=numpy.float32)
 
 
 def cast_object_indices(indices):
-    size = len(indices)
-    num_array = []
-
-    for i in range(size):
-        num_array.append(indices[i])
-
-    return numpy.array(num_array, dtype=numpy.uint32)
+    return numpy.array(indices, dtype=numpy.uint32)
 
 
 def cast_matrix(matrix):

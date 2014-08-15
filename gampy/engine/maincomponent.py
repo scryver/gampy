@@ -38,8 +38,8 @@ class MainComponent:
         self.game = game.Game(MainComponent.WIDTH, MainComponent.HEIGHT)
         self.input = game_input.Input()
         self.time = time.Time()
-        self.framerater = 0.
-        self.framerater_count = 0.
+        self.frame_rater = 0.
+        self.frame_rater_count = 0.
 
     @timings
     def start(self):
@@ -77,7 +77,7 @@ class MainComponent:
 
             unprocessed_time += passed_time
             frame_counter += passed_time
-            self.framerater_count += passed_time
+            self.frame_rater_count += passed_time
 
             while unprocessed_time > frame_time:
                 render = True
@@ -88,8 +88,7 @@ class MainComponent:
 
                 self.time.delta = frame_time
 
-                self.game.input(self.input)
-                self.input.update(self.time.delta)
+                self.game.input(self.input, self.time.delta)
 
                 self.game.update(self.time.delta)
 
@@ -101,10 +100,14 @@ class MainComponent:
                     frames = 0
                     frame_counter = 0.
 
+                # limiting the input reader (doesn't do that much)
+                if (frame_counter * 20) % 2 == 0:
+                    self.input.update(self.time.delta)
+
             if render:
                 self._render()
                 frames += 1
-                self.framerater += 1
+                self.frame_rater += 1
             else:
                 time.Time.sleep()
 
@@ -129,8 +132,8 @@ class MainComponent:
 
     def __del__(self):
         print(timings)
-        print('Average FPS: {avg:7.2f} | Total frames rendered: {tot:.0f}'.format(avg=self.framerater / self.framerater_count,
-                                                                         tot=self.framerater))
+        print('Average FPS: {avg:7.2f} | Total frames rendered: {tot:.0f}'.format(avg=self.frame_rater / self.frame_rater_count,
+                                                                                  tot=self.frame_rater))
 
 
 if __name__ == '__main__':

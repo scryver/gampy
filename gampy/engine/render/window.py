@@ -40,6 +40,10 @@ class Window:
     def resize(self, event):
         width = event.width
         height = event.height
+
+        if height <= 0:
+            height = 1
+
         Transform.set_projection(70., width, height, 0.1, 1000.)
 
     @property

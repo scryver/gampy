@@ -2,6 +2,7 @@ __author__ = 'michiel'
 
 from math import sqrt, radians, sin, cos, tan
 from numbers import Number
+import numpy as np
 
 
 class Vector2:
@@ -102,8 +103,27 @@ class Vector3:
         self.y /= length
         self.z /= length
 
-    def rotate(self, angle):
-        pass
+    def rotate(self, angle, axis):
+        if isinstance(axis, Vector3):
+            half_angle = radians(angle / 2)
+            sin_half_angle = sin(half_angle)
+            cos_half_angle = cos(half_angle)
+
+            rx = axis.x * sin_half_angle
+            ry = axis.y * sin_half_angle
+            rz = axis.z * sin_half_angle
+            rw = cos_half_angle
+
+            rotation = Quaternion(rx, ry, rz, rw)
+            w = (rotation * self) * rotation.conjugate()
+
+            self.x = w.x
+            self.y = w.y
+            self.z = w.z
+
+            return self
+
+        return NotImplemented
 
     def __add__(self, other):
         if isinstance(other, Vector3):
@@ -139,6 +159,12 @@ class Vector3:
 
     def __str__(self):
         return '({} {} {})'.format(self.x, self.y, self.z)
+
+    def __abs__(self):
+        return Vector3(abs(self.x), abs(self.y), abs(self.z))
+
+    def copy(self):
+        return Vector3(self.x, self.y, self.z)
 
 
 class Matrix4:
@@ -229,6 +255,43 @@ class Matrix4:
         self.set(1, 0, 0.);         self.set(1, 1, y);      self.set(1, 2, 0.);       self.set(1, 3, 0.)
         self.set(2, 0, 0.);         self.set(2, 1, 0.);     self.set(2, 2, z);        self.set(2, 3, zw)
         self.set(3, 0, 0.);         self.set(3, 1, 0.);     self.set(3, 2, 1.);       self.set(3, 3, 0.)
+
+        return self
+
+    def init_camera(self, forward, up):
+        if not isinstance(up, Vector3):
+            raise AttributeError('Up direction of the camera is not a vector')
+        if not isinstance(forward, Vector3):
+            raise AttributeError('Forward direction of the camera is not a vector')
+
+        # DONT KNOW IF THIS IS NECESSARY
+        f = forward.copy()
+        f.normalize()
+
+        r = up.copy()
+        r.normalize()
+        r = r.cross(f)
+
+        u = f.cross(r)
+        # END OF DONT KNOW
+
+        for i, j in self.item_loop():
+            if i == 0:
+                v = r
+            elif i == 1:
+                v = u
+            elif i == 2:
+                v = f
+
+            if j == 0:
+                self.set(i, j, v.x)
+            elif j == 1:
+                self.set(i, j, v.y)
+            elif j == 2:
+                self.set(i, j, v.z)
+
+            if i == j == 3:
+                self.set(i, j, 1.)
 
         return self
 

@@ -5,6 +5,8 @@ from gampy.engine.objects.vectors import Vector3, Matrix4
 
 class Transform:
 
+    camera = None
+
     z_near = 0.1
     z_far = 100.0    #
     width = 800     # Width of screen
@@ -37,8 +39,12 @@ class Transform:
         transformation = self.get_transformation()
         projection = Matrix4().init_projection(Transform.fov, Transform.width, Transform.height,
                                                Transform.z_near, Transform.z_far)
+        camera_rotation = Matrix4().init_camera(Transform.camera.forward, Transform.camera.up)
+        camera_translation = Matrix4().initTranslation(-Transform.camera.pos.x,
+                                                       -Transform.camera.pos.y,
+                                                       -Transform.camera.pos.z)
 
-        return projection * transformation
+        return projection * camera_rotation * camera_translation * transformation
 
 
     @classmethod

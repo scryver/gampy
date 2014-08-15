@@ -147,7 +147,7 @@ class Input:
 
     def __init__(self):
         # HACK FOR REPEATING KEYS
-        os.system('xset r off')
+        # os.system('xset r off')
 
         self._event_keys = {}
         self._last_keys = {}
@@ -239,6 +239,17 @@ class Input:
         except Exception as err:
             print(err.with_traceback(None))
 
+    def set_cursor(self, widget, enabled=True, type='target'):
+        types = ['arrow', 'circle', 'clock', 'cross', 'dotbox', 'exchange', 'fleur', 'heart', 'heart',
+                 'man', 'mouse', 'pirate', 'plus', 'shuttle', 'sizing', 'spider', 'spraycan', 'star',
+                 'target', 'tcross', 'trek', 'watch']
+        if enabled and type in types:
+            cursor = type
+        else:
+            cursor = 'none'
+        widget.config(cursor=cursor)
+
     def destroy(self):
         # HACK FOR REPEATING KEYS
-        os.system('xset r on')
+        # os.system('xset r on')
+        pass
