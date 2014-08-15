@@ -16,7 +16,6 @@ from gampy.engine.objects.meshes import Mesh
 def test_mesh():
     from gampy.engine.objects.meshes import Vertex
     from gampy.engine.objects.vectors import Vector2
-    mesh = Mesh()
 
     def create_block(depth, width):
         vertices = [
@@ -78,7 +77,7 @@ def test_mesh():
 
     vertices, indices = create_block(10, 10)
 
-    mesh.add_vertices(vertices, indices, True)
+    mesh = Mesh(vertices, indices, True)
 
     return mesh
 
@@ -96,12 +95,12 @@ class Game:
 
     def __init__(self, width, height):
         PhongShader.ambient_light = Vector3(0.1, 0.1, 0.1)
-        # PhongShader.directional_light = lights.DirectionalLight(lights.BaseLight(Vector3(1, 1, 1), 0.8), Vector3(1, 1, 1))
+        PhongShader.directional_light = lights.DirectionalLight(lights.BaseLight(Vector3(1, 1, 1), 0.8), Vector3(1, 1, 1))
 
-        # PhongShader.set_point_lights([Game.point_light_1, Game.point_light_2])
+        PhongShader.set_point_lights([Game.point_light_1, Game.point_light_2])
         PhongShader.set_spot_lights([Game.spot_light_1])
 
-        self.mesh = test_mesh() # Mesh.load_mesh('cube.obj')
+        self.mesh = test_mesh() # Mesh('cube.obj')
         self.material = Material(Texture('test.png'), Vector3(1, 1, 1))
 
         self.shader = PhongShader()

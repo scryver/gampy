@@ -4,19 +4,28 @@ import OpenGL.GL as gl
 from PIL import Image
 import numpy
 import os.path
+import numbers
 
 class Texture:
 
-    def __init__(self, texture_name):
-        id = Texture.load_texture(texture_name)
+    def __init__(self, texture):
+        if isinstance(texture, numbers.Number):
+            id = texture
+        elif isinstance(texture, str):
+            id = Texture._load_texture(texture)
+        else:
+            raise AttributeError('Texture is not a file or number')
         self._id = id
 
     def bind(self):
-
         gl.glBindTexture(gl.GL_TEXTURE_2D, self._id)
 
     @classmethod
-    def load_texture(cls, texture_name: str):
+    def unbind(cls):
+        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+
+    @classmethod
+    def _load_texture(cls, texture_name: str):
         # # http://pyopengl.sourceforge.net/context/tutorials/nehe6.html
         #
         # # PIL defines an "open" method which is Image specific!

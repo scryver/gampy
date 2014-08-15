@@ -3,7 +3,7 @@ __author__ = 'michiel'
 import OpenGL.GL as gl
 from gampy.engine.objects.vectors import Vector3, Matrix4
 from gampy.engine.objects.util import cast_matrix
-from gampy.engine.render.util import unbind_textures
+from gampy.engine.render.texture import Texture
 import gampy.engine.render.lights as lights
 import os.path
 
@@ -62,6 +62,15 @@ class Shader:
         updateDict = { uniform: uniform_location }
         self.uniforms.update(updateDict)
 
+    def add_vertex_shader_from_file(self, text):
+        self._add_program(Shader._load_shader(text, 'vertex'), gl.GL_VERTEX_SHADER)
+
+    def add_geometry_shader_from_file(self, text):
+        self._add_program(Shader._load_shader(text, 'geometry'), gl.GL_GEOMETRY_SHADER)
+
+    def add_fragment_shader_from_file(self, text):
+        self._add_program(Shader._load_shader(text, 'fragment'), gl.GL_FRAGMENT_SHADER)
+
     def add_vertex_shader(self, text):
         self._add_program(text, gl.GL_VERTEX_SHADER)
 
@@ -112,7 +121,7 @@ class Shader:
             raise AttributeError('Uniform "{}" is not added to the list'.format(uniform))
 
     @classmethod
-    def load_shader(cls, file_name, type='vertex'):
+    def _load_shader(cls, file_name, type='vertex'):
         shader = ''
         with open(os.path.join(os.path.dirname(__file__), '..', '..', 'res', 'shaders', type, file_name), 'r', 1) as file:
             for line in file:
@@ -128,8 +137,8 @@ class BasicShader(Shader):
     def __init__(self):
         super(BasicShader, self).__init__()
 
-        self.add_vertex_shader(BasicShader.load_shader('basic_vertex.vs', 'vertex'))
-        self.add_fragment_shader(BasicShader.load_shader('basic_fragment.fs', 'fragment'))
+        self.add_vertex_shader_from_file('basic_vertex.vs')
+        self.add_fragment_shader_from_file('basic_fragment.fs')
         self.compile_shader()
 
         self.add_uniform('transform')
@@ -139,7 +148,7 @@ class BasicShader(Shader):
         if material.texture is not None:
             material.texture.bind()
         else:
-            unbind_textures()
+            Texture.unbind()
 
         self.set_uniform('transform', projected_matrix)
         self.set_uniform('color', material.color)
@@ -157,8 +166,8 @@ class PhongShader(Shader):
 
     def __init__(self):
         super(PhongShader, self).__init__()
-        self.add_vertex_shader(PhongShader.load_shader('phong_vertex.vs', 'vertex'))
-        self.add_fragment_shader(PhongShader.load_shader('phong_fragment.fs', 'fragment'))
+        self.add_vertex_shader_from_file('phong_vertex.vs')
+        self.add_fragment_shader_from_file('phong_fragment.fs')
         self.compile_shader()
 
         self.add_uniform('transform')
@@ -199,7 +208,7 @@ class PhongShader(Shader):
         if material.texture is not None:
             material.texture.bind()
         else:
-            unbind_textures()
+            Texture.unbind()
 
         self.set_uniform('transform', world_matrix)
         self.set_uniform('transformProjected', projected_matrix)

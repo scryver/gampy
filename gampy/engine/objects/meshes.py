@@ -43,12 +43,18 @@ class Vertex:
 
 class Mesh:
 
-    def __init__(self):
+    def __init__(self, vertices, indices=None, calc_norm=False, usage=None):
         self.size = 0
         self.ibo = None     # Index Buffer Object id
         self.vbo = None     # Vertex Buffer Object id
 
-    def add_vertices(self, vertices, indices, calc_norms=False, usage=None):
+        if isinstance(vertices, str):
+            """A file has been passed in"""
+            self._load_mesh(vertices)
+        else:
+            self._add_vertices(vertices, indices, calc_norm, usage)
+
+    def _add_vertices(self, vertices, indices, calc_norms, usage):
         if calc_norms:
             self._calc_normals(vertices, indices)
 
@@ -102,7 +108,7 @@ class Mesh:
     def update(self, dt):
         pass
 
-    def load_mesh(file_name: str):
+    def _load_mesh(self, file_name: str):
         split_array = file_name.split('.')
         ext = split_array[len(split_array) - 1]
 
@@ -143,7 +149,4 @@ class Mesh:
         vertices = numpy.array(vertices, dtype=numpy.float32)
         indices = numpy.array(indices, dtype=numpy.uint32)
 
-        mesh = Mesh()
-        mesh.add_vertices(vertices, indices)
-
-        return mesh
+        self._add_vertices(vertices, indices)
