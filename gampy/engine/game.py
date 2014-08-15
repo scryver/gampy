@@ -2,9 +2,10 @@ __author__ = 'michiel'
 
 import gampy.engine.input.input as gameinput
 import math
-from gampy.engine.render.shader import Shader
-from gampy.engine.render.texture import Texture
-from gampy.engine.resource_loader import load_shader, load_mesh, load_texture
+from gampy.engine.render.shader import BasicShader
+from gampy.engine.render.material import Material
+from gampy.engine.objects.vectors import Vector3
+from gampy.engine.resource_loader import load_mesh, load_texture
 from gampy.engine.objects.transform import Transform
 from gampy.engine.render.camera import Camera
 import gampy.engine.render.util as render_util
@@ -40,23 +41,17 @@ class Game:
 
     def __init__(self, width, height):
         self.mesh = test_mesh() # load_mesh('cube.obj')
-        self.texture = Texture(load_texture('test.png'))
+        self.material = Material(load_texture('test.png'), Vector3(0, 1, 1))
 
-        self.shader = Shader()
+        self.shader = BasicShader()
         self.camera = Camera()
         Transform.camera = self.camera
-
-        self.shader.add_vertex_shader(load_shader('basic_vertex.vs', 'vertex'))
-        self.shader.add_fragment_shader(load_shader('basic_fragment.fs', 'fragment'))
-        self.shader.compile_shader()
-
-        self.shader.add_uniform('transform')
 
         self.transform = Transform()
         self.tmp = 0.
 
-    def input(self, inputs, dt):
-        self.camera.input(inputs, dt)
+    def input(self, inputs, dt, widget, width, height):
+        self.camera.input(inputs, dt, widget, width, height)
         # mouse_pos = inputs.mouse_position
         # if inputs.get_key_down(gameinput.KEY_DOWN):
         #     print('We\'ve just pressed key DOWN')
@@ -70,16 +65,16 @@ class Game:
     def update(self, dt):
         self.tmp += dt
         self.transform.set_translation(math.cos(self.tmp), 0, 5)
-        self.transform.set_rotation(0, math.cos(self.tmp) * 180, 0)
+        # self.transform.set_rotation(0, math.cos(self.tmp) * 180, 0)
         # self.transform.set_scale(0.6 * math.cos(self.tmp), 0.6 * math.cos(self.tmp), 0.6 * math.cos(self.tmp))
         self.mesh.update(dt)
 
     def render(self):
         render_util.set_clear_color(abs(Transform.camera.pos / 2048.0))
         self.shader.bind()
-        self.shader.set_uniform('transform', self.transform.get_projected_transformation())
-
-        self.texture.bind()
+        self.shader.update_uniforms(self.transform.get_transformation(),
+                                    self.transform.get_projected_transformation(),
+                                    self.material)
         try:
             self.mesh.draw()
         finally:

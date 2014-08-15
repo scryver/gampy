@@ -88,7 +88,7 @@ class MainComponent:
 
                 self.time.delta = frame_time
 
-                self.game.input(self.input, self.time.delta)
+                self.game.input(self.input, self.time.delta, self.window.display, self.WIDTH, self.HEIGHT)
 
                 self.game.update(self.time.delta)
 

@@ -5,6 +5,7 @@ import numpy as np
 import OpenGL.GL as gl
 from gampy.engine.util import remove_empty_strings
 from gampy.engine.objects.meshes import Mesh
+from gampy.engine.render.texture import Texture
 from PIL import Image
 
 
@@ -126,7 +127,7 @@ def load_texture(texture_name: str):
     gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST)    # Don't know why
     gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, components, img.size[0], img.size[1], 0, format, gl.GL_UNSIGNED_BYTE, img_data)
 
-    return texture
+    return Texture(texture)
 
 
 

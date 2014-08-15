@@ -45,3 +45,6 @@ def set_textures(enabled=False):
         gl.glEnable(gl.GL_TEXTURE_2D)
     else:
         gl.glDisable(gl.GL_TEXTURE_2D)
+
+def unbind_textures():
+    gl.glBindTexture(gl.GL_TEXTURE_2D, 0)

@@ -21,10 +21,10 @@ class Vector2:
 
         return NotImplemented
 
-    def normalize(self):
+    def normalized(self):
         length = self.length
-        self.x /= length
-        self.y /= length
+
+        return self / length
 
     def rotate(self, angle):
         rad = radians(angle)
@@ -97,11 +97,10 @@ class Vector3:
 
         return NotImplemented
 
-    def normalize(self):
+    def normalized(self):
         length = self.length
-        self.x /= length
-        self.y /= length
-        self.z /= length
+
+        return self.copy() / length
 
     def rotate(self, angle, axis):
         if isinstance(axis, Vector3):
@@ -176,6 +175,12 @@ class Matrix4:
             self.m.append([])
             for j in range(4):
                 self.m[i].append(0.)
+
+    def get_m(self):
+        res = Matrix4()
+        res.m = [[self.m[i][j] for j in range(4)] for i in range(4)]
+
+        return res
 
     def initIdentity(self):
         for i, j in self.item_loop():
@@ -265,11 +270,9 @@ class Matrix4:
             raise AttributeError('Forward direction of the camera is not a vector')
 
         # DONT KNOW IF THIS IS NECESSARY
-        f = forward.copy()
-        f.normalize()
+        f = forward.normalized()
 
-        r = up.copy()
-        r.normalize()
+        r = up.normalized()
         r = r.cross(f)
 
         u = f.cross(r)
@@ -346,15 +349,10 @@ class Quaternion:
     def length(self):
         return sqrt(self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w)
 
-    def normalize(self):
+    def normalized(self):
         length = self.length
 
-        self.x /= length
-        self.y /= length
-        self.z /= length
-        self.w /= length
-
-        return self
+        return self / length
 
     def conjugate(self):
         return Quaternion(-self.x, -self.y, -self.z, self.w)
@@ -374,5 +372,11 @@ class Quaternion:
             z =  self.w * other.z + self.x * other.y - self.y * other.x
 
             return Quaternion(x, y, z, w)
+
+        return NotImplemented
+
+    def __truediv__(self, other):
+        if isinstance(other, Number):
+            return Quaternion(self.x / other, self.y / other, self.z / other, self.w / other)
 
         return NotImplemented

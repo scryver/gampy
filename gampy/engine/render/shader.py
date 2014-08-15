@@ -3,6 +3,8 @@ __author__ = 'michiel'
 import OpenGL.GL as gl
 from gampy.engine.objects.vectors import Vector3, Matrix4
 from gampy.engine.objects.util import cast_matrix
+from gampy.engine.resource_loader import load_shader, load_mesh, load_texture
+from gampy.engine.render.util import unbind_textures
 
 
 class ShaderException(Exception):
@@ -47,6 +49,9 @@ class Shader:
 
     def unbind(self):
         gl.glUseProgram(0)
+
+    def update_uniforms(self, world_matrix, projected_matrix, material):
+        pass
 
     def add_uniform(self, uniform):
         uniform_location = gl.glGetUniformLocation(self.program, uniform)
@@ -105,3 +110,25 @@ class Shader:
                 raise AttributeError('Value "{}" is not an int, float, Vector3 or Matrix'.format(value))
         else:
             raise AttributeError('Uniform "{}" is not added to the list'.format(uniform))
+
+
+class BasicShader(Shader):
+
+    def __init__(self):
+        super(BasicShader, self).__init__()
+
+        self.add_vertex_shader(load_shader('basic_vertex.vs', 'vertex'))
+        self.add_fragment_shader(load_shader('basic_fragment.fs', 'fragment'))
+        self.compile_shader()
+
+        self.add_uniform('transform')
+        self.add_uniform('color')
+
+    def update_uniforms(self, world_matrix, projected_matrix, material):
+        if material.texture is not None:
+            material.texture.bind()
+        else:
+            unbind_textures()
+
+        self.set_uniform('transform', projected_matrix)
+        self.set_uniform('color', material.color)

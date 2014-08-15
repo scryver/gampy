@@ -1,7 +1,7 @@
 __author__ = 'michiel'
 
 
-from gampy.engine.objects.vectors import Vector3
+from gampy.engine.objects.vectors import Vector2, Vector3
 import gampy.engine.input.input as gameinput
 
 
@@ -26,15 +26,23 @@ class Camera:
             raise AttributeError('Forward direction of the camera is not a vector')
 
         self.pos = pos
-        self.up = up
-        self.forward = forward
+        self.up = up.normalized()
+        self.forward = forward.normalized()
 
-        self.up.normalize()
-        self.forward.normalize()
+        self.mouse_locked = False
 
-    def input(self, inputs, dt):
+    def input(self, inputs, dt, widget, width, height):
+        sensitivity = 0.5
         move_amount = 10. * dt
-        rot_amount = 100. * dt
+        # rot_amount = 100. * dt
+
+        if inputs.get_key(gameinput.KEY_ESCAPE):
+            inputs.set_cursor(widget, True)
+            self.mouse_locked = False
+        if inputs.get_mouse_down(gameinput.MOUSE_LEFT):
+            inputs.set_cursor(widget, False)
+            inputs.set_mouse_position(widget, width / 2, height / 2)
+            self.mouse_locked = True
 
         if inputs.get_key(gameinput.KEY_W):
             self.move(self.forward, move_amount)
@@ -45,47 +53,43 @@ class Camera:
         if inputs.get_key(gameinput.KEY_D):
             self.move(self.right, move_amount)
 
-        if inputs.get_key(gameinput.KEY_UP):
-            self.rotate_x(-rot_amount)
-        if inputs.get_key(gameinput.KEY_DOWN):
-            self.rotate_x(rot_amount)
-        if inputs.get_key(gameinput.KEY_LEFT):
-            self.rotate_y(-rot_amount)
-        if inputs.get_key(gameinput.KEY_RIGHT):
-            self.rotate_y(rot_amount)
+        if self.mouse_locked:
+            delta_pos = inputs.mouse_position - Vector2(width / 2, height / 2)
+            rot = False
+            if delta_pos.x != 0:
+                self.rotate_y(delta_pos.x * sensitivity)
+                rot = True
+            if delta_pos.y != 0:
+                self.rotate_x(delta_pos.y * sensitivity)
+                rot = True
+
+            if rot:
+                inputs.set_mouse_position(widget, width / 2, height / 2)
 
 
     def move(self, direction, amount):
         self.pos = self.pos + direction * amount
 
     def rotate_y(self, angle):
-        h_axis = Camera.y_axis.cross(self.forward)
-        h_axis.normalize()
+        h_axis = Camera.y_axis.cross(self.forward).normalized()
 
-        self.forward.rotate(angle, Camera.y_axis)
-        self.forward.normalize()
+        self.forward = self.forward.rotate(angle, Camera.y_axis).normalized()
 
-        self.up = self.forward.cross(h_axis)
-        self.up.normalize()
+        self.up = self.forward.cross(h_axis).normalized()
 
     def rotate_x(self, angle):
-        h_axis = Camera.y_axis.cross(self.forward)
-        h_axis.normalize()
+        h_axis = Camera.y_axis.cross(self.forward).normalized()
 
-        self.forward.rotate(angle, h_axis)
-        self.forward.normalize()
+        self.forward = self.forward.rotate(angle, h_axis).normalized()
 
-        self.up = self.forward.cross(h_axis)
-        self.up.normalize()
+        self.up = self.forward.cross(h_axis).normalized()
 
     @property
     def left(self):
-        left_vec = self.forward.cross(self.up)
-        left_vec.normalize()
+        left_vec = self.forward.cross(self.up).normalized()
         return left_vec
 
     @property
     def right(self):
-        right_vec = self.up.cross(self.forward)
-        right_vec.normalize()
+        right_vec = self.up.cross(self.forward).normalized()
         return right_vec
