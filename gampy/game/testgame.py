@@ -87,8 +87,6 @@ def test_mesh():
 class TestGame(Game):
 
     def init(self):
-        self.camera = Camera()
-
         mesh = test_mesh() # Mesh('cube.obj')
         material = Material(Texture('test.png'), Vector3(1, 1, 1))
 
@@ -102,12 +100,8 @@ class TestGame(Game):
         plane_object.transform.set_translation(0, -1, 5)
         plane_object.transform.set_rotation(0, -45, 0)
 
-        Transform.camera = self.camera
-        Transform.set_projection(70., Window.width, Window.height, 0.1, 1000.)
-
     def input(self):
         super().input()
-        self.camera.input()
 
     def destroy(self):
         pass

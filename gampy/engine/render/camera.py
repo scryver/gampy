@@ -1,7 +1,7 @@
 __author__ = 'michiel'
 
 
-from gampy.engine.core.vectors import Vector2, Vector3
+from gampy.engine.core.vectors import Vector3, Matrix4
 from gampy.engine.core.input import Input
 from gampy.engine.core.coreengine import Window, Time
 
@@ -11,7 +11,7 @@ class Camera:
     # The global up vector
     y_axis = Vector3(0., 1., 0.)
 
-    def __init__(self, pos=None, forward=None, up=None):
+    def __init__(self, fov, aspect, z_near, z_far, pos=None, forward=None, up=None):
         if pos == None:
             pos = Vector3(0., 0., 0.)
         if forward == None:
@@ -29,8 +29,15 @@ class Camera:
         self.pos = pos
         self.up = up.normalized()
         self.forward = forward.normalized()
+        self.projection = Matrix4().init_perspective(fov, aspect, z_near, z_far)
 
         self.mouse_locked = False
+
+    def view_projection(self):
+        camera_rotation = Matrix4().init_rotation(self.forward, self.up)
+        camera_translation = Matrix4().initTranslation(-self.pos.x, -self.pos.y, -self.pos.z)
+
+        return self.projection * camera_rotation * camera_translation
 
     def input(self):
         sensitivity = 0.5
@@ -42,7 +49,7 @@ class Camera:
             self.mouse_locked = False
         if Input.get_mouse_down(Input.MOUSE_MIDDLE):
             Input.set_cursor(False)
-            Input.set_mouse_position(Window.width / 2, Window.height / 2)
+            Input.set_mouse_position(Window.center.x, Window.center.y)
             self.mouse_locked = True
 
         if Input.get_key(Input.KEY_W):
@@ -55,7 +62,7 @@ class Camera:
             self.move(self.right, move_amount)
 
         if self.mouse_locked:
-            delta_pos = Input.mouse_position() - Vector2(Window.width / 2, Window.height / 2)
+            delta_pos = Input.mouse_position() - Window.center
             rot = False
             if delta_pos.x != 0:
                 self.rotate_y(delta_pos.x * sensitivity)
@@ -65,7 +72,7 @@ class Camera:
                 rot = True
 
             if rot:
-                Input.set_mouse_position(Window.width / 2, Window.height / 2)
+                Input.set_mouse_position(Window.center.x, Window.center.y)
 
             if Input.get_mouse(Input.MOUSE_LEFT):
                 self.move(self.forward, move_amount)

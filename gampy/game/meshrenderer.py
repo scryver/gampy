@@ -17,9 +17,7 @@ class MeshRenderer(GameComponent):
 
     def render(self, transform, shader):
         shader.bind()
-        shader.update_uniforms(transform.get_transformation(),
-                               transform.get_projected_transformation(),
-                               self.material)
+        shader.update_uniforms(transform, self.material)
         try:
             self.mesh.draw()
         finally:

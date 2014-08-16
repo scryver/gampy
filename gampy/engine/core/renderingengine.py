@@ -3,14 +3,17 @@ __author__ = 'michiel'
 
 from gampy.engine.core.gameobject import GameObject
 from gampy.engine.render.shader import BasicShader
+from gampy.engine.render.camera import Camera
 import OpenGL.GL as gl
+import math
+from gampy.engine.core.coreengine import Window
 
 class RenderingEngine:
 
     def __init__(self):
         print(RenderingEngine.get_open_gl_version())
         gl.glClearColor(0., 0., 0., 0.)
-        #
+
         # do not render backfacing faces and front is determined by clockwise
         gl.glFrontFace(gl.GL_CW)
         gl.glCullFace(gl.GL_BACK)
@@ -24,20 +27,21 @@ class RenderingEngine:
         gl.glEnable(gl.GL_DEPTH_CLAMP)
 
         gl.glEnable(gl.GL_TEXTURE_2D)
-        # Gamma correction so linear colors can be used (instead of exponential)
-        # gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
 
-        # gl.glMatrixMode(gl.GL_PROJECTION | gl.GL_MODELVIEW)
-        # gl.glLoadIdentity()
-        # gl.glOrtho(-1, 1, -1, 1, 0.1, 1)
-        # gl.glFrustum(-1, 1, -1, 1, 0.1, 1)
+        self.main_camera = Camera(math.radians(70.), Window.width / Window.height, 0.1, 1000.)
+
+    def input(self):
+        self.main_camera.input()
 
     def render(self, object):
         if not isinstance(object, GameObject):
             raise AttributeError('Cannot render other things then Game Objects')
 
+        shader = BasicShader.get_instance()
+        shader.rendering_engine = self
+
         self._clear_screen()
-        object.render(BasicShader.get_instance())
+        object.render(shader)
 
     @classmethod
     def _clear_screen(cls):

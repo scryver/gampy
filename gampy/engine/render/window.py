@@ -1,10 +1,11 @@
 __author__ = 'michiel'
 
 import tkinter
-
 import OpenGL.Tk
+import queue
 
 from gampy.engine.core.transform import Transform
+from gampy.engine.core.vectors import Vector2
 
 
 class Window:
@@ -16,6 +17,8 @@ class Window:
     is_display_open = False
     width = 0
     height = 0
+    queue = None
+    center = Vector2(width / 2, height / 2)
 
     @classmethod
     def create(cls, width: int, height: int, title: str):
@@ -30,6 +33,32 @@ class Window:
         cls.root.bind('<Configure>', cls.resize)
         cls.width = width
         cls.height = height
+        cls.set_center(width, height)
+
+        cls.queue = queue.Queue()
+        cls.process_queue()
+
+    @classmethod
+    def process_queue(cls):
+        try:
+            while 1:
+                process = cls.queue.get_nowait()
+                if process is None:
+                    pass
+                else:
+                    process()
+                cls.display.update_idletasks()
+        except queue.Empty:
+            pass
+        cls.display.after(10, cls.process_queue)
+
+    @classmethod
+    def add_to_queue(cls, process):
+        cls.queue.put(process)
+
+    @classmethod
+    def clear_queue(cls):
+        cls.queue.put(None)
 
     @classmethod
     def update(cls):
@@ -58,3 +87,10 @@ class Window:
 
         Transform.width = event.width
         Transform.height = event.height
+
+        cls.set_center(cls.width, cls.height)
+
+    @classmethod
+    def set_center(cls, width, height):
+        cls.center.x = width / 2
+        cls.center.y = height / 2

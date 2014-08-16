@@ -43,6 +43,7 @@ class Shader:
     def __init__(self):
         self.program = gl.glCreateProgram()
         self.uniforms = dict()
+        self.rendering_engine = None
 
         if self.program == 0:
             raise ShaderCreateError('Could not find valid memory location in constructor')
@@ -53,7 +54,7 @@ class Shader:
     def unbind(self):
         gl.glUseProgram(0)
 
-    def update_uniforms(self, world_matrix, projected_matrix, material, *args):
+    def update_uniforms(self, transform, material):
         pass
 
     def add_uniform(self, uniform):
@@ -149,12 +150,15 @@ class BasicShader(Shader):
         self.add_uniform('transform')
         self.add_uniform('color')
 
-    def update_uniforms(self, world_matrix, projected_matrix, material, *args):
+    def update_uniforms(self, transform, material):
         # if material.texture is not None:
         #     material.texture.bind()
         # else:
         #     Texture.unbind()
         material.texture.bind()
+
+        world_matrix = transform.get_transformation()
+        projected_matrix = self.rendering_engine.main_camera.view_projection() * world_matrix
 
         self.set_uniform('transform', projected_matrix)
         self.set_uniform('color', material.color)
@@ -223,12 +227,16 @@ class PhongShader(Shader):
             self.add_uniform('spotLights[{i}].direction'.format(i=i))
             self.add_uniform('spotLights[{i}].cutoff'.format(i=i))
 
-    def update_uniforms(self, world_matrix, projected_matrix, material, camera, *args):
+    def update_uniforms(self, transform, material):
         # if material.texture is not None:
         #     material.texture.bind()
         # else:
         #     Texture.unbind()
         material.texture.bind()
+
+        camera = self.rendering_engine.main_camera
+        world_matrix = transform.get_transformation()
+        projected_matrix = camera.view_projection() * world_matrix
 
         self.set_uniform('transform', world_matrix)
         self.set_uniform('transformProjected', projected_matrix)

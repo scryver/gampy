@@ -5,14 +5,6 @@ from gampy.engine.core.vectors import Vector3, Matrix4
 
 class Transform:
 
-    camera = None
-
-    z_near = 0.1
-    z_far = 100.0    #
-    width = 800     # Width of screen
-    height = 600    # Height of screen
-    fov = 0.        # Field of view
-
     def __init__(self):
         self.translation = Vector3(0.,0.,0.)
         self.rotation = Vector3(0., 0., 0.)
@@ -28,32 +20,12 @@ class Transform:
                                           self.rotation.z)
 
         scale = Matrix4().init_scale(self.scale.x,
-                                    self.scale.y,
-                                    self.scale.z)
+                                     self.scale.y,
+                                     self.scale.z)
 
         transformation = translation * rotation * scale
 
         return transformation
-
-    def get_projected_transformation(self):
-        transformation = self.get_transformation()
-        projection = Matrix4().init_projection(Transform.fov, Transform.width, Transform.height,
-                                               Transform.z_near, Transform.z_far)
-        camera_rotation = Matrix4().init_camera(Transform.camera.forward, Transform.camera.up)
-        camera_translation = Matrix4().initTranslation(-Transform.camera.pos.x,
-                                                       -Transform.camera.pos.y,
-                                                       -Transform.camera.pos.z)
-
-        return projection * camera_rotation * camera_translation * transformation
-
-
-    @classmethod
-    def set_projection(cls, fov, width, height, z_near, z_far):
-        cls.fov = fov
-        cls.width = width
-        cls.height = height
-        cls.z_near = z_near
-        cls.z_far = z_far
 
     def set_translation(self, x, y=None, z=None):
         if y == None and z == None and isinstance(x, Vector3):

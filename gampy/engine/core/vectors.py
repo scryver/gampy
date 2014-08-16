@@ -252,9 +252,25 @@ class Matrix4:
 
         return self
 
-    def init_projection(self, fov, width, height, z_near, z_far):
-        aspect_ratio = width / height
-        tan_half_fov = tan(radians(fov / 2))
+    def init_perspective(self, fov, aspect_ratio, z_near, z_far):
+        if isinstance(fov, Number):
+            fov = float(fov)
+        else:
+            raise AttributeError('Field of View is not a number')
+        if isinstance(aspect_ratio, Number):
+            aspect_ratio = float(aspect_ratio)
+        else:
+            raise AttributeError('Aspect Ratio is not a number')
+        if isinstance(z_near, Number):
+            z_near = float(z_near)
+        else:
+            raise AttributeError('Z Near is not a number')
+        if isinstance(z_far, Number):
+            z_far = float(z_far)
+        else:
+            raise AttributeError('Z Far is not a number')
+
+        tan_half_fov = tan(fov / 2)
         z_range = z_near - z_far
 
         x = 1 / (tan_half_fov * aspect_ratio)
@@ -269,7 +285,7 @@ class Matrix4:
 
         return self
 
-    def init_camera(self, forward, up):
+    def init_rotation(self, forward, up):
         if not isinstance(up, Vector3):
             raise AttributeError('Up direction of the camera is not a vector')
         if not isinstance(forward, Vector3):

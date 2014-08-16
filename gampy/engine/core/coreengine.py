@@ -4,6 +4,7 @@ from gampy.engine.render.window import Window
 from gampy.engine.core.time import Time
 from gampy.engine.core.input import Input
 from gampy.engine.core.renderingengine import RenderingEngine
+import _thread
 
 
 class CoreEngine:
@@ -66,10 +67,9 @@ class CoreEngine:
                 Time.delta = self.frame_time
 
                 self.game.input()
+                self.rendering_engine.input()
                 Input.update()
                 self.game.update()
-
-                Window.update()
 
                 if frame_counter >= 1.0:
                     # Frame Rate
@@ -79,7 +79,8 @@ class CoreEngine:
 
             if render:
                 self.rendering_engine.render(self.game.root_object)
-                Window.render()
+                Window.add_to_queue(Window.render)
+                Window.update()
                 frames += 1
                 self.frame_rater += 1
             else:
