@@ -1,15 +1,14 @@
 __author__ = 'michiel'
 
 import numpy
-
-from gampy.engine.core.vectors import Matrix4
+import numbers
 
 
 def cast_object_vertexes(vertices):
     size = len(vertices)
-    num_array = [[vertices[i].pos.x,
-                  vertices[i].pos.y,
-                  vertices[i].pos.z,
+    num_array = [[vertices[i].position.x,
+                  vertices[i].position.y,
+                  vertices[i].position.z,
                   vertices[i].tex_coord.x,
                   vertices[i].tex_coord.y,
                   vertices[i].normal.x,
@@ -19,23 +18,8 @@ def cast_object_vertexes(vertices):
 
     return numpy.array(num_array, dtype=numpy.float32)
 
-
 def cast_object_indices(indices):
     return numpy.array(indices, dtype=numpy.uint32)
-
-
-def cast_matrix(matrix):
-    if isinstance(matrix, Matrix4):
-        new_matrix = numpy.identity(4, dtype=numpy.float32)
-
-        for i, j in Matrix4.item_loop():
-            item = matrix.m[i][j]
-            new_matrix[i, j] = item
-
-        return new_matrix
-
-    return False
-
 
 def remove_empty_strings(data):
     result = []
@@ -45,3 +29,25 @@ def remove_empty_strings(data):
             result.append(data[i])
 
     return result
+
+def is_float(value, field_name, default=0):
+    """Checks if value is a number and cast it to a float, field_name is used for error description"""
+    if value is None and default is not None:
+        res = float(default)
+    elif isinstance(value, numbers.Number):
+        res = float(value)
+    else:
+        raise AttributeError('{} "{}" is not a number'.format(field_name, value))
+
+    return res
+
+def is_instance(value, field_name, type, default=None):
+    """Checks if value is an instance of type, field_name is used for error description"""
+    if value is None and default is not None:
+        res = default
+    elif isinstance(value, type):
+        res = value
+    else:
+        raise AttributeError('{field} "{value}" is not a {type}'.format(field=field_name, value=value, type=type))
+
+    return res

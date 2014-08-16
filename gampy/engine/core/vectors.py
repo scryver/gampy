@@ -2,14 +2,15 @@ __author__ = 'michiel'
 
 from math import sqrt, radians, sin, cos, tan
 from numbers import Number
-import numpy as np
+import numpy
+import gampy.engine.core.util as core_util
 
 
 class Vector2:
 
-    def __init__(self, x=0, y=0):
-        self.x = x
-        self.y = y
+    def __init__(self, x=None, y=None):
+        self.x = core_util.is_float(x, 'X')
+        self.y = core_util.is_float(y, 'Y')
 
     @property
     def length(self):
@@ -75,10 +76,10 @@ class Vector2:
 
 class Vector3:
 
-    def __init__(self, x=0, y=0, z=0):
-        self.x = x
-        self.y = y
-        self.z = z
+    def __init__(self, x=None, y=None, z=None):
+        self.x = core_util.is_float(x, 'X')
+        self.y = core_util.is_float(y, 'Y')
+        self.z = core_util.is_float(z, 'Z')
 
     @property
     def length(self):
@@ -188,14 +189,14 @@ class Matrix4:
 
         return res
 
-    def initIdentity(self):
+    def init_identity(self):
         for i, j in self.item_loop():
             if i == j:
                 self.m[i][j] = 1.
 
         return self
 
-    def initTranslation(self, x, y, z):
+    def init_translation(self, x, y, z):
         for i, j in self.item_loop():
             if i == j:
                 self.m[i][j] = 1.
@@ -209,32 +210,63 @@ class Matrix4:
 
         return self
 
-    def initRotation(self, x, y, z):
-        rx = Matrix4()
-        ry = Matrix4()
-        rz = Matrix4()
+    def init_rotation(self, x, y, z=None):
+        if z is None:
+            forward = core_util.is_instance(x, 'Forward', Vector3)
+            up = core_util.is_instance(y, 'Up', Vector3)
 
-        x = radians(x)
-        y = radians(y)
-        z = radians(z)
+            # DONT KNOW IF THIS IS NECESSARY
+            f = forward.normalized()
 
-        rz.set(0, 0, cos(z));   rz.set(0, 1, -sin(z));      rz.set(0, 2, 0.);       rz.set(0, 3, 0.)
-        rz.set(1, 0, sin(z));   rz.set(1, 1, cos(z));       rz.set(1, 2, 0.);       rz.set(1, 3, 0.)
-        rz.set(2, 0, 0.);       rz.set(2, 1, 0.);           rz.set(2, 2, 1.);       rz.set(2, 3, 0.)
-        rz.set(3, 0, 0.);       rz.set(3, 1, 0.);           rz.set(3, 2, 0.);       rz.set(3, 3, 1.)
-        
-        rx.set(0, 0, 1.);       rx.set(0, 1, 0.);           rx.set(0, 2, 0.);       rx.set(0, 3, 0.)
-        rx.set(1, 0, 0.);       rx.set(1, 1, cos(x));       rx.set(1, 2, -sin(x));  rx.set(1, 3, 0.)
-        rx.set(2, 0, 0.);       rx.set(2, 1, sin(x));       rx.set(2, 2, cos(x));   rx.set(2, 3, 0.)
-        rx.set(3, 0, 0.);       rx.set(3, 1, 0.);           rx.set(3, 2, 0.);       rx.set(3, 3, 1.)
-        
-        ry.set(0, 0, cos(y));   ry.set(0, 1, 0.);           ry.set(0, 2, sin(y));   ry.set(0, 3, 0.)
-        ry.set(1, 0, 0.);       ry.set(1, 1, 1.);           ry.set(1, 2, 0.);       ry.set(1, 3, 0.)
-        ry.set(2, 0, -sin(y));  ry.set(2, 1, 0.);           ry.set(2, 2, cos(y));   ry.set(2, 3, 0.)
-        ry.set(3, 0, 0.);       ry.set(3, 1, 0.);           ry.set(3, 2, 0.);       ry.set(3, 3, 1.)
+            r = up.normalized()
+            r = r.cross(f)
 
-        tmp = rz * ry * rx
-        self.m = tmp.m
+            u = f.cross(r)
+            # END OF DONT KNOW
+
+            for i, j in self.item_loop():
+                if i == 0:
+                    v = r
+                elif i == 1:
+                    v = u
+                elif i == 2:
+                    v = f
+
+                if j == 0:
+                    self.set(i, j, v.x)
+                elif j == 1:
+                    self.set(i, j, v.y)
+                elif j == 2:
+                    self.set(i, j, v.z)
+
+                if i == j == 3:
+                    self.set(i, j, 1.)
+        else:
+            rx = Matrix4()
+            ry = Matrix4()
+            rz = Matrix4()
+
+            x = radians(core_util.is_float(x, 'x'))
+            y = radians(core_util.is_float(y, 'Y'))
+            z = radians(core_util.is_float(z, 'Z'))
+
+            rz.set(0, 0, cos(z));   rz.set(0, 1, -sin(z));      rz.set(0, 2, 0.);       rz.set(0, 3, 0.)
+            rz.set(1, 0, sin(z));   rz.set(1, 1, cos(z));       rz.set(1, 2, 0.);       rz.set(1, 3, 0.)
+            rz.set(2, 0, 0.);       rz.set(2, 1, 0.);           rz.set(2, 2, 1.);       rz.set(2, 3, 0.)
+            rz.set(3, 0, 0.);       rz.set(3, 1, 0.);           rz.set(3, 2, 0.);       rz.set(3, 3, 1.)
+
+            rx.set(0, 0, 1.);       rx.set(0, 1, 0.);           rx.set(0, 2, 0.);       rx.set(0, 3, 0.)
+            rx.set(1, 0, 0.);       rx.set(1, 1, cos(x));       rx.set(1, 2, -sin(x));  rx.set(1, 3, 0.)
+            rx.set(2, 0, 0.);       rx.set(2, 1, sin(x));       rx.set(2, 2, cos(x));   rx.set(2, 3, 0.)
+            rx.set(3, 0, 0.);       rx.set(3, 1, 0.);           rx.set(3, 2, 0.);       rx.set(3, 3, 1.)
+
+            ry.set(0, 0, cos(y));   ry.set(0, 1, 0.);           ry.set(0, 2, sin(y));   ry.set(0, 3, 0.)
+            ry.set(1, 0, 0.);       ry.set(1, 1, 1.);           ry.set(1, 2, 0.);       ry.set(1, 3, 0.)
+            ry.set(2, 0, -sin(y));  ry.set(2, 1, 0.);           ry.set(2, 2, cos(y));   ry.set(2, 3, 0.)
+            ry.set(3, 0, 0.);       ry.set(3, 1, 0.);           ry.set(3, 2, 0.);       ry.set(3, 3, 1.)
+
+            tmp = rz * ry * rx
+            self.m = tmp.m
 
         return self
 
@@ -253,22 +285,10 @@ class Matrix4:
         return self
 
     def init_perspective(self, fov, aspect_ratio, z_near, z_far):
-        if isinstance(fov, Number):
-            fov = float(fov)
-        else:
-            raise AttributeError('Field of View is not a number')
-        if isinstance(aspect_ratio, Number):
-            aspect_ratio = float(aspect_ratio)
-        else:
-            raise AttributeError('Aspect Ratio is not a number')
-        if isinstance(z_near, Number):
-            z_near = float(z_near)
-        else:
-            raise AttributeError('Z Near is not a number')
-        if isinstance(z_far, Number):
-            z_far = float(z_far)
-        else:
-            raise AttributeError('Z Far is not a number')
+        fov = core_util.is_float(fov, 'Field of View')
+        aspect_ratio = core_util.is_float(aspect_ratio, 'Aspect Ratio')
+        z_near = core_util.is_float(z_near, 'Z Near')
+        z_far = core_util.is_float(z_far, 'Z Far')
 
         tan_half_fov = tan(fov / 2)
         z_range = z_near - z_far
@@ -285,38 +305,22 @@ class Matrix4:
 
         return self
 
-    def init_rotation(self, forward, up):
-        if not isinstance(up, Vector3):
-            raise AttributeError('Up direction of the camera is not a vector')
-        if not isinstance(forward, Vector3):
-            raise AttributeError('Forward direction of the camera is not a vector')
+    def init_orthographic(self, left, right, bottom, top, near, far):
+        left = core_util.is_float(left, 'Left')
+        right = core_util.is_float(right, 'Right')
+        bottom = core_util.is_float(bottom, 'Bottom')
+        top = core_util.is_float(top, 'Top')
+        near = core_util.is_float(near, 'Near')
+        far = core_util.is_float(far, 'Far')
 
-        # DONT KNOW IF THIS IS NECESSARY
-        f = forward.normalized()
+        width = right - left
+        height = top - bottom
+        depth = far - near
 
-        r = up.normalized()
-        r = r.cross(f)
-
-        u = f.cross(r)
-        # END OF DONT KNOW
-
-        for i, j in self.item_loop():
-            if i == 0:
-                v = r
-            elif i == 1:
-                v = u
-            elif i == 2:
-                v = f
-
-            if j == 0:
-                self.set(i, j, v.x)
-            elif j == 1:
-                self.set(i, j, v.y)
-            elif j == 2:
-                self.set(i, j, v.z)
-
-            if i == j == 3:
-                self.set(i, j, 1.)
+        self.set(0, 0, 2/width);    self.set(0, 1, 0.);         self.set(0, 2, 0.);       self.set(0, 3, -(right + left)/width)
+        self.set(1, 0, 0.);         self.set(1, 1, 2/height);   self.set(1, 2, 0.);       self.set(1, 3, -(top + bottom)/height)
+        self.set(2, 0, 0.);         self.set(2, 1, 0.);         self.set(2, 2, -2/depth); self.set(2, 3, -(far + near)/depth)
+        self.set(3, 0, 0.);         self.set(3, 1, 0.);         self.set(3, 2, 0.);       self.set(3, 3, 1.)
 
         return self
 
@@ -358,14 +362,27 @@ class Matrix4:
 
         return string.format(*tuple(data), width=10)
 
+    @classmethod
+    def cast_matrix(cls, matrix):
+        if isinstance(matrix, Matrix4):
+            new_matrix = numpy.identity(4, dtype=numpy.float32)
+
+            for i, j in Matrix4.item_loop():
+                item = matrix.m[i][j]
+                new_matrix[i, j] = item
+
+            return new_matrix
+
+        return False
+
 
 class Quaternion:
 
-    def __init__(self, x=0., y=0., z=0., w=0.):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.w = w
+    def __init__(self, x=None, y=None, z=None, w=None):
+        self.x = core_util.is_float(x, 'X')
+        self.y = core_util.is_float(y, 'Y')
+        self.z = core_util.is_float(z, 'Z')
+        self.w = core_util.is_float(w, 'W')
 
     @property
     def length(self):

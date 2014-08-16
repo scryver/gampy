@@ -11,22 +11,22 @@ class Camera:
     # The global up vector
     y_axis = Vector3(0., 1., 0.)
 
-    def __init__(self, fov, aspect, z_near, z_far, pos=None, forward=None, up=None):
-        if pos == None:
-            pos = Vector3(0., 0., 0.)
+    def __init__(self, fov, aspect, z_near, z_far, position=None, forward=None, up=None):
+        if position == None:
+            position = Vector3(0., 0., 0.)
         if forward == None:
             forward = Vector3(0., 0., 1.)
         if up == None:
             up = Vector3(0., 1., 0.)
 
-        if not isinstance(pos, Vector3):
+        if not isinstance(position, Vector3):
             raise AttributeError('Position of the camera is not a vector')
         if not isinstance(up, Vector3):
             raise AttributeError('Up direction of the camera is not a vector')
         if not isinstance(forward, Vector3):
             raise AttributeError('Forward direction of the camera is not a vector')
 
-        self.pos = pos
+        self.position = position
         self.up = up.normalized()
         self.forward = forward.normalized()
         self.projection = Matrix4().init_perspective(fov, aspect, z_near, z_far)
@@ -35,7 +35,7 @@ class Camera:
 
     def view_projection(self):
         camera_rotation = Matrix4().init_rotation(self.forward, self.up)
-        camera_translation = Matrix4().initTranslation(-self.pos.x, -self.pos.y, -self.pos.z)
+        camera_translation = Matrix4().init_translation(-self.position.x, -self.position.y, -self.position.z)
 
         return self.projection * camera_rotation * camera_translation
 
@@ -62,13 +62,13 @@ class Camera:
             self.move(self.right, move_amount)
 
         if self.mouse_locked:
-            delta_pos = Input.mouse_position() - Window.center
+            delta_position = Input.mouse_position() - Window.center
             rot = False
-            if delta_pos.x != 0:
-                self.rotate_y(delta_pos.x * sensitivity)
+            if delta_position.x != 0:
+                self.rotate_y(delta_position.x * sensitivity)
                 rot = True
-            if delta_pos.y != 0:
-                self.rotate_x(delta_pos.y * sensitivity)
+            if delta_position.y != 0:
+                self.rotate_x(delta_position.y * sensitivity)
                 rot = True
 
             if rot:
@@ -81,7 +81,7 @@ class Camera:
 
 
     def move(self, direction, amount):
-        self.pos = self.pos + direction * amount
+        self.position = self.position + direction * amount
 
     def rotate_y(self, angle):
         h_axis = Camera.y_axis.cross(self.forward).normalized()

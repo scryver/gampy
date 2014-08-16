@@ -6,41 +6,68 @@ from gampy.engine.core.vectors import Vector3, Matrix4
 class Transform:
 
     def __init__(self):
-        self.translation = Vector3(0.,0.,0.)
-        self.rotation = Vector3(0., 0., 0.)
-        self.scale  = Vector3(1., 1., 1.)
+        self._position = Vector3(0.,0.,0.)
+        self._rotation = Vector3(0., 0., 0.)
+        self._scale  = Vector3(1., 1., 1.)
 
     def get_transformation(self):
-        translation = Matrix4().initTranslation(self.translation.x,
-                                                self.translation.y,
-                                                self.translation.z)
+        translation = Matrix4().init_translation(self._position.x,
+                                                self._position.y,
+                                                self._position.z)
 
-        rotation = Matrix4().initRotation(self.rotation.x,
-                                          self.rotation.y,
-                                          self.rotation.z)
+        rotation = Matrix4().init_rotation(self._rotation.x,
+                                          self._rotation.y,
+                                          self._rotation.z)
 
-        scale = Matrix4().init_scale(self.scale.x,
-                                     self.scale.y,
-                                     self.scale.z)
+        scale = Matrix4().init_scale(self._scale.x,
+                                     self._scale.y,
+                                     self._scale.z)
 
         transformation = translation * rotation * scale
 
         return transformation
 
-    def set_translation(self, x, y=None, z=None):
-        if y == None and z == None and isinstance(x, Vector3):
-            self.translation = x
-        else:
-            self.translation = Vector3(x, y, z)
+    @property
+    def position(self):
+        return self._position
+    @position.setter
+    def position(self, value):
+        try:
+            x, y, z = value
+        except:
+            x, y, z = value, None, None
 
-    def set_rotation(self, x, y=None, z=None):
         if y == None and z == None and isinstance(x, Vector3):
-            self.rotation = x
+            self._position = x
         else:
-            self.rotation = Vector3(x, y, z)
+            self._position = Vector3(x, y, z)
 
-    def set_scale(self, x, y=None, z=None):
+    @property
+    def rotation(self):
+        return self._rotation
+    @rotation.setter
+    def rotation(self, value):
+        try:
+            x, y, z = value
+        except:
+            x, y, z = value, None, None
+
         if y == None and z == None and isinstance(x, Vector3):
-            self.scale = x
+            self._rotation = x
         else:
-            self.scale = Vector3(x, y, z)
+            self._rotation = Vector3(x, y, z)
+
+    @property
+    def scale(self):
+        return self._scale
+    @scale.setter
+    def scale(self, value):
+        try:
+            x, y, z = value
+        except:
+            x, y, z = value, None, None
+
+        if y == None and z == None and isinstance(x, Vector3):
+            self._scale = x
+        else:
+            self._scale = Vector3(x, y, z)

@@ -5,8 +5,6 @@ import os.path
 import OpenGL.GL as gl
 
 from gampy.engine.core.vectors import Vector3, Matrix4
-from gampy.engine.core.util import cast_matrix
-from gampy.engine.render.texture import Texture
 import gampy.engine.render.lights as lights
 
 
@@ -118,7 +116,7 @@ class Shader:
             elif isinstance(value, Vector3):
                 gl.glUniform3f(self.uniforms.get(uniform), value.x, value.y, value.z)
             elif isinstance(value, Matrix4):
-                gl.glUniformMatrix4fv(self.uniforms.get(uniform), 1, True, cast_matrix(value))
+                gl.glUniformMatrix4fv(self.uniforms.get(uniform), 1, True, Matrix4.cast_matrix(value))
             else:
                 raise AttributeError('Value "{}" is not an int, float, Vector3 or Matrix'.format(value))
         else:
@@ -195,7 +193,7 @@ class PhongShader(Shader):
 
         self.add_uniform('transform')
         self.add_uniform('transformProjected')
-        self.add_uniform('cameraPos')
+        self.add_uniform('cameraPosition')
 
         self.add_uniform('baseColor')
         self.add_uniform('specularIntensity')
@@ -240,7 +238,7 @@ class PhongShader(Shader):
 
         self.set_uniform('transform', world_matrix)
         self.set_uniform('transformProjected', projected_matrix)
-        self.set_uniform('cameraPos', camera.pos)
+        self.set_uniform('cameraPosition', camera.position)
 
         self.set_uniform('baseColor', material.color)
         self.set_uniform('specularIntensity', material.specular_intensity)

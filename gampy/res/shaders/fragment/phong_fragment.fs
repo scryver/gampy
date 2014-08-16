@@ -6,7 +6,7 @@ const int MAX_SPOT_LIGHTS = 4;
 
 in vec2 texCoord0;
 in vec3 normal0;
-in vec3 worldPos0;
+in vec3 worldPosition0;
 
 out vec4 fragColor;
 
@@ -45,7 +45,7 @@ struct SpotLight
 };
 
 uniform vec3 baseColor;
-uniform vec3 cameraPos;
+uniform vec3 cameraPosition;
 uniform vec3 ambientLight;
 uniform sampler2D sampler;
 
@@ -66,7 +66,7 @@ vec4 calcLight(BaseLight base, vec3 direction, vec3 normal)
     {
         diffuseColor = vec4(base.color, 1.0) * base.intensity * diffuseFactor;
         
-        vec3 directionToCamera = normalize(cameraPos - worldPos0);
+        vec3 directionToCamera = normalize(cameraPosition - worldPosition0);
         vec3 reflectDirection = normalize(reflect(direction, normal));
         
         float specularFactor = dot(directionToCamera, reflectDirection);
@@ -88,7 +88,7 @@ vec4 calcDirectionalLight(DirectionalLight directionalLight, vec3 normal)
 
 vec4 calcPointLight(PointLight pointLight, vec3 normal)
 {
-    vec3 lightDirection = worldPos0 - pointLight.position;
+    vec3 lightDirection = worldPosition0 - pointLight.position;
     float distanceToPoint = length(lightDirection);
     
     if (distanceToPoint > pointLight.range)
@@ -109,7 +109,7 @@ vec4 calcPointLight(PointLight pointLight, vec3 normal)
 
 vec4 calcSpotLight(SpotLight spotLight, vec3 normal)
 {
-    vec3 lightDirection = normalize(worldPos0 - spotLight.pointLight.position);
+    vec3 lightDirection = normalize(worldPosition0 - spotLight.pointLight.position);
     float spotFactor = dot(lightDirection, spotLight.direction);
     
     vec4 color = vec4(0, 0, 0, 0);

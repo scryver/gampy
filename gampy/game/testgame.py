@@ -97,8 +97,8 @@ class TestGame(Game):
 
         self.root_object.add_child(plane_object)
 
-        plane_object.transform.set_translation(0, -1, 5)
-        plane_object.transform.set_rotation(0, -45, 0)
+        plane_object.transform.position = 0, -1, 5
+        plane_object.transform.rotation = 0, -45, 0
 
     def input(self):
         super().input()

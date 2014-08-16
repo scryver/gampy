@@ -20,14 +20,14 @@ class Vertex:
     # Amount of numbers in vertex
     SIZE = 8
 
-    def __init__(self, pos=None, tex_coord=None, normal=None):
-        if pos == None:
-            pos = Vector3()
+    def __init__(self, position=None, tex_coord=None, normal=None):
+        if position == None:
+            position = Vector3()
         if tex_coord == None:
             tex_coord = Vector2()
         if normal == None:
             normal = Vector3()
-        self.pos = pos
+        self.position = position
         self.tex_coord = tex_coord
         self._normal = normal
 
@@ -91,8 +91,8 @@ class Mesh:
             i1 = indices[i + 1]
             i2 = indices[i + 2]
 
-            v1 = vertices[i1].pos - vertices[i0].pos
-            v2 = vertices[i2].pos - vertices[i0].pos
+            v1 = vertices[i1].position - vertices[i0].position
+            v2 = vertices[i2].position - vertices[i0].position
 
             normal = v1.cross(v2).normalized()
 
