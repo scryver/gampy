@@ -20,7 +20,7 @@ class CoreEngine:
         self.rendering_engine = None
 
         self.frame_rater = 0.
-        self.frame_rater_count = 0.000001
+        self.frame_rater_count = 0.
 
     def start(self):
         if self.is_running:
@@ -64,12 +64,10 @@ class CoreEngine:
                 if not Window.is_display_open:
                     self.stop()
 
-                Time.delta = self.frame_time
-
-                self.game.input()
-                self.rendering_engine.input()
+                self.game.input(self.frame_time)
+                self.rendering_engine.input(self.frame_time)
                 Input.update()
-                self.game.update()
+                self.game.update(self.frame_time)
 
                 if frame_counter >= 1.0:
                     # Frame Rate
@@ -84,7 +82,7 @@ class CoreEngine:
                 frames += 1
                 self.frame_rater += 1
             else:
-                Time.sleep()
+                Time.sleep(1)
 
         self._cleanUp()
 
@@ -98,5 +96,8 @@ class CoreEngine:
         self.rendering_engine = RenderingEngine()
 
     def __del__(self):
-        print('Average FPS: {avg:7.2f} | Total frames rendered: {tot:.0f}'.format(avg=self.frame_rater / self.frame_rater_count,
+        if self.frame_rater_count:
+            print('Average FPS: {avg:7.2f} | Total frames rendered: {tot:.0f}'.format(avg=self.frame_rater / self.frame_rater_count,
                                                                                   tot=self.frame_rater))
+        else:
+            print('No frames rendered!')

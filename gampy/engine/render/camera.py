@@ -39,9 +39,9 @@ class Camera:
 
         return self.projection * camera_rotation * camera_translation
 
-    def input(self):
+    def input(self, dt):
         sensitivity = 0.5
-        move_amount = 10 * Time.delta
+        move_amount = 10 * dt
         # rot_amount = 100. * dt
 
         if Input.get_key(Input.KEY_ESCAPE):

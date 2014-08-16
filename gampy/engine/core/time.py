@@ -4,16 +4,18 @@ import time
 
 
 class Time:
-
-    delta = 0.
-
     @staticmethod
     def get_time():
         return time.monotonic()
 
     @staticmethod
-    def sleep():
-        time.sleep(0.001)
+    def sleep(sleep_time=1):
+        """
+        :param time: in milliseconds
+        :return:
+        """
+        sleep_time /= 1000
+        time.sleep(sleep_time)
 
 
 class Timing:

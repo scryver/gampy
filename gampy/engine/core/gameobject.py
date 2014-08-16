@@ -24,13 +24,13 @@ class GameObject(EventInterface):
         else:
             raise AttributeError('Component is not a GameComponent')
 
-    def input(self):
-        [component.input(self.transform) for component in self.components]
-        [child.input() for child in self.children]
+    def input(self, dt):
+        [component.input(dt, self.transform) for component in self.components]
+        [child.input(dt) for child in self.children]
 
-    def update(self):
-        [component.update(self.transform) for component in self.components]
-        [child.update() for child in self.children]
+    def update(self, dt):
+        [component.update(dt, self.transform) for component in self.components]
+        [child.update(dt) for child in self.children]
 
     def render(self, shader):
         if not isinstance(shader, Shader):

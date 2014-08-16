@@ -13,13 +13,29 @@ from gampy.engine.core.coreengine import Window
 from gampy.game.meshrenderer import MeshRenderer
 
 
+class TestGame(Game):
+
+    def init(self):
+        mesh = test_mesh('plane') # Mesh('cube.obj')
+        material = Material(Texture('test.png'), Vector3(1, 1, 1))
+
+        mesh_renderer = MeshRenderer(mesh, material)
+
+        plane_object = GameObject()
+        plane_object.add_component(mesh_renderer)
+
+        self.root_object.add_child(plane_object)
+
+        plane_object.transform.position = 0, -1, 5
+        plane_object.transform.rotation = 0, -45, 0
+
 
 # Temp function
-def test_mesh():
+def test_mesh(type):
     from gampy.engine.render.meshes import Vertex
     from gampy.engine.core.vectors import Vector2
 
-    def create_block(depth, width):
+    def create_plane(depth, width):
         vertices = [
             Vertex(Vector3(-width, 0, -depth), Vector2(0, 0)),
             Vertex(Vector3(-width, 0, depth * 3), Vector2(0, 1)),
@@ -34,7 +50,7 @@ def test_mesh():
 
         return vertices, indices
 
-    def create_cube():
+    def create_cube(*args):
         vertices = [
             Vertex(Vector3(-1, -1, -1), Vector2(0, 0)),
             Vertex(Vector3(1, -1, -1), Vector2(0.5, 0)),
@@ -63,45 +79,26 @@ def test_mesh():
 
         return vertices, indices
 
-    # vertices = [
-    #     Vertex(Vector3(-1, -1, 0.5773), Vector2(0, 0)),
-    #     Vertex(Vector3(0, -1, -1.15475), Vector2(0.5, 0)),
-    #     Vertex(Vector3(1, -1, 0.5773), Vector2(1.0, 0)),
-    #     Vertex(Vector3(0, 1, 0), Vector2(0.5, 1)),
-    # ]
-    #
-    # indices =[
-    #     3, 1, 0,
-    #     2, 1, 3,
-    #     0, 1, 2,
-    #     0, 2, 3,
-    # ]
+    def create_pyramid(*args):
+        vertices = [
+            Vertex(Vector3(-1, -1, 0.5773), Vector2(0, 0)),
+            Vertex(Vector3(0, -1, -1.15475), Vector2(0.5, 0)),
+            Vertex(Vector3(1, -1, 0.5773), Vector2(1.0, 0)),
+            Vertex(Vector3(0, 1, 0), Vector2(0.5, 1)),
+        ]
 
-    vertices, indices = create_block(10, 10)
+        indices =[
+            3, 1, 0,
+            2, 1, 3,
+            0, 1, 2,
+            0, 2, 3,
+        ]
+
+        return vertices, indices
+
+    func_name = locals()['create_' + type]
+    vertices, indices = func_name(10, 10)
 
     mesh = Mesh(vertices, indices, True)
 
     return mesh
-
-
-class TestGame(Game):
-
-    def init(self):
-        mesh = test_mesh() # Mesh('cube.obj')
-        material = Material(Texture('test.png'), Vector3(1, 1, 1))
-
-        mesh_renderer = MeshRenderer(mesh, material)
-
-        plane_object = GameObject()
-        plane_object.add_component(mesh_renderer)
-
-        self.root_object.add_child(plane_object)
-
-        plane_object.transform.position = 0, -1, 5
-        plane_object.transform.rotation = 0, -45, 0
-
-    def input(self):
-        super().input()
-
-    def destroy(self):
-        pass

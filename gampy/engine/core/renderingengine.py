@@ -30,8 +30,8 @@ class RenderingEngine:
 
         self.main_camera = Camera(math.radians(70.), Window.width / Window.height, 0.1, 1000.)
 
-    def input(self):
-        self.main_camera.input()
+    def input(self, dt):
+        self.main_camera.input(dt)
 
     def render(self, object):
         if not isinstance(object, GameObject):

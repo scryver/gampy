@@ -8,11 +8,11 @@ class Game(EventInterface):
     def init(self):
         raise NotImplemented
 
-    def input(self):
-        self.root_object.input()
+    def input(self, dt):
+        self.root_object.input(dt)
 
-    def update(self):
-        self.root_object.update()
+    def update(self, dt):
+        self.root_object.update(dt)
 
     @property
     def root_object(self):
@@ -23,3 +23,6 @@ class Game(EventInterface):
             self._root = root
 
         return root
+
+    def destroy(self):
+        pass

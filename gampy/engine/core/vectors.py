@@ -16,12 +16,6 @@ class Vector2:
     def length(self):
         return sqrt(self.x * self.x + self.y * self.y)
 
-    def dot(self, other):
-        if isinstance(other, Vector2):
-            return self.x * other.x + self.y * other.y
-
-        return NotImplemented
-
     def normalized(self):
         length = self.length
 
@@ -37,6 +31,22 @@ class Vector2:
 
         return Vector2(self.x * cosine - self.y * sinus,
                        self.x * sinus + self.y * cosine)
+
+    def lerp(self, destination, lerp_factor):
+        lerp_factor = core_util.is_float(lerp_factor, 'Lerp Factor')
+        destination = core_util.is_instance(destination, 'Destination', Vector2)
+
+        return (destination - self) * lerp_factor + self
+
+    def dot(self, other):
+        if isinstance(other, Vector2):
+            return self.x * other.x + self.y * other.y
+        return NotImplemented
+
+    def cross(self, other):
+        if isinstance(other, Vector2):
+            return self.x * other.y - self.y * other.x
+        return NotImplemented
 
     def __add__(self, other):
         if isinstance(other, Vector2):
@@ -70,6 +80,22 @@ class Vector2:
 
         return NotImplemented
 
+    def __eq__(self, other):
+        if isinstance(other, Vector2):
+            return self.x == other.x and self.y == other.y
+        elif isinstance(other, Number):
+            return self.x == other and self.y == other
+
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, Vector2):
+            return self.x != other.x and self.y != other.y
+        elif isinstance(other, Number):
+            return self.x != other and self.y != other
+
+        return NotImplemented
+
     def __str__(self):
         return '({} {})'.format(self.x, self.y)
 
@@ -85,21 +111,24 @@ class Vector3:
     def length(self):
         return sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
 
-    def dot(self, other):
-        if isinstance(other, Vector3):
-            return self.x * other.x + self.y * other.y + self.z * other.z
-
-        return NotImplemented
-
-    def cross(self, other):
-        if isinstance(other, Vector3):
-            x = self.y * other.z - self.z * other.y
-            y = self.z * other.x - self.x * other.z
-            z = self.x * other.y - self.y * other.x
-
-            return Vector3(x, y, z)
-
-        return NotImplemented
+    @property
+    def xy(self):
+        return Vector2(self.x, self.y)
+    @property
+    def xz(self):
+        return Vector2(self.x, self.z)
+    @property
+    def yx(self):
+        return Vector2(self.y, self.x)
+    @property
+    def yz(self):
+        return Vector2(self.y, self.z)
+    @property
+    def zx(self):
+        return Vector2(self.z, self.x)
+    @property
+    def zy(self):
+        return Vector2(self.z, self.y)
 
     def normalized(self):
         length = self.length
@@ -131,6 +160,25 @@ class Vector3:
 
         return NotImplemented
 
+    def lerp(self, destination, lerp_factor):
+        lerp_factor = core_util.is_float(lerp_factor, 'Lerp Factor')
+        destination = core_util.is_instance(destination, 'Destination', Vector3)
+
+        return (destination - self) * lerp_factor + self
+
+    def dot(self, other):
+        if isinstance(other, Vector3):
+            return self.x * other.x + self.y * other.y + self.z * other.z
+        return NotImplemented
+
+    def cross(self, other):
+        if isinstance(other, Vector3):
+            x = self.y * other.z - self.z * other.y
+            y = self.z * other.x - self.x * other.z
+            z = self.x * other.y - self.y * other.x
+            return Vector3(x, y, z)
+        return NotImplemented
+
     def __add__(self, other):
         if isinstance(other, Vector3):
             return Vector3(self.x + other.x, self.y + other.y, self.z + other.z)
@@ -160,6 +208,22 @@ class Vector3:
             return Vector3(self.x / other.x, self.y / other.y, self.z / other.y)
         elif isinstance(other, Number):
             return Vector3(self.x / other, self.y / other, self.z / other)
+
+        return NotImplemented
+
+    def __eq__(self, other):
+        if isinstance(other, Vector3):
+            return self.x == other.x and self.y == other.y and self.z == other.z
+        elif isinstance(other, Number):
+            return self.x == other and self.y == other and self.z == other
+
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, Vector3):
+            return self.x != other.x and self.y != other.y and self.z != other.z
+        elif isinstance(other, Number):
+            return self.x != other and self.y != other and self.z != other
 
         return NotImplemented
 

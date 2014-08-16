@@ -5,13 +5,13 @@ from gampy.engine.core.transform import Transform
 
 class GameComponent(EventInterface):
 
-    def input(self, transform):
+    def input(self, dt, transform):
         if not isinstance(transform, Transform):
             raise AttributeError('Transformation is not of type Transform')
 
         return
 
-    def update(self, transform):
+    def update(self, dt, transform):
         if not isinstance(transform, Transform):
             raise AttributeError('Transformation is not of type Transform')
 
