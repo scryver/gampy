@@ -12,49 +12,48 @@ class Window:
     MIN_WIDTH = 100
     MIN_HEIGHT = 100
     display = None
+    root = None
+    is_display_open = False
+    width = 0
+    height = 0
 
-    def __init__(self, width: int, height: int, title: str):
+    @classmethod
+    def create(cls, width: int, height: int, title: str):
+        cls.is_display_open = True
+        cls.display = OpenGL.Tk.Togl(width=width, height=height)
+        cls.display.pack(fill=tkinter.BOTH, expand=True)
+        cls.root = cls.display.master
+        cls.root.title(title)
+        cls.root.minsize(cls.MIN_WIDTH, cls.MIN_HEIGHT)
+        cls.root.geometry("{width}x{height}".format(width=width, height=height))
+        cls.root.protocol('WM_DELETE_WINDOW', cls.display_closed)
+        cls.root.bind('<Configure>', cls.resize)
+        cls.width = width
+        cls.height = height
 
-        self.is_display_open = True
-        self.display = OpenGL.Tk.Togl(width=width, height=height)
-        self.display.pack(fill=tkinter.BOTH, expand=True)
-        self.root = self.display.master
-        self.root.title(title)
-        self.root.minsize(self.MIN_WIDTH, self.MIN_HEIGHT)
-        self.root.geometry("{width}x{height}".format(width=width, height=height))
-        self.root.protocol('WM_DELETE_WINDOW', self.display_closed)
-        self.root.bind('<Configure>', self.resize)
+    @classmethod
+    def update(cls, delta):
+        cls.display.update()
 
-    def update(self, delta):
-        self.display.update()
+    @classmethod
+    def render(cls):
+        cls.display.render()
+        cls.display.swapbuffers()
 
-    def render(self):
-        self.display.render()
-        self.display.swapbuffers()
+    @classmethod
+    def display_closed(cls):
+        cls.is_display_open = False
 
-    def display_closed(self):
-        self.is_display_open = False
+    @classmethod
+    def dispose(cls):
+        cls.display.destroy()
 
-    def dispose(self):
-        self.display.destroy()
+    @classmethod
+    def resize(cls, event):
+        cls.width = event.width
+        cls.height = event.height
 
-    def resize(self, event):
-        width = event.width
-        height = event.height
+        if cls.height <= 0:
+            cls.height = 1
 
-        if height <= 0:
-            height = 1
-
-        Transform.set_projection(70., width, height, 0.1, 1000.)
-
-    @property
-    def width(self):
-        return self.root.winfo_width()
-
-    @property
-    def height(self):
-        return self.root.winfo_height()
-
-    @property
-    def title(self):
-        return self.root.title()
+        Transform.set_projection(70., cls.width, cls.height, 0.1, 1000.)

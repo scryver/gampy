@@ -2,7 +2,7 @@ __author__ = 'michiel'
 
 
 from gampy.engine.core.vectors import Vector2, Vector3
-import gampy.engine.core.input as gameinput
+from gampy.engine.core.input import Input
 
 
 class Camera:
@@ -31,30 +31,30 @@ class Camera:
 
         self.mouse_locked = False
 
-    def input(self, inputs, dt, widget, width, height):
+    def input(self, dt, widget, width, height):
         sensitivity = 0.5
         move_amount = 10 * dt
         # rot_amount = 100. * dt
 
-        if inputs.get_key(gameinput.KEY_ESCAPE):
-            inputs.set_cursor(widget, True)
+        if Input.get_key(Input.KEY_ESCAPE):
+            Input.set_cursor(widget, True)
             self.mouse_locked = False
-        if inputs.get_mouse_down(gameinput.MOUSE_MIDDLE):
-            inputs.set_cursor(widget, False)
-            inputs.set_mouse_position(widget, width / 2, height / 2)
+        if Input.get_mouse_down(Input.MOUSE_MIDDLE):
+            Input.set_cursor(widget, False)
+            Input.set_mouse_position(widget, width / 2, height / 2)
             self.mouse_locked = True
 
-        if inputs.get_key(gameinput.KEY_W):
+        if Input.get_key(Input.KEY_W):
             self.move(self.forward, move_amount)
-        if inputs.get_key(gameinput.KEY_S):
+        if Input.get_key(Input.KEY_S):
             self.move(self.forward, -move_amount)
-        if inputs.get_key(gameinput.KEY_A):
+        if Input.get_key(Input.KEY_A):
             self.move(self.left, move_amount)
-        if inputs.get_key(gameinput.KEY_D):
+        if Input.get_key(Input.KEY_D):
             self.move(self.right, move_amount)
 
         if self.mouse_locked:
-            delta_pos = inputs.mouse_position - Vector2(width / 2, height / 2)
+            delta_pos = Input.mouse_position() - Vector2(width / 2, height / 2)
             rot = False
             if delta_pos.x != 0:
                 self.rotate_y(delta_pos.x * sensitivity)
@@ -64,11 +64,11 @@ class Camera:
                 rot = True
 
             if rot:
-                inputs.set_mouse_position(widget, width / 2, height / 2)
+                Input.set_mouse_position(widget, width / 2, height / 2)
 
-            if inputs.get_mouse(gameinput.MOUSE_LEFT):
+            if Input.get_mouse(Input.MOUSE_LEFT):
                 self.move(self.forward, move_amount)
-            if inputs.get_mouse(gameinput.MOUSE_RIGHT):
+            if Input.get_mouse(Input.MOUSE_RIGHT):
                 self.move(self.forward, -move_amount)
 
 

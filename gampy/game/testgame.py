@@ -10,6 +10,7 @@ from gampy.engine.core.transform import Transform
 from gampy.engine.render.camera import Camera
 import gampy.engine.render.util as render_util
 from gampy.engine.render.meshes import Mesh
+from gampy.engine.core.game import Game
 
 
 
@@ -84,7 +85,7 @@ def test_mesh():
     return mesh
 
 
-class Game:
+class TestGame(Game):
 
     point_light_1 = lights.PointLight(lights.BaseLight(Vector3(1, 0.5, 0), 0.8), lights.Attenuation(0, 0, 1),
                                       Vector3(-2, 0, 5), 10)
@@ -95,12 +96,15 @@ class Game:
                                                       lights.Attenuation(0, 0, .05), Vector3(-2, 0, 5), 30),
                                     Vector3(1, 1, 1), 0.7)
 
-    def __init__(self, width, height):
+    def __init__(self):
+        pass
+
+    def init(self):
         PhongShader.ambient_light = Vector3(0.1, 0.1, 0.1)
         PhongShader.directional_light = lights.DirectionalLight(lights.BaseLight(Vector3(1, 1, 1), 0.8), Vector3(1, 1, 1))
 
-        PhongShader.set_point_lights([Game.point_light_1, Game.point_light_2])
-        PhongShader.set_spot_lights([Game.spot_light_1])
+        PhongShader.set_point_lights([TestGame.point_light_1, TestGame.point_light_2])
+        PhongShader.set_spot_lights([TestGame.spot_light_1])
 
         self.mesh = test_mesh() # Mesh('cube.obj')
         self.material = Material(Texture('test.png'), Vector3(1, 1, 1))
@@ -113,17 +117,8 @@ class Game:
         self.tmp = 0.
 
 
-    def input(self, inputs, dt, widget):
-        self.camera.input(inputs, dt, widget, Transform.width, Transform.height)
-        # mouse_pos = inputs.mouse_position
-        # if inputs.get_key_down(gameinput.KEY_DOWN):
-        #     print('We\'ve just pressed key DOWN')
-        # if inputs.get_key_up(gameinput.KEY_DOWN):
-        #     print('We\'ve just released key DOWN')
-        # if inputs.get_mouse_down(1):
-        #     print('We\'ve just pressed mouse Left at {}'.format(mouse_pos))
-        # if inputs.get_mouse_up(1):
-        #     print('We\'ve just released mouse Left at {}'.format(mouse_pos))
+    def input(self, dt, widget):
+        self.camera.input(dt, widget, Transform.width, Transform.height)
 
     def update(self, dt):
         self.tmp += dt
@@ -131,11 +126,11 @@ class Game:
         # self.transform.set_rotation(0, math.cos(self.tmp) * 180, 0)
         # self.transform.set_scale(0.6 * math.cos(self.tmp), 0.6 * math.cos(self.tmp), 0.6 * math.cos(self.tmp))
 
-        Game.point_light_1.position = Vector3(3, 0, 8. * (math.sin(self.tmp) + 1 / 2) + 10)
-        Game.point_light_2.position = Vector3(3, 0, 8. * (math.cos(self.tmp) + 1 / 2) + 10)
+        TestGame.point_light_1.position = Vector3(3, 0, 8. * (math.sin(self.tmp) + 1 / 2) + 10)
+        TestGame.point_light_2.position = Vector3(3, 0, 8. * (math.cos(self.tmp) + 1 / 2) + 10)
 
-        Game.spot_light_1.point_light.position = self.camera.pos
-        Game.spot_light_1.direction = self.camera.forward
+        TestGame.spot_light_1.point_light.position = self.camera.pos
+        TestGame.spot_light_1.direction = self.camera.forward
 
         self.mesh.update(dt)
 
