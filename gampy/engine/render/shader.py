@@ -53,7 +53,7 @@ class Shader:
     def unbind(self):
         gl.glUseProgram(0)
 
-    def update_uniforms(self, world_matrix, projected_matrix, camera, material):
+    def update_uniforms(self, world_matrix, projected_matrix, material, *args):
         pass
 
     def add_uniform(self, uniform):
@@ -137,6 +137,8 @@ class Shader:
 
 class BasicShader(Shader):
 
+    _instance = None
+
     def __init__(self):
         super(BasicShader, self).__init__()
 
@@ -147,14 +149,21 @@ class BasicShader(Shader):
         self.add_uniform('transform')
         self.add_uniform('color')
 
-    def update_uniforms(self, world_matrix, projected_matrix, camera, material):
-        if material.texture is not None:
-            material.texture.bind()
-        else:
-            Texture.unbind()
+    def update_uniforms(self, world_matrix, projected_matrix, material, *args):
+        # if material.texture is not None:
+        #     material.texture.bind()
+        # else:
+        #     Texture.unbind()
+        material.texture.bind()
 
         self.set_uniform('transform', projected_matrix)
         self.set_uniform('color', material.color)
+
+    @classmethod
+    def get_instance(cls):
+        if not cls._instance:
+            cls._instance = BasicShader()
+        return cls._instance
 
 
 class PhongShader(Shader):
@@ -166,6 +175,13 @@ class PhongShader(Shader):
     directional_light = lights.DirectionalLight(lights.BaseLight(Vector3(1, 1, 1), 0.), Vector3(0, 0, 0))
     point_lights = []
     spot_lights = []
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        super(PhongShader, cls).__new__(*args, **kwargs)
+        if not cls._instance:
+            cls._instance = PhongShader()
 
     def __init__(self):
         super(PhongShader, self).__init__()
@@ -207,11 +223,12 @@ class PhongShader(Shader):
             self.add_uniform('spotLights[{i}].direction'.format(i=i))
             self.add_uniform('spotLights[{i}].cutoff'.format(i=i))
 
-    def update_uniforms(self, world_matrix, projected_matrix, camera, material):
-        if material.texture is not None:
-            material.texture.bind()
-        else:
-            Texture.unbind()
+    def update_uniforms(self, world_matrix, projected_matrix, material, camera, *args):
+        # if material.texture is not None:
+        #     material.texture.bind()
+        # else:
+        #     Texture.unbind()
+        material.texture.bind()
 
         self.set_uniform('transform', world_matrix)
         self.set_uniform('transformProjected', projected_matrix)
@@ -272,3 +289,9 @@ class PhongShader(Shader):
                                  'and the max is {max}'.format(amount=len(spot_lights), max=cls.MAX_SPOT_LIGHTS))
 
         cls.spot_lights = spot_lights
+
+    @classmethod
+    def get_instance(cls):
+        if not cls._instance:
+            cls._instance = PhongShader()
+        return cls._instance

@@ -3,6 +3,7 @@ __author__ = 'michiel'
 from gampy.engine.core.eventinterface import EventInterface
 from gampy.engine.core.gamecomponent import GameComponent
 from gampy.engine.core.transform import Transform
+from gampy.engine.render.shader import Shader
 
 class GameObject(EventInterface):
 
@@ -24,13 +25,15 @@ class GameObject(EventInterface):
             raise AttributeError('Component is not a GameComponent')
 
     def input(self):
-        [component.input() for component in self.components]
+        [component.input(self.transform) for component in self.components]
         [child.input() for child in self.children]
 
     def update(self):
-        [component.update() for component in self.components]
+        [component.update(self.transform) for component in self.components]
         [child.update() for child in self.children]
 
-    def render(self):
-        [component.render() for component in self.components]
-        [child.render() for child in self.children]
+    def render(self, shader):
+        if not isinstance(shader, Shader):
+            raise AttributeError('Invalid shader supplied')
+        [component.render(self.transform, shader) for component in self.components]
+        [child.render(shader) for child in self.children]

@@ -1,17 +1,16 @@
 __author__ = 'michiel'
 
-import math
 
-from gampy.engine.render.shader import *
 from gampy.engine.render.material import Material
 from gampy.engine.render.texture import Texture
 from gampy.engine.core.vectors import Vector3
 from gampy.engine.core.transform import Transform
 from gampy.engine.render.camera import Camera
-import gampy.engine.render.util as render_util
 from gampy.engine.render.meshes import Mesh
 from gampy.engine.core.game import Game
-
+from gampy.engine.core.gameobject import GameObject
+from gampy.engine.core.coreengine import Window
+from gampy.game.meshrenderer import MeshRenderer
 
 
 
@@ -87,64 +86,28 @@ def test_mesh():
 
 class TestGame(Game):
 
-    point_light_1 = lights.PointLight(lights.BaseLight(Vector3(1, 0.5, 0), 0.8), lights.Attenuation(0, 0, 1),
-                                      Vector3(-2, 0, 5), 10)
-    point_light_2 = lights.PointLight(lights.BaseLight(Vector3(0, 0.5, 1), 0.8), lights.Attenuation(0, 0, 1),
-                                      Vector3(2, 0, 7), 10)
-
-    spot_light_1 = lights.SpotLight(lights.PointLight(lights.BaseLight(Vector3(0, 1, 1), 0.8),
-                                                      lights.Attenuation(0, 0, .05), Vector3(-2, 0, 5), 30),
-                                    Vector3(1, 1, 1), 0.7)
-
-    def __init__(self):
-        pass
-
     def init(self):
-        PhongShader.ambient_light = Vector3(0.1, 0.1, 0.1)
-        PhongShader.directional_light = lights.DirectionalLight(lights.BaseLight(Vector3(1, 1, 1), 0.8), Vector3(1, 1, 1))
-
-        PhongShader.set_point_lights([TestGame.point_light_1, TestGame.point_light_2])
-        PhongShader.set_spot_lights([TestGame.spot_light_1])
-
-        self.mesh = test_mesh() # Mesh('cube.obj')
-        self.material = Material(Texture('test.png'), Vector3(1, 1, 1))
-
-        self.shader = PhongShader()
         self.camera = Camera()
+
+        mesh = test_mesh() # Mesh('cube.obj')
+        material = Material(Texture('test.png'), Vector3(1, 1, 1))
+
+        mesh_renderer = MeshRenderer(mesh, material)
+
+        plane_object = GameObject()
+        plane_object.add_component(mesh_renderer)
+
+        self.root_object.add_child(plane_object)
+
+        plane_object.transform.set_translation(0, -1, 5)
+        plane_object.transform.set_rotation(0, -45, 0)
+
         Transform.camera = self.camera
+        Transform.set_projection(70., Window.width, Window.height, 0.1, 1000.)
 
-        self.transform = Transform()
-        self.tmp = 0.
-
-
-    def input(self, dt, widget):
-        self.camera.input(dt, widget, Transform.width, Transform.height)
-
-    def update(self, dt):
-        self.tmp += dt
-        self.transform.set_translation(0, -1, 5)
-        # self.transform.set_rotation(0, math.cos(self.tmp) * 180, 0)
-        # self.transform.set_scale(0.6 * math.cos(self.tmp), 0.6 * math.cos(self.tmp), 0.6 * math.cos(self.tmp))
-
-        TestGame.point_light_1.position = Vector3(3, 0, 8. * (math.sin(self.tmp) + 1 / 2) + 10)
-        TestGame.point_light_2.position = Vector3(3, 0, 8. * (math.cos(self.tmp) + 1 / 2) + 10)
-
-        TestGame.spot_light_1.point_light.position = self.camera.pos
-        TestGame.spot_light_1.direction = self.camera.forward
-
-        self.mesh.update(dt)
-
-    def render(self):
-        render_util.set_clear_color(abs(Transform.camera.pos / 2048.0))
-        self.shader.bind()
-        self.shader.update_uniforms(self.transform.get_transformation(),
-                                    self.transform.get_projected_transformation(),
-                                    Transform.camera,
-                                    self.material)
-        try:
-            self.mesh.draw()
-        finally:
-            self.shader.unbind()
+    def input(self):
+        super().input()
+        self.camera.input()
 
     def destroy(self):
         pass

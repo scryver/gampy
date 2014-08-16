@@ -1,6 +1,7 @@
 __author__ = 'michiel'
 
 from gampy.engine.core.eventinterface import EventInterface
+from gampy.engine.core.gameobject import GameObject
 
 class Game(EventInterface):
 
@@ -8,10 +9,17 @@ class Game(EventInterface):
         raise NotImplemented
 
     def input(self):
-        raise NotImplemented
+        self.root_object.input()
 
     def update(self):
-        raise NotImplemented
+        self.root_object.update()
 
-    def render(self):
-        raise NotImplemented
+    @property
+    def root_object(self):
+        try:
+            root = self._root
+        except:
+            root = GameObject()
+            self._root = root
+
+        return root

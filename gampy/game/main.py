@@ -7,7 +7,7 @@ class Main:
 
     @classmethod
     def main(cls, *args, **kwargs):
-        engine = CoreEngine(800, 600, 60, TestGame())
+        engine = CoreEngine(800, 600, 500, TestGame())
         engine.create_window('Super Duper 3D Game Engine')
         engine.start()
 

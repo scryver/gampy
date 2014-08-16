@@ -4,7 +4,7 @@ from gampy.engine.core.vectors import Vector3, Vector2
 import OpenGL.GL as gl
 import numpy
 from OpenGL.arrays import vbo
-
+import os
 from gampy.engine.core.util import cast_object_indices, cast_object_vertexes, remove_empty_strings
 
 
@@ -104,7 +104,7 @@ class Mesh:
             vertices[i].normal = vertices[i].normal.normalized()
 
 
-    def update(self, dt):
+    def update(self):
         pass
 
     def _load_mesh(self, file_name: str):

@@ -2,8 +2,7 @@
 __author__ = 'michiel'
 
 import gampy.engine.core.vectors as vectors
-
-
+from gampy.engine.core.coreengine import Window
 
 
 class Input:
@@ -224,35 +223,35 @@ class Input:
         return not cls.get_mouse(mouse_button) and cls._last_mouse.get(mouse_button, False)
 
     @classmethod
-    def update(cls, delta):
+    def update(cls):
         cls._last_keys = cls._event_keys.copy()
         cls._last_mouse = cls._event_mouse.copy()
 
     @classmethod
-    def bind_window(cls, window):
-        window.display.bind_all('<Key>', cls._key_press_event)
-        window.display.bind_all('<KeyRelease>', cls._key_release_event)
+    def init(cls):
+        Window.display.bind_all('<Key>', cls._key_press_event)
+        Window.display.bind_all('<KeyRelease>', cls._key_release_event)
 
         for i in range(1, Input.NUM_MOUSE_BUTTONS + 1):
-            window.display.bind_all('<Button-{button}>'.format(button=i), cls._mouse_click_event)
-            window.display.bind_all('<ButtonRelease-{button}>'.format(button=i), cls._mouse_release_event)
-            window.display.bind_all('<Double-Button-{button}>'.format(button=i), cls._mouse_event)
-            window.display.bind_all('<Triple-Button-{button}>'.format(button=i), cls._mouse_event)
-            window.display.bind_all('<Motion>'.format(button=i), cls._mouse_position_event)
+            Window.display.bind_all('<Button-{button}>'.format(button=i), cls._mouse_click_event)
+            Window.display.bind_all('<ButtonRelease-{button}>'.format(button=i), cls._mouse_release_event)
+            Window.display.bind_all('<Double-Button-{button}>'.format(button=i), cls._mouse_event)
+            Window.display.bind_all('<Triple-Button-{button}>'.format(button=i), cls._mouse_event)
+            Window.display.bind_all('<Motion>'.format(button=i), cls._mouse_position_event)
 
     @classmethod
     def mouse_position(cls):
         return cls._mouse_position
 
     @classmethod
-    def set_mouse_position(cls, widget, x, y):
+    def set_mouse_position(cls, x, y):
         try:
-            widget.event_generate('<Motion>', warp=True, x=x, y=y)
+            Window.display.event_generate('<Motion>', warp=True, x=x, y=y)
         except Exception as err:
             print(err.with_traceback(None))
 
     @classmethod
-    def set_cursor(cls, widget, enabled=True, type='target'):
+    def set_cursor(cls, enabled=True, type='target'):
         types = ['arrow', 'circle', 'clock', 'cross', 'dotbox', 'exchange', 'fleur', 'heart', 'heart',
                  'man', 'mouse', 'pirate', 'plus', 'shuttle', 'sizing', 'spider', 'spraycan', 'star',
                  'target', 'tcross', 'trek', 'watch']
@@ -260,7 +259,7 @@ class Input:
             cursor = type
         else:
             cursor = 'none'
-        widget.config(cursor=cursor)
+        Window.display.config(cursor=cursor)
 
     @classmethod
     def destroy(cls):

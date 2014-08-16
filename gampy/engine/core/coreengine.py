@@ -3,7 +3,7 @@ __author__ = 'michiel'
 from gampy.engine.render.window import Window
 from gampy.engine.core.time import Time
 from gampy.engine.core.input import Input
-import gampy.engine.render.util as render_util
+from gampy.engine.core.renderingengine import RenderingEngine
 
 
 class CoreEngine:
@@ -13,11 +13,13 @@ class CoreEngine:
 
         self.is_running = False
         self.game = game
-        self.frame_rater = 0.
-        self.frame_rater_count = 0.
         self.width = width
         self.height = height
         self.frame_time = 1 / fps
+        self.rendering_engine = None
+
+        self.frame_rater = 0.
+        self.frame_rater_count = 0.000001
 
     def start(self):
         if self.is_running:
@@ -31,12 +33,6 @@ class CoreEngine:
 
         self.is_running = False
 
-    def _input_updater(self, delta):
-        time_delta = delta / 1000
-        self.game.input(time_delta, Window.display)
-        Input.update(time_delta)
-        Window.root.after(delta, self._input_updater, delta)
-
     def _run(self):
         self.is_running = True
 
@@ -44,9 +40,7 @@ class CoreEngine:
         frame_counter = 0.
 
         self.game.init()
-
-        Input.bind_window(Window)
-        self._input_updater(20)
+        Input.init()
 
         last_time = Time.get_time()
         unprocessed_time = 0.
@@ -71,9 +65,11 @@ class CoreEngine:
 
                 Time.delta = self.frame_time
 
-                self.game.update(Time.delta)
+                self.game.input()
+                Input.update()
+                self.game.update()
 
-                Window.update(Time.delta)
+                Window.update()
 
                 if frame_counter >= 1.0:
                     # Frame Rate
@@ -82,7 +78,8 @@ class CoreEngine:
                     frame_counter = 0.
 
             if render:
-                self._render()
+                self.rendering_engine.render(self.game.root_object)
+                Window.render()
                 frames += 1
                 self.frame_rater += 1
             else:
@@ -90,22 +87,14 @@ class CoreEngine:
 
         self._cleanUp()
 
-    def _render(self):
-        render_util.clear_screen()
-        self.game.render()
-        Window.render()
-
     def _cleanUp(self):
-        Input.destroy()
         self.game.destroy()
+        Input.destroy()
         Window.dispose()
-
-    def init_rendering_engine(self):
-        print('%s' % render_util.get_open_gl_version())
-        render_util.init_graphics()
 
     def create_window(self, title):
         Window.create(self.width, self.height, title)
+        self.rendering_engine = RenderingEngine()
 
     def __del__(self):
         print('Average FPS: {avg:7.2f} | Total frames rendered: {tot:.0f}'.format(avg=self.frame_rater / self.frame_rater_count,

@@ -3,6 +3,7 @@ __author__ = 'michiel'
 
 from gampy.engine.core.vectors import Vector2, Vector3
 from gampy.engine.core.input import Input
+from gampy.engine.core.coreengine import Window, Time
 
 
 class Camera:
@@ -31,17 +32,17 @@ class Camera:
 
         self.mouse_locked = False
 
-    def input(self, dt, widget, width, height):
+    def input(self):
         sensitivity = 0.5
-        move_amount = 10 * dt
+        move_amount = 10 * Time.delta
         # rot_amount = 100. * dt
 
         if Input.get_key(Input.KEY_ESCAPE):
-            Input.set_cursor(widget, True)
+            Input.set_cursor(True)
             self.mouse_locked = False
         if Input.get_mouse_down(Input.MOUSE_MIDDLE):
-            Input.set_cursor(widget, False)
-            Input.set_mouse_position(widget, width / 2, height / 2)
+            Input.set_cursor(False)
+            Input.set_mouse_position(Window.width / 2, Window.height / 2)
             self.mouse_locked = True
 
         if Input.get_key(Input.KEY_W):
@@ -54,7 +55,7 @@ class Camera:
             self.move(self.right, move_amount)
 
         if self.mouse_locked:
-            delta_pos = Input.mouse_position() - Vector2(width / 2, height / 2)
+            delta_pos = Input.mouse_position() - Vector2(Window.width / 2, Window.height / 2)
             rot = False
             if delta_pos.x != 0:
                 self.rotate_y(delta_pos.x * sensitivity)
@@ -64,7 +65,7 @@ class Camera:
                 rot = True
 
             if rot:
-                Input.set_mouse_position(widget, width / 2, height / 2)
+                Input.set_mouse_position(Window.width / 2, Window.height / 2)
 
             if Input.get_mouse(Input.MOUSE_LEFT):
                 self.move(self.forward, move_amount)

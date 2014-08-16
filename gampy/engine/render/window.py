@@ -32,7 +32,7 @@ class Window:
         cls.height = height
 
     @classmethod
-    def update(cls, delta):
+    def update(cls):
         cls.display.update()
 
     @classmethod
@@ -56,4 +56,5 @@ class Window:
         if cls.height <= 0:
             cls.height = 1
 
-        Transform.set_projection(70., cls.width, cls.height, 0.1, 1000.)
+        Transform.width = event.width
+        Transform.height = event.height
