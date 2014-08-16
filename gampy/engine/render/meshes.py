@@ -1,18 +1,17 @@
 __author__ = 'michiel'
 
-from gampy.engine.objects.vectors import Vector3, Vector2
+from gampy.engine.core.vectors import Vector3, Vector2
 import OpenGL.GL as gl
 import numpy
-import os.path
 from OpenGL.arrays import vbo
-from gampy.engine.objects.util import cast_object_indices, cast_object_vertexes
-from gampy.engine.util import remove_empty_strings
+
+from gampy.engine.core.util import cast_object_indices, cast_object_vertexes, remove_empty_strings
 
 
 class MeshLoadError(Exception):
 
     def __init__(self, message='ERROR'):
-        message = '\n\tMesh Loading Failed: ' + str(message)
+        message = '\nMesh Loading Failed: ' + str(message)
         super(MeshLoadError, self).__init__(message)
 
 

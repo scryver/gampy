@@ -1,9 +1,9 @@
 __author__ = 'michiel'
 
+import numbers
 
 from gampy.engine.render.texture import Texture
-from gampy.engine.objects.vectors import Vector3
-import numbers
+from gampy.engine.core.vectors import Vector3
 
 
 class Material:

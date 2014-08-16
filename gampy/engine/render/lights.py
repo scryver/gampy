@@ -1,7 +1,8 @@
 __author__ = 'michiel'
 
-from gampy.engine.objects.vectors import Vector3
 import numbers
+
+from gampy.engine.core.vectors import Vector3
 
 
 class BaseLight:

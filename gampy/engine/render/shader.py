@@ -1,11 +1,14 @@
 __author__ = 'michiel'
 
+import os.path
+
 import OpenGL.GL as gl
-from gampy.engine.objects.vectors import Vector3, Matrix4
-from gampy.engine.objects.util import cast_matrix
+
+from gampy.engine.core.vectors import Vector3, Matrix4
+from gampy.engine.core.util import cast_matrix
 from gampy.engine.render.texture import Texture
 import gampy.engine.render.lights as lights
-import os.path
+
 
 class ShaderException(Exception):
 

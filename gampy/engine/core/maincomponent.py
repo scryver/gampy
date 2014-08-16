@@ -1,14 +1,11 @@
 __author__ = 'michiel'
 
 import gampy.engine.render.window as window
-import gampy.engine.events.time as time
-import gampy.engine.game as game
-import gampy.engine.input.input as game_input
+import gampy.engine.core.time as time
+import gampy.engine.game.game as game
+import gampy.engine.core.input as game_input
 import gampy.engine.render.util as render_util
-import os
-import sdl2
-import ctypes
-from gampy.engine.events.time import Timing
+from gampy.engine.core.time import Timing
 
 
 timings = Timing()
@@ -66,7 +63,7 @@ class MainComponent:
     def _run(self):
         self.is_running = True
         self.input.bind_window(self.window)
-        self._input_updater(50)
+        self._input_updater(20)
 
         frames = 0
         frame_counter = 0.

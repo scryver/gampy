@@ -1,21 +1,23 @@
 __author__ = 'michiel'
 
-import gampy.engine.input.input as gameinput
 import math
+
 from gampy.engine.render.shader import *
 from gampy.engine.render.material import Material
 from gampy.engine.render.texture import Texture
-from gampy.engine.objects.vectors import Vector3
-from gampy.engine.objects.transform import Transform
+from gampy.engine.core.vectors import Vector3
+from gampy.engine.core.transform import Transform
 from gampy.engine.render.camera import Camera
 import gampy.engine.render.util as render_util
-from gampy.engine.objects.meshes import Mesh
+from gampy.engine.render.meshes import Mesh
+
+
 
 
 # Temp function
 def test_mesh():
-    from gampy.engine.objects.meshes import Vertex
-    from gampy.engine.objects.vectors import Vector2
+    from gampy.engine.render.meshes import Vertex
+    from gampy.engine.core.vectors import Vector2
 
     def create_block(depth, width):
         vertices = [

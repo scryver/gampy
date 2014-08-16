@@ -1,7 +1,8 @@
 __author__ = 'michiel'
 
 import numpy
-from gampy.engine.objects.vectors import Matrix4
+
+from gampy.engine.core.vectors import Matrix4
 
 
 def cast_object_vertexes(vertices):
@@ -34,3 +35,13 @@ def cast_matrix(matrix):
         return new_matrix
 
     return False
+
+
+def remove_empty_strings(data):
+    result = []
+
+    for i in range(len(data)):
+        if data[i] != '':
+            result.append(data[i])
+
+    return result

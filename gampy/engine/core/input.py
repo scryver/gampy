@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 __author__ = 'michiel'
 
-import os
-import gampy.engine.objects.vectors as vectors
+import gampy.engine.core.vectors as vectors
 
 
 # http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/event-types.html

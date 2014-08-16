@@ -1,8 +1,8 @@
 __author__ = 'michiel'
 
 
-from gampy.engine.objects.vectors import Vector2, Vector3
-import gampy.engine.input.input as gameinput
+from gampy.engine.core.vectors import Vector2, Vector3
+import gampy.engine.core.input as gameinput
 
 
 class Camera:

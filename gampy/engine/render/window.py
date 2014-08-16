@@ -1,9 +1,10 @@
 __author__ = 'michiel'
 
-import OpenGL.Tk
 import tkinter
-import OpenGL.GL as gl
-from gampy.engine.objects.transform import Transform
+
+import OpenGL.Tk
+
+from gampy.engine.core.transform import Transform
 
 
 class Window:
