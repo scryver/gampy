@@ -150,7 +150,7 @@ class Point(Shader):
         self.set_uniform(uniform + '.attenuation.constant', value.constant)
         self.set_uniform(uniform + '.attenuation.linear', value.linear)
         self.set_uniform(uniform + '.attenuation.exponent', value.exponent)
-        self.set_uniform(uniform + '.position', value.position)
+        self.set_uniform(uniform + '.position', value.transform.position)
         self.set_uniform(uniform + '.range', value.range)
 
 
@@ -216,7 +216,7 @@ class Spot(Shader):
         self.set_uniform(uniform + '.attenuation.constant', value.constant)
         self.set_uniform(uniform + '.attenuation.linear', value.linear)
         self.set_uniform(uniform + '.attenuation.exponent', value.exponent)
-        self.set_uniform(uniform + '.position', value.position)
+        self.set_uniform(uniform + '.position', value.transform.position)
         self.set_uniform(uniform + '.range', value.range)
 
     def set_uniform_spot_light(self, uniform, value):

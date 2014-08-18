@@ -7,6 +7,7 @@ from gampy.engine.core.vectors import Vector3
 from gampy.engine.render.meshes import Mesh
 from gampy.engine.core.game import Game
 from gampy.engine.core.gameobject import GameObject
+from gampy.engine.core.transform import Transform
 from gampy.engine.components.meshrenderer import MeshRenderer
 import gampy.engine.components.lights as light_components
 
@@ -18,6 +19,7 @@ class TestGame(Game):
         material = Material(Texture('test.png'), Vector3(1, 1, 1))
 
         mesh_renderer = MeshRenderer(mesh, material)
+        transform = Transform()
 
         plane_object = GameObject()
         plane_object.add_component(mesh_renderer)
@@ -31,12 +33,14 @@ class TestGame(Game):
         directional_light_object.add_component(directional_light)
 
         point_light_object = GameObject()
-        point_light = light_components.PointLight(Vector3(0, 1, 0), 0.4, Vector3(0, 0, 1), Vector3(5, 0, 5), 100)
+        point_light_object.transform.position = Vector3(5, 0, 5)
+        point_light = light_components.PointLight(Vector3(0, 1, 0), 0.4, Vector3(0, 0, 1))
         point_light_object.add_component(point_light)
 
         spot_light_object = GameObject()
-        spot_light = light_components.SpotLight(Vector3(1, 0, 0), 0.4, Vector3(0, 0, .1), Vector3(-5, 0, 5), 100, Vector3(1, 0, 0), 0.7)
+        spot_light = light_components.SpotLight(Vector3(0, 1, 1), 0.4, Vector3(0, 0, .1), Vector3(1, 0, 0), 0.7)
         spot_light_object.add_component(spot_light)
+        spot_light_object.transform.position = Vector3(5, 0.2, 5)
 
         self.root_object.add_child(plane_object)
         self.root_object.add_child(directional_light_object)

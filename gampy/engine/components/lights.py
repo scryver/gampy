@@ -4,12 +4,13 @@ import gampy.engine.core.util as core_util
 import gampy.engine.render.forwardpass as forwardpass
 from gampy.engine.components.gamecomponent import GameComponent
 from gampy.engine.core.vectors import Vector3
-import numbers
+import math
 
 
 class BaseLight(GameComponent):
 
     def __init__(self, color, intensity):
+        super().__init__()
         self._color = None
         self._intensity = None
         self._shader = None
@@ -65,16 +66,15 @@ class DirectionalLight(BaseLight):
 
 class PointLight(BaseLight):
 
-    def __init__(self, color, intensity, attenuation, position, range_value):
+    COLOR_DEPTH = 256
+
+    def __init__(self, color, intensity, attenuation):
         super().__init__(color, intensity)
-        self._position = None
-        self._range = None
         self._attenuation = Vector3(0, 0, 1)
         self._shader = forwardpass.Point.get_instance()
 
         self.attenuation = attenuation
-        self.position = position
-        self.range = range_value
+        self.calc_range()
 
     @property
     def attenuation(self):
@@ -110,26 +110,17 @@ class PointLight(BaseLight):
         exponent = core_util.is_float(exponent, 'Exponent')
         self._attenuation.z = abs(exponent)
 
-    @property
-    def position(self):
-        return self._position
-    @position.setter
-    def position(self, position):
-        position = core_util.is_instance(position, 'Position', Vector3)
-        self._position = position
+    def calc_range(self):
+        a = self.exponent
+        b = self.linear
+        c = self.constant - self.COLOR_DEPTH * self.intensity * self.color.max()
+        self.range = (-b + math.sqrt(b * b - 4 * a * c)) / (2 * a)
 
-    @property
-    def range(self):
-        return self._range
-    @range.setter
-    def range(self, range_value):
-        range_value = core_util.is_float(range_value, 'Range')
-        self._range = range_value
 
 class SpotLight(PointLight):
 
-    def __init__(self, color, intensity, attenuation, position, range_value, direction, cutoff):
-        super().__init__(color, intensity, attenuation, position, range_value)
+    def __init__(self, color, intensity, attenuation, direction, cutoff):
+        super().__init__(color, intensity, attenuation)
         self._direction = None
         self._cutoff = None
         self._shader = forwardpass.Spot.get_instance()

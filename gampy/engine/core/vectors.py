@@ -16,6 +16,9 @@ class Vector2:
     def length(self):
         return sqrt(self.x * self.x + self.y * self.y)
 
+    def max(self):
+        return max(self.x, self.y)
+
     def normalized(self):
         length = self.length
 
@@ -110,6 +113,9 @@ class Vector3:
     @property
     def length(self):
         return sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
+
+    def max(self):
+        return max(self.x, self.y, self.z)
 
     @property
     def xy(self):

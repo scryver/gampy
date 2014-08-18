@@ -2,26 +2,25 @@ __author__ = 'michiel'
 
 from gampy.engine.core.eventinterface import EventInterface
 from gampy.engine.core.transform import Transform
+import gampy.engine.core.util as core_util
 
 class GameComponent(EventInterface):
 
-    def input(self, dt, transform):
-        if not isinstance(transform, Transform):
-            raise AttributeError('Transformation is not of type Transform')
+    def __init__(self):
+        self.parent = None
 
-        return
+    def input(self, dt):
+        pass
 
-    def update(self, dt, transform):
-        if not isinstance(transform, Transform):
-            raise AttributeError('Transformation is not of type Transform')
+    def update(self, dt):
+        pass
 
-        return
+    def render(self, shader):
+        pass
 
-    def render(self, transform, shader):
-        if not isinstance(transform, Transform):
-            raise AttributeError('Transformation is not of type Transform')
-
-        return
+    @property
+    def transform(self):
+        return self.parent.transform
 
     def add_to_render_engine(self, rendering_engine):
         pass

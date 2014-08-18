@@ -7,6 +7,7 @@ from gampy.engine.render.meshes import Mesh
 class MeshRenderer(GameComponent):
 
     def __init__(self, mesh, material):
+        super().__init__()
         if not isinstance(mesh, Mesh):
             raise AttributeError('Mesh is not valid')
         if not isinstance(material, Material):
@@ -15,9 +16,9 @@ class MeshRenderer(GameComponent):
         self.mesh = mesh
         self.material = material
 
-    def render(self, transform, shader):
+    def render(self, shader):
         shader.bind()
-        shader.update_uniforms(transform, self.material)
+        shader.update_uniforms(self.transform, self.material)
         try:
             self.mesh.draw()
         finally:

@@ -15,17 +15,18 @@ class GameObject(EventInterface):
 
     def add_component(self, component):
         self.components.append(component)
+        component.parent = self
 
     def input(self, dt):
-        [component.input(dt, self.transform) for component in self.components]
+        [component.input(dt) for component in self.components]
         [child.input(dt) for child in self.children]
 
     def update(self, dt):
-        [component.update(dt, self.transform) for component in self.components]
+        [component.update(dt) for component in self.components]
         [child.update(dt) for child in self.children]
 
     def render(self, shader):
-        [component.render(self.transform, shader) for component in self.components]
+        [component.render(shader) for component in self.components]
         [child.render(shader) for child in self.children]
 
     def add_to_render_engine(self, rendering_engine):
