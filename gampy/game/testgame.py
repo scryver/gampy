@@ -9,7 +9,6 @@ from gampy.engine.core.game import Game
 from gampy.engine.core.gameobject import GameObject
 from gampy.engine.components.meshrenderer import MeshRenderer
 import gampy.engine.components.lights as light_components
-import gampy.engine.render.lights as render_lights
 
 
 class TestGame(Game):
@@ -32,11 +31,11 @@ class TestGame(Game):
         directional_light_object.add_component(directional_light)
 
         point_light_object = GameObject()
-        point_light = light_components.PointLight(Vector3(0, 1, 0), 0.4, 0, 0, 1, Vector3(5, 0, 5), 100)
+        point_light = light_components.PointLight(Vector3(0, 1, 0), 0.4, Vector3(0, 0, 1), Vector3(5, 0, 5), 100)
         point_light_object.add_component(point_light)
 
         spot_light_object = GameObject()
-        spot_light = light_components.SpotLight(Vector3(1, 0, 0), 0.4, 0, 0, .1, Vector3(-5, 0, 5), 100, Vector3(1, 0, 0), 0.7)
+        spot_light = light_components.SpotLight(Vector3(1, 0, 0), 0.4, Vector3(0, 0, .1), Vector3(-5, 0, 5), 100, Vector3(1, 0, 0), 0.7)
         spot_light_object.add_component(spot_light)
 
         self.root_object.add_child(plane_object)

@@ -65,45 +65,50 @@ class DirectionalLight(BaseLight):
 
 class PointLight(BaseLight):
 
-    def __init__(self, color, intensity, constant, linear, exponent, position, range_value):
+    def __init__(self, color, intensity, attenuation, position, range_value):
         super().__init__(color, intensity)
         self._position = None
         self._range = None
-        self._constant = 0.
-        self._linear = 0.
-        self._exponent = 1.
+        self._attenuation = Vector3(0, 0, 1)
         self._shader = forwardpass.Point.get_instance()
 
+        self.attenuation = attenuation
         self.position = position
         self.range = range_value
 
-        self.constant = constant
-        self.linear = linear
-        self.exponent = exponent
+    @property
+    def attenuation(self):
+        return self._attenuation
+    @attenuation.setter
+    def attenuation(self, attenuation):
+        attenuation = core_util.is_instance(attenuation, 'Attenuation', Vector3)
+        self.constant = attenuation.x
+        self.linear = attenuation.y
+        self.exponent = attenuation.z
 
     @property
     def constant(self):
-        return self._constant
+        return self._attenuation.x
     @constant.setter
     def constant(self, constant):
         constant = core_util.is_float(constant, 'Constant')
-        self._constant = abs(constant)
+        self._attenuation.x = abs(constant)
 
     @property
     def linear(self):
-        return self._linear
+        return self._attenuation.y
     @linear.setter
     def linear(self, linear):
         linear = core_util.is_float(linear, 'Linear')
-        self._linear = abs(linear)
+        self._attenuation.y = abs(linear)
 
     @property
     def exponent(self):
-        return self._exponent
+        return self._attenuation.z
     @exponent.setter
     def exponent(self, exponent):
         exponent = core_util.is_float(exponent, 'Exponent')
-        self._exponent = abs(exponent)
+        self._attenuation.z = abs(exponent)
 
     @property
     def position(self):
@@ -123,8 +128,8 @@ class PointLight(BaseLight):
 
 class SpotLight(PointLight):
 
-    def __init__(self, color, intensity, constant, linear, exponent, position, range_value, direction, cutoff):
-        super().__init__(color, intensity, constant, linear, exponent, position, range_value)
+    def __init__(self, color, intensity, attenuation, position, range_value, direction, cutoff):
+        super().__init__(color, intensity, attenuation, position, range_value)
         self._direction = None
         self._cutoff = None
         self._shader = forwardpass.Spot.get_instance()

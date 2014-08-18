@@ -3,7 +3,7 @@ __author__ = 'michiel'
 from gampy.engine.core.coreengine import Window
 from gampy.engine.core.vectors import Vector3
 from gampy.engine.render.camera import Camera
-import gampy.engine.render.forwardpass as forwardpass
+import gampy.engine.render.forwardpass as forward_pass
 import OpenGL.GL as gl
 import math
 
@@ -45,7 +45,7 @@ class RenderingEngine:
         self.lights.clear()
         object.add_to_render_engine(self)
 
-        forwardAmbient = forwardpass.Ambient.get_instance()
+        forwardAmbient = forward_pass.Ambient.get_instance()
         forwardAmbient.render_engine = self
         object.render(forwardAmbient)
 
