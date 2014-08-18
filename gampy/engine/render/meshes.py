@@ -53,8 +53,8 @@ class Mesh:
         else:
             self._add_vertices(vertices, indices, calc_norm, usage)
 
-    def _add_vertices(self, vertices, indices, calc_norms, usage):
-        if calc_norms:
+    def _add_vertices(self, vertices, indices, calc_norm=False, usage=None):
+        if calc_norm:
             self._calc_normals(vertices, indices)
 
         self.size = len(indices)
@@ -148,4 +148,4 @@ class Mesh:
         vertices = numpy.array(vertices, dtype=numpy.float32)
         indices = numpy.array(indices, dtype=numpy.uint32)
 
-        self._add_vertices(vertices, indices)
+        self._add_vertices(vertices, indices, True)

@@ -166,7 +166,7 @@ class BasicShader(Shader):
         material.texture.bind()
 
         world_matrix = transform.get_transformation()
-        projected_matrix = self.rendering_engine.main_camera.view_projection() * world_matrix
+        projected_matrix = self.render_engine.main_camera.view_projection() * world_matrix
 
         self.set_uniform('transform', projected_matrix)
         self.set_uniform('color', material.color)

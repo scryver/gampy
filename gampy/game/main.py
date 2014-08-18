@@ -13,4 +13,7 @@ class Main:
 
 
 if __name__ == '__main__':
+    # import profile
+    # main = 'Main.main()'
+    # profile.run(main)
     Main.main()

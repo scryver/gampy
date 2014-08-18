@@ -99,10 +99,8 @@ class Camera:
 
     @property
     def left(self):
-        left_vec = self.forward.cross(self.up).normalized()
-        return left_vec
+        return self.forward.cross(self.up).normalized()
 
     @property
     def right(self):
-        right_vec = self.up.cross(self.forward).normalized()
-        return right_vec
+        return self.up.cross(self.forward).normalized()

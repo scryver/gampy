@@ -1,39 +1,127 @@
 __author__ = 'michiel'
+__author__ = 'michiel'
 
 from math import sqrt, radians, sin, cos, tan
-from numbers import Number
+from numbers import Number, Integral
 import numpy
 import gampy.engine.core.util as core_util
 
 
-class Vector2:
+class Vector:
 
-    def __init__(self, x=None, y=None):
-        self.x = core_util.is_float(x, 'X')
-        self.y = core_util.is_float(y, 'Y')
+    def __init__(self, data):
+        if isinstance(data, Integral):
+            """data is a number so we use it to set the size of the vector"""
+            data = [0. for i in range(data)]
+        self._array = numpy.array(data, dtype=numpy.float32)
 
     @property
     def length(self):
-        return sqrt(self.x * self.x + self.y * self.y)
-
-    def max(self):
-        return max(self.x, self.y)
+        return numpy.sqrt(self._array.dot(self._array))
 
     def normalized(self):
-        length = self.length
+        try:
+            return self / self.length
+        except ZeroDivisionError:
+            return self.__class__()
 
-        if length > 0:
-            return self / length
+    def dot(self, other):
+        return numpy.dot(self._array, other._array)
+
+    def cross(self, other):
+        result = numpy.cross(self._array, other._array)
+        if isinstance(result, (Number, numpy.float32)):
+            return result
         else:
-            return Vector2(0, 0, 0)
+            return self.__class__(result)
+
+    def __add__(self, other):
+        if isinstance(other, Vector):
+            result = self._array + other._array
+        else:
+            result = self._array + other
+        return self.__class__(result)
+
+    def __sub__(self, other):
+        if isinstance(other, Vector):
+            result = self._array - other._array
+        else:
+            result = self._array - other
+        return self.__class__(result)
+
+    def __mul__(self, other):
+        if isinstance(other, Vector):
+            result = self._array * other._array
+        else:
+            result = self._array * other
+        return self.__class__(result)
+
+    def __truediv__(self, other):
+        if other == 0:
+            result = None
+        elif isinstance(other, Vector):
+            result = self._array / other._array
+        else:
+            result = self._array / other
+        return self.__class__(result)
+
+    def __eq__(self, other):
+        if isinstance(other, Vector):
+            return self._array == other._array
+        else:
+            return self._array == other
+
+    def __ne__(self, other):
+        if isinstance(other, Vector):
+            return self._array != other._array
+        else:
+            return self._array != other
+
+    def __abs__(self):
+        result = abs(self._array)
+        return self.__class__(result)
+
+    def max(self):
+        return max(self._array)
+
+    def min(self):
+        return min(self._array)
+
+    def __str__(self):
+        return str(self._array)
+
+
+class Vector2(Vector):
+
+    def __init__(self, x=0, y=0):
+        super().__init__(2)
+        try:
+            self.x = x
+            self.y = y
+        except ValueError:
+            self.x = x[0]
+            self.y = x[1]
+
+    @property
+    def x(self):
+        return self._array[0]
+    @x.setter
+    def x(self, value):
+        self._array[0] = value
+
+    @property
+    def y(self):
+        return self._array[1]
+    @y.setter
+    def y(self, value):
+        self._array[1] = value
 
     def rotate(self, angle):
         rad = radians(angle)
         cosine = cos(rad)
         sinus = sin(rad)
 
-        return Vector2(self.x * cosine - self.y * sinus,
-                       self.x * sinus + self.y * cosine)
+        return Vector2(self.x * cosine - self.y * sinus, self.x * sinus + self.y * cosine)
 
     def lerp(self, destination, lerp_factor):
         lerp_factor = core_util.is_float(lerp_factor, 'Lerp Factor')
@@ -41,81 +129,40 @@ class Vector2:
 
         return (destination - self) * lerp_factor + self
 
-    def dot(self, other):
-        if isinstance(other, Vector2):
-            return self.x * other.x + self.y * other.y
-        return NotImplemented
 
-    def cross(self, other):
-        if isinstance(other, Vector2):
-            return self.x * other.y - self.y * other.x
-        return NotImplemented
+class Vector3(Vector):
 
-    def __add__(self, other):
-        if isinstance(other, Vector2):
-            return Vector2(self.x + other.x, self.y + other.y)
-        elif isinstance(other, Number):
-            return Vector2(self.x + other, self.y + other)
-
-        return NotImplemented
-
-    def __sub__(self, other):
-        if isinstance(other, Vector2):
-            return Vector2(self.x - other.x, self.y - other.y)
-        elif isinstance(other, Number):
-            return Vector2(self.x - other, self.y - other)
-
-        return NotImplemented
-
-    def __mul__(self, other):
-        if isinstance(other, Vector2):
-            return Vector2(self.x * other.x, self.y * other.y)
-        elif isinstance(other, Number):
-            return Vector2(self.x * other, self.y * other)
-
-        return NotImplemented
-
-    def __truediv__(self, other):
-        if isinstance(other, Vector2):
-            return Vector2(self.x / other.x, self.y / other.y)
-        elif isinstance(other, Number):
-            return Vector2(self.x / other, self.y / other)
-
-        return NotImplemented
-
-    def __eq__(self, other):
-        if isinstance(other, Vector2):
-            return self.x == other.x and self.y == other.y
-        elif isinstance(other, Number):
-            return self.x == other and self.y == other
-
-        return NotImplemented
-
-    def __ne__(self, other):
-        if isinstance(other, Vector2):
-            return self.x != other.x and self.y != other.y
-        elif isinstance(other, Number):
-            return self.x != other and self.y != other
-
-        return NotImplemented
-
-    def __str__(self):
-        return '({} {})'.format(self.x, self.y)
-
-
-class Vector3:
-
-    def __init__(self, x=None, y=None, z=None):
-        self.x = core_util.is_float(x, 'X')
-        self.y = core_util.is_float(y, 'Y')
-        self.z = core_util.is_float(z, 'Z')
+    def __init__(self, x=0, y=0, z=0):
+        super().__init__(3)
+        try:
+            self.x = x
+            self.y = y
+            self.z = z
+        except ValueError:
+            self.x = x[0]
+            self.y = x[1]
+            self.y = x[2]
 
     @property
-    def length(self):
-        return sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
+    def x(self):
+        return self._array[0]
+    @x.setter
+    def x(self, value):
+        self._array[0] = value
 
-    def max(self):
-        return max(self.x, self.y, self.z)
+    @property
+    def y(self):
+        return self._array[1]
+    @y.setter
+    def y(self, value):
+        self._array[1] = value
+
+    @property
+    def z(self):
+        return self._array[2]
+    @z.setter
+    def z(self, value):
+        self._array[2] = value
 
     @property
     def xy(self):
@@ -135,12 +182,6 @@ class Vector3:
     @property
     def zy(self):
         return Vector2(self.z, self.y)
-
-    def normalized(self):
-        try:
-            return self / self.length
-        except ZeroDivisionError:
-            return Vector3(0, 0, 0)
 
     def rotate(self, angle, axis):
         if isinstance(axis, Vector3):
@@ -169,73 +210,6 @@ class Vector3:
         destination = core_util.is_instance(destination, 'Destination', Vector3)
 
         return (destination - self) * lerp_factor + self
-
-    def dot(self, other):
-        if isinstance(other, Vector3):
-            return self.x * other.x + self.y * other.y + self.z * other.z
-        return NotImplemented
-
-    def cross(self, other):
-        if isinstance(other, Vector3):
-            x = self.y * other.z - self.z * other.y
-            y = self.z * other.x - self.x * other.z
-            z = self.x * other.y - self.y * other.x
-            return Vector3(x, y, z)
-        return NotImplemented
-
-    def __add__(self, other):
-        if isinstance(other, Vector3):
-            return Vector3(self.x + other.x, self.y + other.y, self.z + other.z)
-        elif isinstance(other, Number):
-            return Vector3(self.x + other, self.y + other, self.z + other)
-
-        return NotImplemented
-
-    def __sub__(self, other):
-        if isinstance(other, Vector3):
-            return Vector3(self.x - other.x, self.y - other.y, self.z - other.z)
-        elif isinstance(other, Number):
-            return Vector3(self.x - other, self.y - other, self.z - other)
-
-        return NotImplemented
-
-    def __mul__(self, other):
-        if isinstance(other, Vector3):
-            return Vector3(self.x * other.x, self.y * other.y, self.z * other.z)
-        elif isinstance(other, Number):
-            return Vector3(self.x * other, self.y * other, self.z * other)
-
-        return NotImplemented
-
-    def __truediv__(self, other):
-        if isinstance(other, Vector3):
-            return Vector3(self.x / other.x, self.y / other.y, self.z / other.y)
-        elif isinstance(other, Number):
-            return Vector3(self.x / other, self.y / other, self.z / other)
-
-        return NotImplemented
-
-    def __eq__(self, other):
-        if isinstance(other, Vector3):
-            return self.x == other.x and self.y == other.y and self.z == other.z
-        elif isinstance(other, Number):
-            return self.x == other and self.y == other and self.z == other
-
-        return NotImplemented
-
-    def __ne__(self, other):
-        if isinstance(other, Vector3):
-            return self.x != other.x and self.y != other.y and self.z != other.z
-        elif isinstance(other, Number):
-            return self.x != other and self.y != other and self.z != other
-
-        return NotImplemented
-
-    def __str__(self):
-        return '({} {} {})'.format(self.x, self.y, self.z)
-
-    def __abs__(self):
-        return Vector3(abs(self.x), abs(self.y), abs(self.z))
 
 
 class Matrix4:

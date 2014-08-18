@@ -34,7 +34,7 @@ def is_float(value, field_name, default=0):
     """Checks if value is a number and cast it to a float, field_name is used for error description"""
     if value is None and default is not None:
         res = float(default)
-    elif isinstance(value, numbers.Number):
+    elif isinstance(value, (numbers.Number, numpy.float32)):
         res = float(value)
     else:
         raise AttributeError('{} "{}" is not a number'.format(field_name, value))

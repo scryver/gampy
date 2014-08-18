@@ -83,7 +83,7 @@ class Directional(Shader):
 
     def set_uniform_base_light(self, uniform, value):
         self.set_uniform(uniform + '.base.color', value.color)
-        self.set_uniform(uniform + '.base.intensity', value.intensity)
+        self.set_uniform(uniform + '.base.intensity', float(value.intensity))
 
     def set_uniform_directional_light(self, uniform, value):
         self.set_uniform_base_light(uniform, value)
@@ -143,15 +143,15 @@ class Point(Shader):
 
     def set_uniform_base_light(self, uniform, value):
         self.set_uniform(uniform + '.base.color', value.color)
-        self.set_uniform(uniform + '.base.intensity', value.intensity)
+        self.set_uniform(uniform + '.base.intensity', float(value.intensity))
 
     def set_uniform_point_light(self, uniform, value):
         self.set_uniform_base_light(uniform, value)
-        self.set_uniform(uniform + '.attenuation.constant', value.constant)
-        self.set_uniform(uniform + '.attenuation.linear', value.linear)
-        self.set_uniform(uniform + '.attenuation.exponent', value.exponent)
+        self.set_uniform(uniform + '.attenuation.constant', float(value.constant))
+        self.set_uniform(uniform + '.attenuation.linear', float(value.linear))
+        self.set_uniform(uniform + '.attenuation.exponent', float(value.exponent))
         self.set_uniform(uniform + '.position', value.transform.position)
-        self.set_uniform(uniform + '.range', value.range)
+        self.set_uniform(uniform + '.range', float(value.range))
 
 
 class Spot(Shader):
@@ -209,17 +209,17 @@ class Spot(Shader):
 
     def set_uniform_base_light(self, uniform, value):
         self.set_uniform(uniform + '.base.color', value.color)
-        self.set_uniform(uniform + '.base.intensity', value.intensity)
+        self.set_uniform(uniform + '.base.intensity', float(value.intensity))
 
     def set_uniform_point_light(self, uniform, value):
         self.set_uniform_base_light(uniform, value)
-        self.set_uniform(uniform + '.attenuation.constant', value.constant)
-        self.set_uniform(uniform + '.attenuation.linear', value.linear)
-        self.set_uniform(uniform + '.attenuation.exponent', value.exponent)
+        self.set_uniform(uniform + '.attenuation.constant', float(value.constant))
+        self.set_uniform(uniform + '.attenuation.linear', float(value.linear))
+        self.set_uniform(uniform + '.attenuation.exponent', float(value.exponent))
         self.set_uniform(uniform + '.position', value.transform.position)
-        self.set_uniform(uniform + '.range', value.range)
+        self.set_uniform(uniform + '.range', float(value.range))
 
     def set_uniform_spot_light(self, uniform, value):
         self.set_uniform_point_light(uniform + '.pointLight', value)
         self.set_uniform(uniform + '.direction', value.direction)
-        self.set_uniform(uniform + '.cutoff', value.cutoff)
+        self.set_uniform(uniform + '.cutoff', float(value.cutoff))

@@ -34,11 +34,11 @@ class TestGame(Game):
 
         point_light_object = GameObject()
         point_light_object.transform.position = Vector3(5, 0, 5)
-        point_light = light_components.PointLight(Vector3(0, 1, 0), 0.4, Vector3(0, 0, 1))
+        point_light = light_components.PointLight(Vector3(0, 1, 0), 0.4, (0, 0, 1))
         point_light_object.add_component(point_light)
 
         spot_light_object = GameObject()
-        spot_light = light_components.SpotLight(Vector3(0, 1, 1), 0.4, Vector3(0, 0, .1), Vector3(1, 0, 0), 0.7)
+        spot_light = light_components.SpotLight(Vector3(0, 1, 1), 0.4, (0, 0, .1), Vector3(1, 0, 0), 0.7)
         spot_light_object.add_component(spot_light)
         spot_light_object.transform.position = Vector3(5, 0.2, 5)
 
