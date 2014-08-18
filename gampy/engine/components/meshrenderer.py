@@ -1,6 +1,6 @@
 __author__ = 'michiel'
 
-from gampy.engine.core.gamecomponent import GameComponent
+from gampy.engine.components.gamecomponent import GameComponent
 from gampy.engine.render.material import Material
 from gampy.engine.render.meshes import Mesh
 

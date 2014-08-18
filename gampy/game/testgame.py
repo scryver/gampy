@@ -4,13 +4,12 @@ __author__ = 'michiel'
 from gampy.engine.render.material import Material
 from gampy.engine.render.texture import Texture
 from gampy.engine.core.vectors import Vector3
-from gampy.engine.core.transform import Transform
-from gampy.engine.render.camera import Camera
 from gampy.engine.render.meshes import Mesh
 from gampy.engine.core.game import Game
 from gampy.engine.core.gameobject import GameObject
-from gampy.engine.core.coreengine import Window
-from gampy.game.meshrenderer import MeshRenderer
+from gampy.engine.components.meshrenderer import MeshRenderer
+import gampy.engine.components.lights as light_components
+import gampy.engine.render.lights as render_lights
 
 
 class TestGame(Game):
@@ -23,12 +22,22 @@ class TestGame(Game):
 
         plane_object = GameObject()
         plane_object.add_component(mesh_renderer)
+        plane_object.transform.position = 0, -1, 5
+        # plane_object.transform.rotation = 0, -45, 0
+
+        directional_light_object = GameObject()
+        directional_light = light_components.DirectionalLight(Vector3(1, 0.9, 0.5),
+                                                              0.8,
+                                                              Vector3(1, 1, 1))
+        directional_light_object.add_component(directional_light)
+
+        point_light_object = GameObject()
+        point_light = light_components.PointLight(Vector3(0, 1, 0), 0.4, 0, 0, 1, Vector3(5, 0, 5), 100)
+        point_light_object.add_component(point_light)
 
         self.root_object.add_child(plane_object)
-
-        plane_object.transform.position = 0, -1, 5
-        plane_object.transform.rotation = 0, -45, 0
-
+        self.root_object.add_child(directional_light_object)
+        self.root_object.add_child(point_light_object)
 
 # Temp function
 def test_mesh(type):

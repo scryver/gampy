@@ -1,12 +1,11 @@
 __author__ = 'michiel'
 
-
-from gampy.engine.core.gameobject import GameObject
-from gampy.engine.render.shader import BasicShader
+from gampy.engine.core.coreengine import Window
+from gampy.engine.core.vectors import Vector3
 from gampy.engine.render.camera import Camera
+import gampy.engine.render.forwardpass as forwardpass
 import OpenGL.GL as gl
 import math
-from gampy.engine.core.coreengine import Window
 
 class RenderingEngine:
 
@@ -29,19 +28,48 @@ class RenderingEngine:
         gl.glEnable(gl.GL_TEXTURE_2D)
 
         self.main_camera = Camera(math.radians(70.), Window.width / Window.height, 0.1, 1000.)
+        self.active_ambient_light = Vector3(0.1, 0.1, 0.1)
+
+        self.lights = []
+        self.active_light = None
+
+    def add_light(self, light):
+        self.lights.append(light)
 
     def input(self, dt):
         self.main_camera.input(dt)
 
     def render(self, object):
-        if not isinstance(object, GameObject):
-            raise AttributeError('Cannot render other things then Game Objects')
-
-        shader = BasicShader.get_instance()
-        shader.rendering_engine = self
-
         self._clear_screen()
-        object.render(shader)
+
+        self.lights.clear()
+        object.add_to_render_engine(self)
+
+        forwardAmbient = forwardpass.Ambient.get_instance()
+        forwardAmbient.render_engine = self
+        object.render(forwardAmbient)
+
+        # Add colors together (will be disabled through gl.glDisable(gl.GL_BLEND)
+        gl.glEnable(gl.GL_BLEND)
+        # One * color1 + One * color2
+        gl.glBlendFunc(gl.GL_ONE, gl.GL_ONE)
+        # We don't need to check the depth again (already done by ambient light)
+        gl.glDepthMask(gl.GL_FALSE)
+        # Only add color if the pixel is same as previous
+        gl.glDepthFunc(gl.GL_EQUAL)
+
+        object_render = object.render
+        [object_render(shader) for shader in self._render_lights()]
+
+        gl.glDepthFunc(gl.GL_LESS)
+        gl.glDepthMask(gl.GL_TRUE)
+        gl.glDisable(gl.GL_BLEND)
+
+    def _render_lights(self):
+        for light in self.lights:
+            light.shader.render_engine = self
+            self.active_light = light
+            yield light.shader
 
     @classmethod
     def _clear_screen(cls):

@@ -22,3 +22,6 @@ class GameComponent(EventInterface):
             raise AttributeError('Transformation is not of type Transform')
 
         return
+
+    def add_to_render_engine(self, rendering_engine):
+        pass

@@ -3,8 +3,7 @@ __author__ = 'michiel'
 from gampy.engine.render.window import Window
 from gampy.engine.core.time import Time
 from gampy.engine.core.input import Input
-from gampy.engine.core.renderingengine import RenderingEngine
-import _thread
+from gampy.engine.render.renderingengine import RenderingEngine
 
 
 class CoreEngine:
