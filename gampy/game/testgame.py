@@ -26,8 +26,8 @@ class TestGame(Game):
         # plane_object.transform.rotation = 0, -45, 0
 
         directional_light_object = GameObject()
-        directional_light = light_components.DirectionalLight(Vector3(1, 0.9, 0.5),
-                                                              0.8,
+        directional_light = light_components.DirectionalLight(Vector3(0, 0.2, 0.8),
+                                                              0.4,
                                                               Vector3(1, 1, 1))
         directional_light_object.add_component(directional_light)
 
@@ -35,9 +35,14 @@ class TestGame(Game):
         point_light = light_components.PointLight(Vector3(0, 1, 0), 0.4, 0, 0, 1, Vector3(5, 0, 5), 100)
         point_light_object.add_component(point_light)
 
+        spot_light_object = GameObject()
+        spot_light = light_components.SpotLight(Vector3(1, 0, 0), 0.4, 0, 0, .1, Vector3(-5, 0, 5), 100, Vector3(1, 0, 0), 0.7)
+        spot_light_object.add_component(spot_light)
+
         self.root_object.add_child(plane_object)
         self.root_object.add_child(directional_light_object)
         self.root_object.add_child(point_light_object)
+        self.root_object.add_child(spot_light_object)
 
 # Temp function
 def test_mesh(type):
