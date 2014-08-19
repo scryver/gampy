@@ -1,13 +1,13 @@
 __author__ = 'michiel'
 
-from gampy.engine.core.vectors import Vector3, Matrix4
+from gampy.engine.core.vectors import Vector3, Matrix4, Quaternion
 
 
 class Transform:
 
     def __init__(self):
-        self._position = Vector3(0.,0.,0.)
-        self._rotation = Vector3(0., 0., 0.)
+        self._position = Vector3()
+        self._rotation = Quaternion()
         self._scale  = Vector3(1., 1., 1.)
 
     def get_transformation(self):
@@ -15,17 +15,13 @@ class Transform:
                                                 self._position.y,
                                                 self._position.z)
 
-        rotation = Matrix4().init_rotation(self._rotation.x,
-                                          self._rotation.y,
-                                          self._rotation.z)
+        rotation = self._rotation.to_rotation_matrix()
 
         scale = Matrix4().init_scale(self._scale.x,
                                      self._scale.y,
                                      self._scale.z)
 
-        transformation = translation * rotation * scale
-
-        return transformation
+        return translation * rotation * scale
 
     @property
     def position(self):
@@ -48,14 +44,14 @@ class Transform:
     @rotation.setter
     def rotation(self, value):
         try:
-            x, y, z = value
+            x, y, z, w = value
         except:
-            x, y, z = value, None, None
+            x, y, z, w = value, None, None, None
 
-        if y == None and z == None and isinstance(x, Vector3):
+        if y == None and z == None and w == None and isinstance(x, Quaternion):
             self._rotation = x
         else:
-            self._rotation = Vector3(x, y, z)
+            self._rotation = Quaternion(x, y, z, w)
 
     @property
     def scale(self):

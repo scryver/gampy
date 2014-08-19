@@ -1,11 +1,10 @@
 __author__ = 'michiel'
 
-from gampy.engine.core.coreengine import Window
-from gampy.engine.core.vectors import Vector3
-from gampy.engine.render.camera import Camera
-import gampy.engine.render.forwardpass as forward_pass
 import OpenGL.GL as gl
-import math
+
+from gampy.engine.core.vectors import Vector3
+import gampy.engine.render.forwardpass as forward_pass
+
 
 class RenderingEngine:
 
@@ -27,7 +26,7 @@ class RenderingEngine:
 
         gl.glEnable(gl.GL_TEXTURE_2D)
 
-        self.main_camera = Camera(math.radians(70.), Window.width / Window.height, 0.1, 1000.)
+        self.main_camera = None
         self.active_ambient_light = Vector3(0.1, 0.1, 0.1)
 
         self.lights = []
@@ -36,8 +35,8 @@ class RenderingEngine:
     def add_light(self, light):
         self.lights.append(light)
 
-    def input(self, dt):
-        self.main_camera.input(dt)
+    def add_camera(self, camera):
+        self.main_camera = camera
 
     def render(self, object):
         self._clear_screen()

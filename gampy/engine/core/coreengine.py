@@ -64,7 +64,6 @@ class CoreEngine:
                     self.stop()
 
                 self.game.input(self.frame_time)
-                self.rendering_engine.input(self.frame_time)
                 Input.update()
                 self.game.update(self.frame_time)
 

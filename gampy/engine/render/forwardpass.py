@@ -74,7 +74,7 @@ class Directional(Shader):
 
         self.set_uniform('model', world_matrix)
         self.set_uniform('MVP', projected_matrix)
-        self.set_uniform('cameraPosition', camera.position)
+        self.set_uniform('cameraPosition', camera.transform.position)
 
         self.set_uniform('specularIntensity', material.specular_intensity)
         self.set_uniform('specularExponent', material.specular_exponent)
@@ -134,7 +134,7 @@ class Point(Shader):
 
         self.set_uniform('model', world_matrix)
         self.set_uniform('MVP', projected_matrix)
-        self.set_uniform('cameraPosition', camera.position)
+        self.set_uniform('cameraPosition', camera.transform.position)
 
         self.set_uniform('specularIntensity', material.specular_intensity)
         self.set_uniform('specularExponent', material.specular_exponent)
@@ -200,7 +200,7 @@ class Spot(Shader):
 
         self.set_uniform('model', world_matrix)
         self.set_uniform('MVP', projected_matrix)
-        self.set_uniform('cameraPosition', camera.position)
+        self.set_uniform('cameraPosition', camera.transform.position)
 
         self.set_uniform('specularIntensity', material.specular_intensity)
         self.set_uniform('specularExponent', material.specular_exponent)

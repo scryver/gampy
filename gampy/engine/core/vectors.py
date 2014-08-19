@@ -1,8 +1,9 @@
 __author__ = 'michiel'
 
-from math import sqrt, radians, sin, cos, tan
+from math import radians, tan, sin, cos
 from numbers import Number
 import numpy
+from numpy import sqrt
 import gampy.engine.core.util as core_util
 
 
@@ -105,14 +106,17 @@ class Vector2:
 
 class Vector3:
 
-    def __init__(self, x=None, y=None, z=None):
-        self.x = core_util.is_float(x, 'X')
-        self.y = core_util.is_float(y, 'Y')
-        self.z = core_util.is_float(z, 'Z')
+    def __init__(self, x=0., y=0., z=0.):
+        self.x = float(x)
+        self.y = float(y)
+        self.z = float(z)
+
+    def set(self, x, y, z):
+        self.x, self.y, self.z = x, y, z
 
     @property
     def length(self):
-        return sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
+        return sqrt(self.dot(self))
 
     def max(self):
         return max(self.x, self.y, self.z)
@@ -142,27 +146,26 @@ class Vector3:
         except ZeroDivisionError:
             return Vector3(0, 0, 0)
 
-    def rotate(self, angle, axis):
-        if isinstance(axis, Vector3):
-            half_angle = radians(angle / 2)
-            sin_half_angle = sin(half_angle)
-            cos_half_angle = cos(half_angle)
+    def rotate(self, quat_or_axis, angle=None):
+        if isinstance(quat_or_axis, Quaternion):
+            w = quat_or_axis * self * quat_or_axis.conjugate()
 
-            rx = axis.x * sin_half_angle
-            ry = axis.y * sin_half_angle
-            rz = axis.z * sin_half_angle
-            rw = cos_half_angle
-
-            rotation = Quaternion(rx, ry, rz, rw)
-            w = (rotation * self) * rotation.conjugate()
-
-            self.x = w.x
-            self.y = w.y
-            self.z = w.z
-
-            return self
-
-        return NotImplemented
+            return Vector3(w.x, w.y, w.z)
+        elif isinstance(quat_or_axis, Vector3):
+            # rotate on local x + rotate on local z + rotate on local y
+            return self.cross(quat_or_axis * -sin(angle)) + \
+                   self * cos(angle) + \
+                   quat_or_axis * self.dot(quat_or_axis * (1 - cos(angle)))
+            # rotation = Quaternion(quat_or_axis, angle)
+            # w = (rotation * self) * rotation.conjugate()
+            #
+            # self.x = w.x
+            # self.y = w.y
+            # self.z = w.z
+            #
+            # return self
+        else:
+            return NotImplemented
 
     def lerp(self, destination, lerp_factor):
         lerp_factor = core_util.is_float(lerp_factor, 'Lerp Factor')
@@ -276,26 +279,30 @@ class Matrix4:
         return self
 
     def init_rotation(self, x, y, z=None):
-        if z is None:
-            forward = core_util.is_instance(x, 'Forward', Vector3)
-            up = core_util.is_instance(y, 'Up', Vector3)
-
+        if isinstance(x, Vector3):
+            if z is None:
             # DONT KNOW IF THIS IS NECESSARY
-            f = forward.normalized()
-
-            r = up.normalized()
-            r = r.cross(f)
-
-            u = f.cross(r)
+                f = x.normalized()
+                r = y.normalized()
+                r = r.cross(f)
+                u = f.cross(r)
             # END OF DONT KNOW
+            else:
+                f = x # forward
+                u = y # up
+                r = z # right
 
             for i, j in self.item_loop():
-                if i == 0:
+                if i == j == 3:
+                    self.set(i, j, 1.)
+                elif i == 0:
                     v = r
                 elif i == 1:
                     v = u
                 elif i == 2:
                     v = f
+                else:
+                    continue
 
                 if j == 0:
                     self.set(i, j, v.x)
@@ -304,8 +311,6 @@ class Matrix4:
                 elif j == 2:
                     self.set(i, j, v.z)
 
-                if i == j == 3:
-                    self.set(i, j, 1.)
         else:
             rx = Matrix4()
             ry = Matrix4()
@@ -350,11 +355,6 @@ class Matrix4:
         return self
 
     def init_perspective(self, fov, aspect_ratio, z_near, z_far):
-        fov = core_util.is_float(fov, 'Field of View')
-        aspect_ratio = core_util.is_float(aspect_ratio, 'Aspect Ratio')
-        z_near = core_util.is_float(z_near, 'Z Near')
-        z_far = core_util.is_float(z_far, 'Z Far')
-
         tan_half_fov = tan(fov / 2)
         z_range = z_near - z_far
 
@@ -444,10 +444,34 @@ class Matrix4:
 class Quaternion:
 
     def __init__(self, x=None, y=None, z=None, w=None):
-        self.x = core_util.is_float(x, 'X')
-        self.y = core_util.is_float(y, 'Y')
-        self.z = core_util.is_float(z, 'Z')
-        self.w = core_util.is_float(w, 'W')
+        """
+        all depends on x, if x is None then a default Quaternion will be created
+        if x is a Vector3 it is assumed to be the axis and y the rotation angle
+
+        :param x: None, Number or Vector3 'axis'
+        :param y: None, Number or number 'angle'
+        :param z:
+        :param w:
+        :return:
+        """
+        if x is None:
+            x = 0
+            y = 0
+            z = 0
+            w = 1
+        elif isinstance(x, Vector3):
+            sin_half_angle = sin(y / 2)
+            cos_half_angle = cos(y / 2)
+
+            w = cos_half_angle
+            z = x.z * sin_half_angle
+            y = x.y * sin_half_angle
+            x = x.x * sin_half_angle
+
+        self.x = x
+        self.y = y
+        self.z = z
+        self.w = w
 
     @property
     def length(self):
@@ -465,6 +489,54 @@ class Quaternion:
     def conjugate(self):
         return Quaternion(-self.x, -self.y, -self.z, self.w)
 
+    def to_rotation_matrix(self):
+        forward = Vector3(2.0 * (self.x*self.z - self.w*self.y), 2.0 * (self.y*self.z + self.w*self.x), 1.0 - 2.0 * (self.x*self.x + self.y*self.y))
+        up = Vector3(2.0 * (self.x*self.y + self.w*self.z), 1.0 - 2.0 * (self.x*self.x + self.z*self.z), 2.0 * (self.y*self.z - self.w*self.x))
+        right = Vector3(1.0 - 2.0 * (self.y*self.y + self.z*self.z), 2.0 * (self.x*self.y - self.w*self.z), 2.0 * (self.x*self.z + self.w*self.y))
+        return Matrix4().init_rotation(forward, up, right)
+
+    @property
+    def forward(self):
+        # return Vector3(0, 0, 1).rotate(self)
+        return Vector3(2 * (self.x * self.z - self.w * self.y),
+                       2 * (self.y * self.z + self.w * self.x),
+                       1 - 2 * (self.x * self.x + self.y * self.y))
+
+    @property
+    def back(self):
+        # return Vector3(0, 0, -1).rotate(self)
+        return Vector3(-2 * (self.x * self.z - self.w * self.y),
+                       -2 * (self.y * self.z + self.w * self.x),
+                       -(1 - 2 * (self.x * self.x + self.y * self.y)))
+
+    @property
+    def up(self):
+        # return Vector3(0, 1, 0).rotate(self)
+        return Vector3(2 * (self.x * self.y + self.w * self.z),
+                       1 - 2 * (self.x * self.x + self.z * self.z),
+                       2 * (self.y * self.z - self.w * self.x))
+
+    @property
+    def down(self):
+        # return Vector3(0, -1, 0).rotate(self)
+        return Vector3(-2 * (self.x * self.y + self.w * self.z),
+                       -(1 - 2 * (self.x * self.x + self.z * self.z)),
+                       -2 * (self.y * self.z - self.w * self.x))
+
+    @property
+    def right(self):
+        # return Vector3(1, 0, 0).rotate(self)
+        return Vector3(1 - 2 * (self.y * self.y + self.z * self.z),
+                       2 * (self.x * self.y - self.w * self.z),
+                       2 * (self.x * self.z + self.w * self.y))
+
+    @property
+    def left(self):
+        # return Vector3(-1, 0, 0).rotate(self)
+        return Vector3(-(1 - 2 * (self.y * self.y + self.z * self.z)),
+                       -2 * (self.x * self.y - self.w * self.z),
+                       -2 * (self.x * self.z + self.w * self.y))
+
     def __mul__(self, other):
         if isinstance(other, Quaternion):
             x = self.x * other.w + self.w * other.x + self.y * other.z - self.z * other.y
@@ -480,6 +552,8 @@ class Quaternion:
             z =  self.w * other.z + self.x * other.y - self.y * other.x
 
             return Quaternion(x, y, z, w)
+        if isinstance(other, Number):
+            return Quaternion(self.x * other, self.y * other, self.z * other, self.w * other)
 
         return NotImplemented
 
@@ -488,3 +562,6 @@ class Quaternion:
             return Quaternion(self.x / other, self.y / other, self.z / other, self.w / other)
 
         return NotImplemented
+
+    def __str__(self):
+        return '({} {} {} {})'.format(self.x, self.y, self.z, self.w)

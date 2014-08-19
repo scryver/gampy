@@ -1,0 +1,82 @@
+__author__ = 'michiel'
+
+
+from gampy.engine.core.vectors import Vector3, Matrix4, Quaternion
+from gampy.engine.core.input import Input
+from gampy.engine.core.coreengine import Window
+from gampy.engine.components.gamecomponent import GameComponent
+import math
+
+
+class Camera(GameComponent):
+
+    # The global up vector
+    y_axis = Vector3(0., 1., 0.)
+
+    def __init__(self, fov=None, aspect=None, z_near=None, z_far=None):
+        super().__init__()
+        if fov is None:
+            fov = math.radians(70.)
+        if aspect is None:
+            aspect = Window.width / Window.height
+        if z_near is None:
+            z_near = 0.1
+        if z_far is None:
+            z_far = 1000.
+        self.projection = Matrix4().init_perspective(fov, aspect, z_near, z_far)
+
+        self.mouse_locked = False
+
+    def view_projection(self):
+        camera_rotation = self.transform.rotation.to_rotation_matrix()
+        camera_translation = Matrix4().init_translation(-self.transform.position.x,
+                                                        -self.transform.position.y,
+                                                        -self.transform.position.z)
+
+        return self.projection * camera_rotation * camera_translation
+
+    def add_to_render_engine(self, rendering_engine):
+        rendering_engine.add_camera(self)
+
+    def input(self, dt):
+        sensitivity = 0.5
+        move_amount = 10 * dt
+
+        if Input.get_key(Input.KEY_ESCAPE):
+            Input.set_cursor(True)
+            self.mouse_locked = False
+        if Input.get_mouse_down(Input.MOUSE_MIDDLE):
+            Input.set_cursor(False)
+            Input.set_mouse_position(Window.center.x, Window.center.y)
+            self.mouse_locked = True
+
+        if Input.get_key(Input.KEY_W):
+            self.move(self.transform.rotation.forward, move_amount)
+        if Input.get_key(Input.KEY_S):
+            self.move(self.transform.rotation.forward, -move_amount)
+        if Input.get_key(Input.KEY_A):
+            self.move(self.transform.rotation.left, move_amount)
+        if Input.get_key(Input.KEY_D):
+            self.move(self.transform.rotation.right, move_amount)
+
+        if self.mouse_locked:
+            delta_position = Input.mouse_position() - Window.center
+            rot = False
+            if delta_position.x != 0:
+                self.transform.rotation = (self.transform.rotation * Quaternion(Camera.y_axis, math.radians(-delta_position.x * sensitivity))).normalized()
+                rot = True
+            if delta_position.y != 0:
+                self.transform.rotation = (self.transform.rotation * Quaternion(self.transform.rotation.right, math.radians(-delta_position.y * sensitivity))).normalized()
+                rot = True
+
+            if rot:
+                Input.set_mouse_position(Window.center.x, Window.center.y)
+
+            if Input.get_mouse(Input.MOUSE_LEFT):
+                self.move(self.transform.rotation.forward, move_amount)
+            if Input.get_mouse(Input.MOUSE_RIGHT):
+                self.move(self.transform.rotation.forward, -move_amount)
+
+
+    def move(self, direction, amount):
+        self.transform.position = self.transform.position + direction * amount

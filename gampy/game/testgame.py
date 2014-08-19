@@ -3,13 +3,16 @@ __author__ = 'michiel'
 
 from gampy.engine.render.material import Material
 from gampy.engine.render.texture import Texture
-from gampy.engine.core.vectors import Vector3
+from gampy.engine.render.window import Window
+from gampy.engine.core.vectors import Vector3, Quaternion
 from gampy.engine.render.meshes import Mesh
 from gampy.engine.core.game import Game
 from gampy.engine.core.gameobject import GameObject
 from gampy.engine.core.transform import Transform
 from gampy.engine.components.meshrenderer import MeshRenderer
+from gampy.engine.components.camera import Camera
 import gampy.engine.components.lights as light_components
+import math
 
 
 class TestGame(Game):
@@ -23,7 +26,7 @@ class TestGame(Game):
 
         plane_object = GameObject()
         plane_object.add_component(mesh_renderer)
-        plane_object.transform.position = 0, -1, 5
+        plane_object.transform.position.set(0, -1, 5)
         # plane_object.transform.rotation = 0, -45, 0
 
         directional_light_object = GameObject()
@@ -33,19 +36,21 @@ class TestGame(Game):
         directional_light_object.add_component(directional_light)
 
         point_light_object = GameObject()
-        point_light_object.transform.position = Vector3(5, 0, 5)
+        point_light_object.transform.position.set(5, 0, 5)
         point_light = light_components.PointLight(Vector3(0, 1, 0), 0.4, (0, 0, 1))
         point_light_object.add_component(point_light)
 
         spot_light_object = GameObject()
-        spot_light = light_components.SpotLight(Vector3(0, 1, 1), 0.4, (0, 0, .1), Vector3(1, 0, 0), 0.7)
+        spot_light = light_components.SpotLight(Vector3(0, 1, 1), 0.4, (0, 0, .1), 0.7)
         spot_light_object.add_component(spot_light)
-        spot_light_object.transform.position = Vector3(5, 0.2, 5)
+        spot_light_object.transform.position.set(5, 0.2, 5)
+        spot_light_object.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(90))
 
         self.root_object.add_child(plane_object)
         self.root_object.add_child(directional_light_object)
         self.root_object.add_child(point_light_object)
         self.root_object.add_child(spot_light_object)
+        self.root_object.add_child(GameObject().add_component(Camera()))
 
 # Temp function
 def test_mesh(type):

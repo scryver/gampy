@@ -64,16 +64,12 @@ class PointLight(BaseLight):
 
 class SpotLight(PointLight):
 
-    def __init__(self, color, intensity, attenuation, direction, cutoff):
+    def __init__(self, color, intensity, attenuation, cutoff):
         super().__init__(color, intensity, attenuation)
         self._shader = forwardpass.Spot.get_instance()
 
-        self._direction = direction.normalized()
         self.cutoff = cutoff
 
     @property
     def direction(self):
-        return self._direction
-    @direction.setter
-    def direction(self, direction):
-        self._direction = direction.normalized()
+        return self.transform.rotation.forward

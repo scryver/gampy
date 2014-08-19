@@ -16,6 +16,7 @@ class GameObject(EventInterface):
     def add_component(self, component):
         self.components.append(component)
         component.parent = self
+        return self
 
     def input(self, dt):
         [component.input(dt) for component in self.components]
