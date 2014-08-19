@@ -18,7 +18,8 @@ import math
 class TestGame(Game):
 
     def init(self):
-        mesh = test_mesh('plane') # Mesh('cube.obj')
+        mesh = test_mesh('plane', 10, 10) # Mesh('cube.obj')
+        mesh2 = test_mesh('plane', 1, 1)
         material = Material(Texture('test.png'), Vector3(1, 1, 1))
 
         mesh_renderer = MeshRenderer(mesh, material)
@@ -52,8 +53,19 @@ class TestGame(Game):
         self.root_object.add_child(spot_light_object)
         self.root_object.add_child(GameObject().add_component(Camera()))
 
+        test_mesh_1 = GameObject().add_component(MeshRenderer(mesh2, material))
+        test_mesh_2 = GameObject().add_component(MeshRenderer(mesh2, material))
+
+        test_mesh_1.transform.position.set(0, 2, 0)
+        test_mesh_1.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(45))
+        test_mesh_2.transform.position.set(0, 0, 5)
+
+        test_mesh_1.add_child(test_mesh_2)
+
+        self.root_object.add_child(test_mesh_1)
+
 # Temp function
-def test_mesh(type):
+def test_mesh(type, *args):
     from gampy.engine.render.meshes import Vertex
     from gampy.engine.core.vectors import Vector2
 
@@ -119,7 +131,7 @@ def test_mesh(type):
         return vertices, indices
 
     func_name = locals()['create_' + type]
-    vertices, indices = func_name(10, 10)
+    vertices, indices = func_name(*args)
 
     mesh = Mesh(vertices, indices, True)
 

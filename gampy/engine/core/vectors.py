@@ -17,6 +17,14 @@ class Vector2:
     def length(self):
         return sqrt(self.x * self.x + self.y * self.y)
 
+    def set(self, x, y=None):
+        if isinstance(x, Vector2):
+            self.x, self.y = x.x, x.y
+        else:
+            self.x, self.y = x, y
+
+        return self
+
     def max(self):
         return max(self.x, self.y)
 
@@ -111,8 +119,13 @@ class Vector3:
         self.y = float(y)
         self.z = float(z)
 
-    def set(self, x, y, z):
-        self.x, self.y, self.z = x, y, z
+    def set(self, x, y=None, z=None):
+        if isinstance(x, Vector3):
+            self.x, self.y, self.z = x.x, x.y, x.z
+        else:
+            self.x, self.y, self.z = x, y, z
+
+        return self
 
     @property
     def length(self):
@@ -495,6 +508,14 @@ class Quaternion:
         right = Vector3(1.0 - 2.0 * (self.y*self.y + self.z*self.z), 2.0 * (self.x*self.y - self.w*self.z), 2.0 * (self.x*self.z + self.w*self.y))
         return Matrix4().init_rotation(forward, up, right)
 
+    def set(self, x, y=None, z=None, w=None):
+        if isinstance(x, Quaternion):
+            self.x, self.y, self.z, self.w = x.x, x.y, x.z, x.w
+        else:
+            self.x, self.y, self.z, self.w = x, y, z, w
+
+        return self
+
     @property
     def forward(self):
         # return Vector3(0, 0, 1).rotate(self)
@@ -560,6 +581,22 @@ class Quaternion:
     def __truediv__(self, other):
         if isinstance(other, Number):
             return Quaternion(self.x / other, self.y / other, self.z / other, self.w / other)
+
+        return NotImplemented
+
+    def __eq__(self, other):
+        if isinstance(other, Quaternion):
+            return self.x == other.x and self.y == other.y and self.z == other.z and self.w == other.w
+        elif isinstance(other, Number):
+            return self.x == other and self.y == other and self.z == other and self.w == other
+
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, Quaternion):
+            return self.x != other.x and self.y != other.y and self.z != other.z and self.w != other.w
+        elif isinstance(other, Number):
+            return self.x != other and self.y != other and self.z != other and self.w != other
 
         return NotImplemented
 

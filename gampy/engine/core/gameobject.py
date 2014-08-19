@@ -12,6 +12,7 @@ class GameObject(EventInterface):
 
     def add_child(self, child):
         self.children.append(child)
+        child.transform.parent = self.transform
 
     def add_component(self, component):
         self.components.append(component)
