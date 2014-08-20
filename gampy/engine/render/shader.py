@@ -1,9 +1,8 @@
 __author__ = 'michiel'
 
 import os.path
-
 import OpenGL.GL as gl
-
+import numpy
 from gampy.engine.core.vectors import Vector3, Matrix4
 
 class ShaderException(Exception):
@@ -119,7 +118,7 @@ class Shader:
             elif isinstance(value, Vector3):
                 gl.glUniform3f(self.uniforms.get(uniform), value.x, value.y, value.z)
             elif isinstance(value, Matrix4):
-                gl.glUniformMatrix4fv(self.uniforms.get(uniform), 1, True, Matrix4.cast_matrix(value))
+                gl.glUniformMatrix4fv(self.uniforms.get(uniform), 1, True, value.m.view(numpy.ndarray))
             else:
                 raise AttributeError('Value "{}" is not an int, float, Vector3 or Matrix'.format(value))
         else:
