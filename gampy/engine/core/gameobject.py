@@ -20,6 +20,8 @@ class GameObject(EventInterface):
         return self
 
     def input(self, dt):
+        self.transform.update()
+
         [component.input(dt) for component in self.components]
         [child.input(dt) for child in self.children]
 

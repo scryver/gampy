@@ -20,7 +20,10 @@ class TestGame(Game):
     def init(self):
         mesh = test_mesh('plane', 10, 10) # Mesh('cube.obj')
         mesh2 = test_mesh('plane', 1, 1)
-        material = Material(Texture('test.png'), Vector3(1, 1, 1))
+        material = Material() # (Texture('test.png'), Vector3(1, 1, 1))
+        material.add('tex_diffuse', Texture('test.png'))
+        material.add('specular_intensity', 1.)
+        material.add('specular_exponent', 8.)
 
         mesh_renderer = MeshRenderer(mesh, material)
         transform = Transform()
@@ -32,9 +35,9 @@ class TestGame(Game):
 
         directional_light_object = GameObject()
         directional_light = light_components.DirectionalLight(Vector3(0, 0.2, 0.8),
-                                                              0.4,
-                                                              Vector3(1, 1, 1))
+                                                              0.4)
         directional_light_object.add_component(directional_light)
+        directional_light.transform.rotation = Quaternion(Vector3(1, 0, 0), math.radians(-45))
 
         point_light_object = GameObject()
         point_light_object.transform.position.set(5, 0, 5)
@@ -51,7 +54,6 @@ class TestGame(Game):
         self.root_object.add_child(directional_light_object)
         self.root_object.add_child(point_light_object)
         self.root_object.add_child(spot_light_object)
-        self.root_object.add_child(GameObject().add_component(Camera()))
 
         test_mesh_1 = GameObject().add_component(MeshRenderer(mesh2, material))
         test_mesh_2 = GameObject().add_component(MeshRenderer(mesh2, material))
@@ -61,6 +63,7 @@ class TestGame(Game):
         test_mesh_2.transform.position.set(0, 0, 5)
 
         test_mesh_1.add_child(test_mesh_2)
+        test_mesh_2.add_child(GameObject().add_component(Camera()))
 
         self.root_object.add_child(test_mesh_1)
 

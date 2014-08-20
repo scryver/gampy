@@ -25,7 +25,7 @@ class Ambient(Shader):
         #     material.texture.bind()
         # else:
         #     Texture.unbind()
-        material.texture.bind()
+        material.get('tex_diffuse').bind()
 
         world_matrix = transform.get_transformation()
         projected_matrix = self.render_engine.main_camera.view_projection() * world_matrix
@@ -66,7 +66,7 @@ class Directional(Shader):
         #     material.texture.bind()
         # else:
         #     Texture.unbind()
-        material.texture.bind()
+        material.get('tex_diffuse').bind()
 
         camera = self.render_engine.main_camera
         world_matrix = transform.get_transformation()
@@ -74,10 +74,10 @@ class Directional(Shader):
 
         self.set_uniform('model', world_matrix)
         self.set_uniform('MVP', projected_matrix)
-        self.set_uniform('cameraPosition', camera.transform.position)
+        self.set_uniform('cameraPosition', camera.transform.transformed_position())
 
-        self.set_uniform('specularIntensity', material.specular_intensity)
-        self.set_uniform('specularExponent', material.specular_exponent)
+        self.set_uniform('specularIntensity', material.get('specular_intensity'))
+        self.set_uniform('specularExponent', material.get('specular_exponent'))
 
         self.set_uniform_directional_light('directionalLight', self.render_engine.active_light)
 
@@ -126,7 +126,7 @@ class Point(Shader):
         #     material.texture.bind()
         # else:
         #     Texture.unbind()
-        material.texture.bind()
+        material.get('tex_diffuse').bind()
 
         camera = self.render_engine.main_camera
         world_matrix = transform.get_transformation()
@@ -134,10 +134,10 @@ class Point(Shader):
 
         self.set_uniform('model', world_matrix)
         self.set_uniform('MVP', projected_matrix)
-        self.set_uniform('cameraPosition', camera.transform.position)
+        self.set_uniform('cameraPosition', camera.transform.transformed_position())
 
-        self.set_uniform('specularIntensity', material.specular_intensity)
-        self.set_uniform('specularExponent', material.specular_exponent)
+        self.set_uniform('specularIntensity', material.get('specular_intensity'))
+        self.set_uniform('specularExponent', material.get('specular_exponent'))
 
         self.set_uniform_point_light('pointLight', self.render_engine.active_light)
 
@@ -150,7 +150,7 @@ class Point(Shader):
         self.set_uniform(uniform + '.attenuation.constant', float(value.constant))
         self.set_uniform(uniform + '.attenuation.linear', float(value.linear))
         self.set_uniform(uniform + '.attenuation.exponent', float(value.exponent))
-        self.set_uniform(uniform + '.position', value.transform.position)
+        self.set_uniform(uniform + '.position', value.transform.transformed_position())
         self.set_uniform(uniform + '.range', float(value.range))
 
 
@@ -192,7 +192,7 @@ class Spot(Shader):
         #     material.texture.bind()
         # else:
         #     Texture.unbind()
-        material.texture.bind()
+        material.get('tex_diffuse').bind()
 
         camera = self.render_engine.main_camera
         world_matrix = transform.get_transformation()
@@ -200,10 +200,10 @@ class Spot(Shader):
 
         self.set_uniform('model', world_matrix)
         self.set_uniform('MVP', projected_matrix)
-        self.set_uniform('cameraPosition', camera.transform.position)
+        self.set_uniform('cameraPosition', camera.transform.transformed_position())
 
-        self.set_uniform('specularIntensity', material.specular_intensity)
-        self.set_uniform('specularExponent', material.specular_exponent)
+        self.set_uniform('specularIntensity', material.get('specular_intensity'))
+        self.set_uniform('specularExponent', material.get('specular_exponent'))
 
         self.set_uniform_spot_light('spotLight', self.render_engine.active_light)
 
@@ -216,7 +216,7 @@ class Spot(Shader):
         self.set_uniform(uniform + '.attenuation.constant', float(value.constant))
         self.set_uniform(uniform + '.attenuation.linear', float(value.linear))
         self.set_uniform(uniform + '.attenuation.exponent', float(value.exponent))
-        self.set_uniform(uniform + '.position', value.transform.position)
+        self.set_uniform(uniform + '.position', value.transform.transformed_position())
         self.set_uniform(uniform + '.range', float(value.range))
 
     def set_uniform_spot_light(self, uniform, value):

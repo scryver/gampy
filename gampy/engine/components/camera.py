@@ -28,10 +28,11 @@ class Camera(GameComponent):
         self.mouse_locked = False
 
     def view_projection(self):
-        camera_rotation = self.transform.rotation.to_rotation_matrix()
-        camera_translation = Matrix4().init_translation(-self.transform.position.x,
-                                                        -self.transform.position.y,
-                                                        -self.transform.position.z)
+        camera_rotation = self.transform.transformed_rotation().conjugate().to_rotation_matrix()
+        camera_position = self.transform.transformed_position() * -1.
+        camera_translation = Matrix4().init_translation(camera_position.x,
+                                                        camera_position.y,
+                                                        camera_position.z)
 
         return self.projection * camera_rotation * camera_translation
 
@@ -63,10 +64,10 @@ class Camera(GameComponent):
             delta_position = Input.mouse_position() - Window.center
             rot = False
             if delta_position.x != 0:
-                self.transform.rotation = (self.transform.rotation * Quaternion(Camera.y_axis, math.radians(-delta_position.x * sensitivity))).normalized()
+                self.transform.rotate(Camera.y_axis, math.radians(delta_position.x * sensitivity))
                 rot = True
             if delta_position.y != 0:
-                self.transform.rotation = (self.transform.rotation * Quaternion(self.transform.rotation.right, math.radians(-delta_position.y * sensitivity))).normalized()
+                self.transform.rotate(self.transform.rotation.right, math.radians(delta_position.y * sensitivity))
                 rot = True
 
             if rot:

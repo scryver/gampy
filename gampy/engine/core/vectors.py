@@ -90,16 +90,18 @@ class Vector:
     def __str__(self):
         return str(self._array)
 
+    def copy(self):
+        return self.__class__(self._array)
+
 
 class Vector2(Vector):
 
     def __init__(self, x_or_data=0., y=0.):
         super().__init__(2)
         try:
-            self._array[0] = x_or_data
-            self._array[1] = y
+            self._array[:] = [x_or_data, y]
         except ValueError:
-            self._array = x_or_data
+            self._array[:] = x_or_data
 
     def set(self, x, y=None):
         if isinstance(x, Vector2):
@@ -228,9 +230,7 @@ class Matrix4:
 
     def init_translation(self, x, y, z):
         self.init_identity()
-        self._m[0, 3] = x
-        self._m[1, 3] = y
-        self._m[2, 3] = z
+        self._m[0:3, 3] = [x, y, z]
 
         return self
 
@@ -248,15 +248,9 @@ class Matrix4:
                 u = y # up
                 r = z # right
 
-            self._m[0, 0] = r.x
-            self._m[0, 1] = r.y
-            self._m[0, 2] = r.z
-            self._m[1, 0] = u.x
-            self._m[1, 1] = u.y
-            self._m[1, 2] = u.z
-            self._m[2, 0] = f.x
-            self._m[2, 1] = f.y
-            self._m[2, 2] = f.z
+            self._m[0, 0:3] = [r.x, r.y, r.z]
+            self._m[1, 0:3] = [u.x, u.y, u.z]
+            self._m[2, 0:3] = [f.x, f.y, f.z]
             self._m[3, 3] = 1.
         else:
             rx = Matrix4().init_identity()
@@ -333,6 +327,11 @@ class Matrix4:
 
         return self
 
+    def transform(self, other, w_offset=1.):
+        return Vector3(self._m[0, 0] * other.x + self._m[0, 1] * other.y + self._m[0, 2] * other.z + self._m[0, 3] * w_offset,
+                       self._m[1, 0] * other.x + self._m[1, 1] * other.y + self._m[1, 2] * other.z + self._m[1, 3] * w_offset,
+                       self._m[2, 0] * other.x + self._m[2, 1] * other.y + self._m[2, 2] * other.z + self._m[2, 3] * w_offset)
+
     def __mul__(self, other):
         if isinstance(other, Matrix4):
             res = Matrix4()
@@ -388,7 +387,16 @@ class Quaternion(Vector):
         return Quaternion(-self.x, -self.y, -self.z, self.w)
 
     def to_rotation_matrix(self):
-        return Matrix4().init_rotation(self.forward, self.up, self.right)
+        forward = Vector3(2 * (self.x * self.z - self.w * self.y),
+                       2 * (self.y * self.z + self.w * self.x),
+                       1 - 2 * (self.x * self.x + self.y * self.y))
+        up = Vector3(2 * (self.x * self.y + self.w * self.z),
+                       1 - 2 * (self.x * self.x + self.z * self.z),
+                       2 * (self.y * self.z - self.w * self.x))
+        right = Vector3(1 - 2 * (self.y * self.y + self.z * self.z),
+                       2 * (self.x * self.y - self.w * self.z),
+                       2 * (self.x * self.z + self.w * self.y))
+        return Matrix4().init_rotation(forward, up, right)
 
     def set(self, x, y=None, z=None, w=None):
         if isinstance(x, Quaternion):
@@ -428,45 +436,45 @@ class Quaternion(Vector):
 
     @property
     def forward(self):
-        # return Vector3(0, 0, 1).rotate(self)
-        return Vector3(2 * (self.x * self.z - self.w * self.y),
-                       2 * (self.y * self.z + self.w * self.x),
-                       1 - 2 * (self.x * self.x + self.y * self.y))
+        return Vector3(0, 0, 1).rotate(self)
+        # return Vector3(2 * (self.x * self.z - self.w * self.y),
+        #                2 * (self.y * self.z + self.w * self.x),
+        #                1 - 2 * (self.x * self.x + self.y * self.y))
 
     @property
     def back(self):
-        # return Vector3(0, 0, -1).rotate(self)
-        return Vector3(-2 * (self.x * self.z - self.w * self.y),
-                       -2 * (self.y * self.z + self.w * self.x),
-                       -(1 - 2 * (self.x * self.x + self.y * self.y)))
+        return Vector3(0, 0, -1).rotate(self)
+        # return Vector3(-2 * (self.x * self.z - self.w * self.y),
+        #                -2 * (self.y * self.z + self.w * self.x),
+        #                -(1 - 2 * (self.x * self.x + self.y * self.y)))
 
     @property
     def up(self):
-        # return Vector3(0, 1, 0).rotate(self)
-        return Vector3(2 * (self.x * self.y + self.w * self.z),
-                       1 - 2 * (self.x * self.x + self.z * self.z),
-                       2 * (self.y * self.z - self.w * self.x))
+        return Vector3(0, 1, 0).rotate(self)
+        # return Vector3(2 * (self.x * self.y + self.w * self.z),
+        #                1 - 2 * (self.x * self.x + self.z * self.z),
+        #                2 * (self.y * self.z - self.w * self.x))
 
     @property
     def down(self):
-        # return Vector3(0, -1, 0).rotate(self)
-        return Vector3(-2 * (self.x * self.y + self.w * self.z),
-                       -(1 - 2 * (self.x * self.x + self.z * self.z)),
-                       -2 * (self.y * self.z - self.w * self.x))
+        return Vector3(0, -1, 0).rotate(self)
+        # return Vector3(-2 * (self.x * self.y + self.w * self.z),
+        #                -(1 - 2 * (self.x * self.x + self.z * self.z)),
+        #                -2 * (self.y * self.z - self.w * self.x))
 
     @property
     def right(self):
-        # return Vector3(1, 0, 0).rotate(self)
-        return Vector3(1 - 2 * (self.y * self.y + self.z * self.z),
-                       2 * (self.x * self.y - self.w * self.z),
-                       2 * (self.x * self.z + self.w * self.y))
+        return Vector3(1, 0, 0).rotate(self)
+        # return Vector3(1 - 2 * (self.y * self.y + self.z * self.z),
+        #                2 * (self.x * self.y - self.w * self.z),
+        #                2 * (self.x * self.z + self.w * self.y))
 
     @property
     def left(self):
-        # return Vector3(-1, 0, 0).rotate(self)
-        return Vector3(-(1 - 2 * (self.y * self.y + self.z * self.z)),
-                       -2 * (self.x * self.y - self.w * self.z),
-                       -2 * (self.x * self.z + self.w * self.y))
+        return Vector3(-1, 0, 0).rotate(self)
+        # return Vector3(-(1 - 2 * (self.y * self.y + self.z * self.z)),
+        #                -2 * (self.x * self.y - self.w * self.z),
+        #                -2 * (self.x * self.z + self.w * self.y))
 
     def __mul__(self, other):
         if isinstance(other, Quaternion):

@@ -25,10 +25,13 @@ class BaseLight(GameComponent):
 
 class DirectionalLight(BaseLight):
 
-    def __init__(self, color, intensity, direction):
+    def __init__(self, color, intensity):
         super(DirectionalLight, self).__init__(color, intensity)
         self._shader = forwardpass.Directional.get_instance()
-        self.direction = direction
+
+    @property
+    def direction(self):
+        return self.transform.transformed_rotation().forward
 
 
 class PointLight(BaseLight):
@@ -72,4 +75,4 @@ class SpotLight(PointLight):
 
     @property
     def direction(self):
-        return self.transform.rotation.forward
+        return self.transform.transformed_rotation().forward

@@ -22,13 +22,20 @@ class Transform:
         """For backward compatibility"""
         return self.transformation
 
-    def has_changed(self):
-        if self._old_position is None:
-            self._old_position = Vector3(0, 0, 0).set(self._position)
-            self._old_rotation = Quaternion(0, 0, 0, 0).set(self._rotation)
-            self._old_scale  = Vector3(0, 0, 0).set(self._scale)
-            return True
+    def update(self):
+        if self._old_position is not None:
+            self._old_position = self._position.copy()
+            self._old_rotation = self._rotation.copy()
+            self._old_scale = self._scale.copy()
+        else:
+            self._old_position = Vector3(0, 0, 0).set(self._position) + 1.
+            self._old_rotation = Quaternion(0, 0, 0, 0).set(self._rotation) * 0.5
+            self._old_scale  = Vector3(0, 0, 0).set(self._scale) + 1.
 
+    def rotate(self, axis, angle):
+        self._rotation = (Quaternion(axis, angle) * self._rotation).normalized()
+
+    def has_changed(self):
         if self._parent is not None and self._parent.has_changed():
             return True
 
@@ -55,15 +62,24 @@ class Transform:
                                      self._scale.y,
                                      self._scale.z)
 
+        return self._get_parent_matrix() * translation * rotation * scale
+
+    def _get_parent_matrix(self):
         if self._parent is not None and self._parent.has_changed():
             self._parent_matrix = self._parent.transformation
+        return self._parent_matrix
 
-        if self._old_position is not None:
-            self._old_position.set(self._position)
-            self._old_rotation.set(self._rotation)
-            self._old_scale.set(self._scale)
+    def transformed_position(self):
+        return self._get_parent_matrix().transform(self._position)
 
-        return self._parent_matrix * translation * rotation * scale
+    def transformed_rotation(self):
+        parent_rotation = Quaternion()
+
+        # if self._parent is not None and self._parent.has_changed():
+        if self._parent is not None:
+            parent_rotation = self._parent.transformed_rotation()
+
+        return parent_rotation * self._rotation
 
     @property
     def position(self):
