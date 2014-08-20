@@ -19,8 +19,8 @@ class BaseLight(GameComponent):
     def shader(self, shader):
         self._shader = shader
 
-    def add_to_render_engine(self, rendering_engine):
-        rendering_engine.add_light(self)
+    def add_to_render_engine(self, render_engine):
+        render_engine.add_light(self)
 
 
 class DirectionalLight(BaseLight):

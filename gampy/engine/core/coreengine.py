@@ -3,7 +3,7 @@ __author__ = 'michiel'
 from gampy.engine.render.window import Window
 from gampy.engine.core.time import Time
 from gampy.engine.core.input import Input
-from gampy.engine.render.renderingengine import RenderingEngine
+from gampy.engine.render.renderengine import RenderEngine
 
 
 class CoreEngine:
@@ -16,7 +16,7 @@ class CoreEngine:
         self.width = width
         self.height = height
         self.frame_time = 1 / fps
-        self.rendering_engine = None
+        self.render_engine = None
 
         self.frame_rater = 0.
         self.frame_rater_count = 0.
@@ -74,7 +74,7 @@ class CoreEngine:
                     frame_counter = 0.
 
             if render:
-                self.rendering_engine.render(self.game.root_object)
+                self.game.render(self.render_engine)
                 Window.add_to_queue(Window.render)
                 Window.update()
                 frames += 1
@@ -91,7 +91,7 @@ class CoreEngine:
 
     def create_window(self, title):
         Window.create(self.width, self.height, title)
-        self.rendering_engine = RenderingEngine()
+        self.render_engine = RenderEngine()
 
     def __del__(self):
         if self.frame_rater_count:

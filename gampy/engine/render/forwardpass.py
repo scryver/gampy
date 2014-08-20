@@ -20,18 +20,18 @@ class Ambient(Shader):
         self.add_uniform('MVP')
         self.add_uniform('ambientIntensity')
 
-    def update_uniforms(self, transform, material):
+    def update_uniforms(self, transform, material, render_engine):
         # if material.texture is not None:
         #     material.texture.bind()
         # else:
         #     Texture.unbind()
-        material.get('tex_diffuse').bind()
+        material.get('diffuse', 'texture').bind()
 
         world_matrix = transform.get_transformation()
-        projected_matrix = self.render_engine.main_camera.view_projection() * world_matrix
+        projected_matrix = render_engine.main_camera.view_projection() * world_matrix
 
         self.set_uniform('MVP', projected_matrix)
-        self.set_uniform('ambientIntensity', self.render_engine.active_ambient_light)
+        self.set_uniform('ambientIntensity', render_engine.active_ambient_light)
 
 
 class Directional(Shader):
@@ -61,14 +61,14 @@ class Directional(Shader):
         self.add_uniform('directionalLight.base.intensity')
         self.add_uniform('directionalLight.direction')
 
-    def update_uniforms(self, transform, material):
+    def update_uniforms(self, transform, material, render_engine):
         # if material.texture is not None:
         #     material.texture.bind()
         # else:
         #     Texture.unbind()
-        material.get('tex_diffuse').bind()
+        material.get('diffuse', 'texture').bind()
 
-        camera = self.render_engine.main_camera
+        camera = render_engine.main_camera
         world_matrix = transform.get_transformation()
         projected_matrix = camera.view_projection() * world_matrix
 
@@ -79,7 +79,7 @@ class Directional(Shader):
         self.set_uniform('specularIntensity', material.get('specular_intensity'))
         self.set_uniform('specularExponent', material.get('specular_exponent'))
 
-        self.set_uniform_directional_light('directionalLight', self.render_engine.active_light)
+        self.set_uniform_directional_light('directionalLight', render_engine.active_light)
 
     def set_uniform_base_light(self, uniform, value):
         self.set_uniform(uniform + '.base.color', value.color)
@@ -121,14 +121,14 @@ class Point(Shader):
         self.add_uniform('pointLight.position')
         self.add_uniform('pointLight.range')
 
-    def update_uniforms(self, transform, material):
+    def update_uniforms(self, transform, material, render_engine):
         # if material.texture is not None:
         #     material.texture.bind()
         # else:
         #     Texture.unbind()
-        material.get('tex_diffuse').bind()
+        material.get('diffuse', 'texture').bind()
 
-        camera = self.render_engine.main_camera
+        camera = render_engine.main_camera
         world_matrix = transform.get_transformation()
         projected_matrix = camera.view_projection() * world_matrix
 
@@ -139,7 +139,7 @@ class Point(Shader):
         self.set_uniform('specularIntensity', material.get('specular_intensity'))
         self.set_uniform('specularExponent', material.get('specular_exponent'))
 
-        self.set_uniform_point_light('pointLight', self.render_engine.active_light)
+        self.set_uniform_point_light('pointLight', render_engine.active_light)
 
     def set_uniform_base_light(self, uniform, value):
         self.set_uniform(uniform + '.base.color', value.color)
@@ -187,14 +187,14 @@ class Spot(Shader):
         self.add_uniform('spotLight.direction')
         self.add_uniform('spotLight.cutoff')
 
-    def update_uniforms(self, transform, material):
+    def update_uniforms(self, transform, material, render_engine):
         # if material.texture is not None:
         #     material.texture.bind()
         # else:
         #     Texture.unbind()
-        material.get('tex_diffuse').bind()
+        material.get('diffuse', 'texture').bind()
 
-        camera = self.render_engine.main_camera
+        camera = render_engine.main_camera
         world_matrix = transform.get_transformation()
         projected_matrix = camera.view_projection() * world_matrix
 
@@ -205,7 +205,7 @@ class Spot(Shader):
         self.set_uniform('specularIntensity', material.get('specular_intensity'))
         self.set_uniform('specularExponent', material.get('specular_exponent'))
 
-        self.set_uniform_spot_light('spotLight', self.render_engine.active_light)
+        self.set_uniform_spot_light('spotLight', render_engine.active_light)
 
     def set_uniform_base_light(self, uniform, value):
         self.set_uniform(uniform + '.base.color', value.color)

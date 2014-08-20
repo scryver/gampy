@@ -53,7 +53,7 @@ class Texture:
         img = Image.open(os.path.join(os.path.dirname(__file__), '..', '..', 'res', 'textures', texture_name)) # .jpg, .bmp, etc. also work
         if img.mode == 'P':
             img = img.convert('RGB')
-        img_data = numpy.array(list(img.getdata()), numpy.int8)
+        img_data = numpy.array(list(img.getdata()), numpy.int8)[::-1]
         components, format = getLengthFormat(img)
 
         texture = gl.glGenTextures(1)

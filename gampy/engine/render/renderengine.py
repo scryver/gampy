@@ -6,10 +6,10 @@ from gampy.engine.core.vectors import Vector3
 import gampy.engine.render.forwardpass as forward_pass
 
 
-class RenderingEngine:
+class RenderEngine:
 
     def __init__(self):
-        print(RenderingEngine.get_open_gl_version())
+        print(RenderEngine.get_open_gl_version())
         gl.glClearColor(0., 0., 0., 0.)
 
         # do not render backfacing faces and front is determined by clockwise
@@ -45,8 +45,7 @@ class RenderingEngine:
         object.add_to_render_engine(self)
 
         forwardAmbient = forward_pass.Ambient.get_instance()
-        forwardAmbient.render_engine = self
-        object.render(forwardAmbient)
+        object.render(forwardAmbient, self)
 
         # Add colors together (will be disabled through gl.glDisable(gl.GL_BLEND)
         gl.glEnable(gl.GL_BLEND)
@@ -58,7 +57,7 @@ class RenderingEngine:
         gl.glDepthFunc(gl.GL_EQUAL)
 
         object_render = object.render
-        [object_render(shader) for shader in self._render_lights()]
+        [object_render(shader, self) for shader in self._render_lights()]
 
         gl.glDepthFunc(gl.GL_LESS)
         gl.glDepthMask(gl.GL_TRUE)
@@ -66,7 +65,6 @@ class RenderingEngine:
 
     def _render_lights(self):
         for light in self.lights:
-            light.shader.render_engine = self
             self.active_light = light
             yield light.shader
 

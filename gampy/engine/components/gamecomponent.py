@@ -15,12 +15,12 @@ class GameComponent(EventInterface):
     def update(self, dt):
         pass
 
-    def render(self, shader):
+    def render(self, shader, render_engine):
         pass
 
     @property
     def transform(self):
         return self.parent.transform
 
-    def add_to_render_engine(self, rendering_engine):
+    def add_to_render_engine(self, render_engine):
         pass

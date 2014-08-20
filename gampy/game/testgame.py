@@ -21,12 +21,17 @@ class TestGame(Game):
         mesh = test_mesh('plane', 10, 10) # Mesh('cube.obj')
         mesh2 = test_mesh('plane', 1, 1)
         material = Material() # (Texture('test.png'), Vector3(1, 1, 1))
-        material.add('tex_diffuse', Texture('test.png'))
+        material.add('diffuse', Texture('test.png'))
         material.add('specular_intensity', 1.)
         material.add('specular_exponent', 8.)
 
+        temp_mesh = Mesh('monkey.obj')
+        temp_material = Material() # (Texture('test.png'), Vector3(1, 1, 1))
+        temp_material.add('diffuse', Texture('tegre_skin.jpg'))
+        temp_material.add('specular_intensity', 1.)
+        temp_material.add('specular_exponent', 8.)
+
         mesh_renderer = MeshRenderer(mesh, material)
-        transform = Transform()
 
         plane_object = GameObject()
         plane_object.add_component(mesh_renderer)
@@ -40,7 +45,7 @@ class TestGame(Game):
         directional_light.transform.rotation = Quaternion(Vector3(1, 0, 0), math.radians(-45))
 
         point_light_object = GameObject()
-        point_light_object.transform.position.set(5, 0, 5)
+        # point_light_object.transform.position.set(5, 0, 5)
         point_light = light_components.PointLight(Vector3(0, 1, 0), 0.4, (0, 0, 1))
         point_light_object.add_component(point_light)
 
@@ -50,13 +55,14 @@ class TestGame(Game):
         spot_light_object.transform.position.set(5, 0.2, 5)
         spot_light_object.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(90))
 
-        self.root_object.add_child(plane_object)
-        self.root_object.add_child(directional_light_object)
-        self.root_object.add_child(point_light_object)
-        self.root_object.add_child(spot_light_object)
+        self.add_object(plane_object)
+        self.add_object(directional_light_object)
+        self.add_object(point_light_object)
+        self.add_object(spot_light_object)
 
         test_mesh_1 = GameObject().add_component(MeshRenderer(mesh2, material))
         test_mesh_2 = GameObject().add_component(MeshRenderer(mesh2, material))
+        test_mesh_3 = GameObject().add_component(MeshRenderer(temp_mesh, temp_material))
 
         test_mesh_1.transform.position.set(0, 2, 0)
         test_mesh_1.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(45))
@@ -65,7 +71,8 @@ class TestGame(Game):
         test_mesh_1.add_child(test_mesh_2)
         test_mesh_2.add_child(GameObject().add_component(Camera()))
 
-        self.root_object.add_child(test_mesh_1)
+        self.add_object(test_mesh_1)
+        self.add_object(test_mesh_3)
 
 # Temp function
 def test_mesh(type, *args):

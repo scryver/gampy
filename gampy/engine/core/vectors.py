@@ -230,7 +230,7 @@ class Matrix4:
 
     def init_translation(self, x, y, z):
         self.init_identity()
-        self._m[0:3, 3] = [x, y, z]
+        self._m[0:3, 3] = [[x], [y], [z]]
 
         return self
 

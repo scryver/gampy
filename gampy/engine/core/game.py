@@ -6,16 +6,22 @@ from gampy.engine.core.gameobject import GameObject
 class Game(EventInterface):
 
     def init(self):
-        raise NotImplemented
+        self._root = GameObject()
 
     def input(self, dt):
-        self.root_object.input(dt)
+        self._root_object.input(dt)
 
     def update(self, dt):
-        self.root_object.update(dt)
+        self._root_object.update(dt)
+
+    def render(self, render_engine):
+        render_engine.render(self._root_object)
+
+    def add_object(self, game_object):
+        self._root_object.add_child(game_object)
 
     @property
-    def root_object(self):
+    def _root_object(self):
         try:
             root = self._root
         except:

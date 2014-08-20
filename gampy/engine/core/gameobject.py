@@ -29,10 +29,10 @@ class GameObject(EventInterface):
         [component.update(dt) for component in self.components]
         [child.update(dt) for child in self.children]
 
-    def render(self, shader):
-        [component.render(shader) for component in self.components]
-        [child.render(shader) for child in self.children]
+    def render(self, shader, render_engine):
+        [component.render(shader, render_engine) for component in self.components]
+        [child.render(shader, render_engine) for child in self.children]
 
-    def add_to_render_engine(self, rendering_engine):
-        [component.add_to_render_engine(rendering_engine) for component in self.components]
-        [child.add_to_render_engine(rendering_engine) for child in self.children]
+    def add_to_render_engine(self, render_engine):
+        [component.add_to_render_engine(render_engine) for component in self.components]
+        [child.add_to_render_engine(render_engine) for child in self.children]

@@ -40,7 +40,6 @@ class Shader:
     def __init__(self):
         self.program = gl.glCreateProgram()
         self.uniforms = dict()
-        self.render_engine = None
 
         if self.program == 0:
             raise ShaderCreateError('Could not find valid memory location in constructor')
@@ -51,7 +50,7 @@ class Shader:
     def unbind(self):
         gl.glUseProgram(0)
 
-    def update_uniforms(self, transform, material):
+    def update_uniforms(self, transform, material, render_engine):
         pass
 
     def add_uniform(self, uniform):

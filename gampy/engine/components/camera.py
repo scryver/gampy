@@ -36,8 +36,8 @@ class Camera(GameComponent):
 
         return self.projection * camera_rotation * camera_translation
 
-    def add_to_render_engine(self, rendering_engine):
-        rendering_engine.add_camera(self)
+    def add_to_render_engine(self, render_engine):
+        render_engine.add_camera(self)
 
     def input(self, dt):
         sensitivity = 0.5

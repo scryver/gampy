@@ -6,7 +6,7 @@ import numpy
 from OpenGL.arrays import vbo
 import os
 from gampy.engine.core.util import cast_object_indices, cast_object_vertexes, remove_empty_strings
-
+from gampy.engine.render.meshloading import OBJModel
 
 class MeshLoadError(Exception):
 
@@ -27,6 +27,14 @@ class Vertex:
             tex_coord = Vector2()
         if normal == None:
             normal = Vector3()
+
+        if not isinstance(position, Vector3):
+            position = Vector3(position)
+        if not isinstance(tex_coord, Vector2):
+            tex_coord = Vector2(tex_coord)
+        if not isinstance(normal, Vector3):
+            normal = Vector3(normal)
+
         self.position = position
         self.tex_coord = tex_coord
         self._normal = normal
@@ -103,7 +111,6 @@ class Mesh:
         for i in range(len(vertices)):
             vertices[i].normal = vertices[i].normal.normalized()
 
-
     def update(self):
         pass
 
@@ -114,38 +121,15 @@ class Mesh:
         if ext != 'obj':
             raise MeshLoadError('Not an OBJ file')
 
+        test = OBJModel(os.path.join(os.path.dirname(__file__), '..', '..', 'res', 'models', file_name))
+        model = test.to_indexed_model()
+        model.calc_normals()
+
         vertices = []
-        indices = []
+        for i in range(len(model.indices)):
+            vertex = Vertex(model.positions[i], model.tex_coords[i], model.normals[i])
+            vertices.append(vertex)
 
-        with open(os.path.join(os.path.dirname(__file__),
-                               '..', '..', 'res', 'models',
-                               file_name), 'r', 1) as mesh_reader:
-            for line in mesh_reader:
-                tokens = line.split(' ')
-                tokens = remove_empty_strings(tokens)
+        indices = model.indices
 
-                # empty lines and comments
-                if len(tokens) == 0 or tokens[0] == '#':
-                    continue
-                elif tokens[0] == 'v':
-                    vertices.append([float(tokens[1]),
-                                     float(tokens[2]),
-                                     float(tokens[3])])
-                elif tokens[0] == 'f':
-                    indices.append(int(tokens[1].split('/')[0]) - 1)
-                    indices.append(int(tokens[2].split('/')[0]) - 1)
-                    indices.append(int(tokens[3].split('/')[0]) - 1)
-
-                    # For quad faces
-                    if len(tokens) > 4:
-                        indices.append(int(tokens[1].split('/')[0]) - 1)
-                        indices.append(int(tokens[3].split('/')[0]) - 1)
-                        indices.append(int(tokens[4].split('/')[0]) - 1)
-
-
-        mesh_reader.close()
-
-        vertices = numpy.array(vertices, dtype=numpy.float32)
-        indices = numpy.array(indices, dtype=numpy.uint32)
-
-        self._add_vertices(vertices, indices, True)
+        self._add_vertices(vertices, indices)

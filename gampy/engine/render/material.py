@@ -14,5 +14,14 @@ class Material:
     def add(self, name, value):
         self._material_map.update({name: value})
 
-    def get(self, name):
-        return self._material_map[name]
+    def get(self, name, var_type='float'):
+        result = self._material_map.get(name)
+        if result is not None:
+            return result
+
+        if var_type == 'float':
+            return 0.
+        elif var_type == 'vector3':
+            return Vector3()
+        elif var_type == 'texture':
+            return Texture('test.png')
