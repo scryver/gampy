@@ -6,15 +6,16 @@ from gampy.engine.core.vectors import Vector3, Matrix4, Quaternion
 class Transform:
 
     def __init__(self):
-        self._position = Vector3()
-        self._rotation = Quaternion()
-        self._scale  = Vector3(1., 1., 1.)
+        self.position = Vector3()
+        self.rotation = Quaternion()
+        self.scale  = Vector3(1., 1., 1.)
+        self._translation_m = None
+        self._rotation_m = None
+        self._scale_m = None
+        self._transformation = None
         self._old_position = None
         self._old_rotation = None
         self._old_scale  = None
-        # self._old_position = Vector3(0, 0, 0)
-        # self._old_rotation = Quaternion(0, 0, 0, 0)
-        # self._old_scale  = Vector3(0, 0, 0)
         self._parent = None
         self._parent_matrix = Matrix4().init_identity()
 
@@ -29,7 +30,7 @@ class Transform:
             self._old_scale  = Vector3(0, 0, 0).set(self._scale) + 1.
 
     def rotate(self, axis, angle):
-        self._rotation = (Quaternion(axis, angle) * self._rotation).view(Quaternion).normalized()
+        self.rotation = (Quaternion(axis, angle) * self._rotation).view(Quaternion).normalized()
 
     def has_changed(self):
         if self._parent is not None and self._parent.has_changed():
@@ -48,17 +49,21 @@ class Transform:
 
     @property
     def transformation(self):
-        translation = Matrix4().init_translation(self._position.x,
-                                                self._position.y,
-                                                self._position.z)
+        if self._transformation is None or self.has_changed():
+            if self._translation_m is None:
+                self._translation_m = Matrix4().init_translation(self._position.x,
+                                                                 self._position.y,
+                                                                 self._position.z)
+            if self._rotation_m is None:
+                self._rotation_m = self._rotation.to_rotation_matrix()
+            if self._scale_m is None:
+                self._scale_m = Matrix4().init_scale(self._scale.x,
+                                                     self._scale.y,
+                                                     self._scale.z)
 
-        rotation = self._rotation.to_rotation_matrix()
+            self._transformation = self._get_parent_matrix() * self._translation_m * self._rotation_m * self._scale_m
 
-        scale = Matrix4().init_scale(self._scale.x,
-                                     self._scale.y,
-                                     self._scale.z)
-
-        return self._get_parent_matrix() * translation * rotation * scale
+        return self._transformation
 
     def _get_parent_matrix(self):
         if self._parent is not None and self._parent.has_changed():
@@ -92,6 +97,10 @@ class Transform:
         else:
             self._position = Vector3(x, y, z)
 
+        self._translation_m = Matrix4().init_translation(self._position.x,
+                                                         self._position.y,
+                                                         self._position.z)
+
     @property
     def rotation(self):
         return self._rotation
@@ -107,6 +116,8 @@ class Transform:
         else:
             self._rotation = Quaternion(x, y, z, w)
 
+        self._rotation_m = self._rotation.to_rotation_matrix()
+
     @property
     def scale(self):
         return self._scale
@@ -121,6 +132,10 @@ class Transform:
             self._scale = x
         else:
             self._scale = Vector3(x, y, z)
+
+        self._scale_m = Matrix4().init_scale(self._scale.x,
+                                             self._scale.y,
+                                             self._scale.z)
 
     @property
     def parent(self):

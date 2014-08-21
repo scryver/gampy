@@ -33,7 +33,7 @@ class TestGame(Game):
 
         plane_object = GameObject()
         plane_object.add_component(mesh_renderer)
-        plane_object.transform.position.set(0, -1, 5)
+        plane_object.transform.position = (0, -1, 5)
         # plane_object.transform.rotation = 0, -45, 0
 
         directional_light_object = GameObject()
@@ -50,7 +50,7 @@ class TestGame(Game):
         spot_light_object = GameObject()
         spot_light = light_components.SpotLight(Vector3(0, 1, 1), 0.4, (0, 0, .1), 0.7)
         spot_light_object.add_component(spot_light)
-        spot_light_object.transform.position.set(5, 0.2, 5)
+        spot_light_object.transform.position = (5, 0.2, 5)
         spot_light_object.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(90))
 
         self.add_object(plane_object)
@@ -61,26 +61,26 @@ class TestGame(Game):
         test_mesh_1 = GameObject().add_component(MeshRenderer(mesh2, material))
         test_mesh_2 = GameObject().add_component(MeshRenderer(mesh2, material))
 
-        test_mesh_1.transform.position.set(0, 2, 0)
+        test_mesh_1.transform.position = (0, 2, 0)
         test_mesh_1.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(45))
-        test_mesh_2.transform.position.set(0, 0, 5)
+        test_mesh_2.transform.position = (0, 0, 5)
 
         test_mesh_1.add_child(test_mesh_2)
         test_mesh_2.add_child(GameObject().add_component(Camera()))
 
         self.add_object(test_mesh_1)
 
-        temp_mesh = Mesh('monkey.obj')
-        temp_material = Material() # (Texture('test.png'), Vector3(1, 1, 1))
-        temp_material.add('diffuse', Texture('tegre_skin.jpg'))
-        temp_material.add('specular_intensity', 1.)
-        temp_material.add('specular_exponent', 8.)
-        test_mesh_3 = GameObject().add_component(MeshRenderer(temp_mesh, temp_material))
-        self.add_object(test_mesh_3)
-        test_mesh_3.transform.position = 5, 5, 5
-        test_mesh_3.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(70))
-
-        self.add_object(GameObject().add_component(MeshRenderer(Mesh('monkey.obj'), material)))
+        # temp_mesh = Mesh('monkey.obj')
+        # temp_material = Material() # (Texture('test.png'), Vector3(1, 1, 1))
+        # temp_material.add('diffuse', Texture('tegre_skin.jpg'))
+        # temp_material.add('specular_intensity', 1.)
+        # temp_material.add('specular_exponent', 8.)
+        # test_mesh_3 = GameObject().add_component(MeshRenderer(temp_mesh, temp_material))
+        # self.add_object(test_mesh_3)
+        # test_mesh_3.transform.position = 5, 5, 5
+        # test_mesh_3.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(70))
+        #
+        # self.add_object(GameObject().add_component(MeshRenderer(Mesh('monkey.obj'), material)))
 
     @timer
     def input(self, dt):

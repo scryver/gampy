@@ -1,11 +1,8 @@
 __author__ = 'michiel'
 
 from math import radians, tan, sin, cos
-from numbers import Number, Integral
+from numbers import Number
 import numpy
-from numpy import sqrt
-import gampy.engine.core.util as core_util
-
 
 class Vector(numpy.ndarray):
 
@@ -18,12 +15,6 @@ class Vector(numpy.ndarray):
 
     def __array_finalize__(self, obj):
         if obj is None: return
-
-    # def __init__(self, data):
-    #     if isinstance(data, Integral):
-    #         """data is a number so we use it to set the size of the vector"""
-    #         data = [0. for i in range(data)]
-    #     self._array = numpy.array(data, dtype=numpy.float32)
 
     @property
     def length(self):
@@ -39,33 +30,8 @@ class Vector(numpy.ndarray):
         return numpy.dot(self, other)
 
     def cross(self, other):
-        result = numpy.cross(self, other)
-        # if isinstance(result, (Number, numpy.float32)):
-        return result
-        # else:
-        #     return self.__class__(result)
+        return numpy.cross(self, other)
 
-    # def __add__(self, other):
-    #     if isinstance(other, Vector):
-    #         result = self._array + other._array
-    #     else:
-    #         result = self._array + other
-    #     return self.__class__(result)
-    #
-    # def __sub__(self, other):
-    #     if isinstance(other, Vector):
-    #         result = self._array - other._array
-    #     else:
-    #         result = self._array - other
-    #     return self.__class__(result)
-    #
-    # def __mul__(self, other):
-    #     if isinstance(other, Vector):
-    #         result = self._array * other._array
-    #     else:
-    #         result = self._array * other
-    #     return self.__class__(result)
-    #
     def __truediv__(self, other):
         if other == 0:
             result = None
@@ -82,22 +48,6 @@ class Vector(numpy.ndarray):
     def __ne__(self, other):
         return ~(self == other)
 
-    # def __abs__(self):
-    #     result = abs(self)
-    #     return self.__class__(result)
-    #
-    # def max(self):
-    #     return max(self)
-    #
-    # def min(self):
-    #     return min(self)
-
-    # def __str__(self):
-    #     return str(self._array)
-
-    # def copy(self):
-    #     return self.__class__(self)
-
 
 class Vector2(Vector):
 
@@ -106,10 +56,6 @@ class Vector2(Vector):
             return super().__new__(cls, 2, [x_or_data, y])
         else:
             return super().__new__(cls, 2, x_or_data)
-        # try:
-        #     self._array[:] = [x_or_data, y]
-        # except ValueError:
-        #     self._array[:] = x_or_data
 
     def set(self, x, y=None):
         if isinstance(x, Vector2):
@@ -145,7 +91,6 @@ class Vector2(Vector):
         return (destination - self) * lerp_factor + self
 
 
-
 class Vector3(Vector):
 
     def __new__(cls, x_or_data=0., y=0., z=0.):
@@ -153,11 +98,6 @@ class Vector3(Vector):
             return super().__new__(cls, 3, [x_or_data, y, z])
         else:
             return super().__new__(cls, 3, x_or_data)
-        # super().__init__(3)
-        # try:
-        #     self._array[:] = [x_or_data, y, z]
-        # except ValueError:
-        #     self._array[:] = x_or_data
 
     @property
     def x(self):
@@ -226,30 +166,25 @@ class Vector3(Vector):
 
 class Matrix4(numpy.matrix):
 
-    def __new__(subtype, dtype=numpy.float32, buffer=None, offset=0,
-                strides=None, order=None):
+    def __new__(subtype, dtype=numpy.float32):
 
-        obj = numpy.matrix.__new__(subtype, (4, 4), dtype, buffer, offset, strides,
-                                       order)
+        obj = numpy.zeros((4, 4), dtype=numpy.float32).view(Matrix4)
         return obj
-
-    # def __init__(self):
-    #     self._m = numpy.zeros((4, 4), dtype=numpy.float32).view(numpy.matrix)
 
     @property
     def m(self):
-        return self.copy()
+        return self.copy().view(Matrix4)
 
     def init_identity(self):
         self[:,:] = numpy.eye(4, 4, dtype=numpy.float32).view(numpy.matrix)
 
-        return self
+        return self.view(Matrix4)
 
     def init_translation(self, x, y, z):
         self.init_identity()
         self[0:3, 3] = [[x], [y], [z]]
 
-        return self
+        return self.view(Matrix4)
 
     def init_rotation(self, x, y, z=None):
         if isinstance(x, Vector3):
@@ -294,9 +229,9 @@ class Matrix4(numpy.matrix):
             ry._m[2, 2] = numpy.cos(y)
 
             tmp = rz * ry * rx
-            self[:,:] = tmp.view(numpy.matrix)
+            self[:,:] = tmp
 
-        return self
+        return self.view(Matrix4)
 
     def init_scale(self, x, y, z):
         self[0, 0] = x
@@ -304,7 +239,7 @@ class Matrix4(numpy.matrix):
         self[2, 2] = z
         self[3, 3] = 1.
 
-        return self
+        return self.view(Matrix4)
 
     def init_perspective(self, fov, aspect_ratio, z_near, z_far):
         tan_half_fov = tan(fov / 2)
@@ -320,7 +255,7 @@ class Matrix4(numpy.matrix):
         self[2, 2] = z
         self[2, 3] = zw
         self[3, 2] = 1.
-        return self
+        return self.view(Matrix4)
 
     def init_orthographic(self, left, right, bottom, top, near, far):
         width = right - left
@@ -335,20 +270,18 @@ class Matrix4(numpy.matrix):
         self[2, 3] = -(far + near) / depth
         self[3, 3] = 1.
 
-        return self
+        return self.view(Matrix4)
 
     def transform(self, other, w_offset=1.):
         return Vector3(self[0, 0] * other.x + self[0, 1] * other.y + self[0, 2] * other.z + self[0, 3] * w_offset,
                        self[1, 0] * other.x + self[1, 1] * other.y + self[1, 2] * other.z + self[1, 3] * w_offset,
                        self[2, 0] * other.x + self[2, 1] * other.y + self[2, 2] * other.z + self[2, 3] * w_offset)
 
-    # def __mul__(self, other):
-    #     if isinstance(other, Matrix4):
-    #         res = Matrix4()
-    #         res._m = self._m * other._m
-    #         return res
-    #
-    #     return NotImplemented
+    def __mul__(self, other):
+        if isinstance(other, Matrix4):
+            return numpy.dot(self, other).view(Matrix4)
+
+        return NotImplemented
 
     def get(self, x, y):
         return self[x, y]
@@ -389,20 +322,6 @@ class Quaternion(Vector):
                 data = [x, y, z, w]
 
         return super().__new__(cls, 4, data)
-
-    # def __init__(self, x=None, y=None, z=None, w=None):
-    #     """
-    #     all depends on x, if x is None then a default Quaternion will be created
-    #     if x is a Vector3 it is assumed to be the axis and y the rotation angle
-    #
-    #     :param x: None, Number or Vector3 'axis'
-    #     :param y: None, Number or number 'angle'
-    #     :param z:
-    #     :param w:
-    #     :return:
-    #     """
-    #     super().__init__(4)
-
 
     def conjugate(self):
         return Quaternion(-self.x, -self.y, -self.z, self.w)
