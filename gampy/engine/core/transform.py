@@ -18,10 +18,6 @@ class Transform:
         self._parent = None
         self._parent_matrix = Matrix4().init_identity()
 
-    def get_transformation(self):
-        """For backward compatibility"""
-        return self.transformation
-
     def update(self):
         if self._old_position is not None:
             self._old_position = self._position.copy()
@@ -33,7 +29,7 @@ class Transform:
             self._old_scale  = Vector3(0, 0, 0).set(self._scale) + 1.
 
     def rotate(self, axis, angle):
-        self._rotation = (Quaternion(axis, angle) * self._rotation).normalized()
+        self._rotation = (Quaternion(axis, angle) * self._rotation).view(Quaternion).normalized()
 
     def has_changed(self):
         if self._parent is not None and self._parent.has_changed():

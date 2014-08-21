@@ -5,20 +5,35 @@ from PIL import Image
 import numpy
 import os.path
 import numbers
+from gampy.engine.render.resourcemanagement import TextureResource
 
 class Texture:
 
+    loaded_textures = dict()
+
     def __init__(self, texture):
-        if isinstance(texture, numbers.Number):
-            id = texture
-        elif isinstance(texture, str):
-            id = Texture._load_texture(texture)
+        self.resource = None
+        self._filename = None
+
+        if isinstance(texture, str):
+            """A file has been passed in"""
+            old_resource = Texture.loaded_textures.get(texture, False)
+            self._filename = texture
+            if old_resource:
+                self.resource = old_resource
+                self.resource.add_reference()
+            else:
+                self.resource = TextureResource(Texture._load_texture(texture))
+                Texture.loaded_textures.update({texture: self.resource})
         else:
-            raise AttributeError('Texture is not a file or number')
-        self._id = id
+            self.resource = TextureResource(Texture._load_texture(texture))
 
     def bind(self):
-        gl.glBindTexture(gl.GL_TEXTURE_2D, self._id)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, self.resource.id)
+
+    def __del__(self):
+        if self.resource.remove_reference() and self._filename is not None:
+            Texture.loaded_textures.pop(self._filename)
 
     @classmethod
     def unbind(cls):
@@ -57,13 +72,13 @@ class Texture:
         components, format = getLengthFormat(img)
 
         texture = gl.glGenTextures(1)
-        # gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT,1)        # Don't know why
-        # gl.glPixelStorei(gl.GL_PACK_ALIGNMENT,1)          # Don't know why
         gl.glBindTexture(gl.GL_TEXTURE_2D, texture)
-        gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP)         # Don't know why
-        gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP)         # Don't know why
-        gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)    # Don't know why
-        gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST)    # Don't know why
+
+        gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)        # Repeat texture in x and y
+        gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
+        gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)    # Linear filter for colors
+        gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
+
         gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, components, img.size[0], img.size[1], 0, format, gl.GL_UNSIGNED_BYTE, img_data)
 
         return texture
@@ -71,24 +86,24 @@ class Texture:
 
 
 def getLengthFormat( image ):
-	"""Return PIL image component-length and format
+    """Return PIL image component-length and format
 
-	This returns the number of components, and the OpenGL
-	mode constant describing the PIL image's format.  It
-	currently only supports GL_RGBA, GL_RGB and GL_LUIMANCE
-	formats (PIL: RGBA, RGBX, RGB, and L), the Texture
-	object's ensureRGB converts Paletted images to RGB
-	before they reach this function.
-	"""
-	if image.mode == "RGB":
-		length = 3
-		format = gl.GL_RGB
-	elif image.mode in ("RGBA","RGBX"):
-		length = 4
-		format = gl.GL_RGBA
-	elif image.mode == "L":
-		length = 1
-		format = gl.GL_LUMINANCE
-	else:
-		raise TypeError ("Currently only support Luminance, RGB and RGBA images. Image is type %s"%image.mode)
-	return length, format
+    This returns the number of components, and the OpenGL
+    mode constant describing the PIL image's format.  It
+    currently only supports GL_RGBA, GL_RGB and GL_LUIMANCE
+    formats (PIL: RGBA, RGBX, RGB, and L), the Texture
+    object's ensureRGB converts Paletted images to RGB
+    before they reach this function.
+    """
+    if image.mode == "RGB":
+        length = 3
+        format = gl.GL_RGB
+    elif image.mode in ("RGBA","RGBX"):
+        length = 4
+        format = gl.GL_RGBA
+    elif image.mode == "L":
+        length = 1
+        format = gl.GL_LUMINANCE
+    else:
+        raise TypeError ("Currently only support Luminance, RGB and RGBA images. Image is type %s"%image.mode)
+    return length, format

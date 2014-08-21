@@ -13,10 +13,14 @@ from gampy.engine.components.meshrenderer import MeshRenderer
 from gampy.engine.components.camera import Camera
 import gampy.engine.components.lights as light_components
 import math
+import gampy.engine.core.time as timing
+
+timer = timing.Timing()
 
 
 class TestGame(Game):
 
+    @timer
     def init(self):
         mesh = test_mesh('plane', 10, 10) # Mesh('cube.obj')
         mesh2 = test_mesh('plane', 1, 1)
@@ -24,12 +28,6 @@ class TestGame(Game):
         material.add('diffuse', Texture('test.png'))
         material.add('specular_intensity', 1.)
         material.add('specular_exponent', 8.)
-
-        temp_mesh = Mesh('monkey.obj')
-        temp_material = Material() # (Texture('test.png'), Vector3(1, 1, 1))
-        temp_material.add('diffuse', Texture('tegre_skin.jpg'))
-        temp_material.add('specular_intensity', 1.)
-        temp_material.add('specular_exponent', 8.)
 
         mesh_renderer = MeshRenderer(mesh, material)
 
@@ -62,7 +60,6 @@ class TestGame(Game):
 
         test_mesh_1 = GameObject().add_component(MeshRenderer(mesh2, material))
         test_mesh_2 = GameObject().add_component(MeshRenderer(mesh2, material))
-        test_mesh_3 = GameObject().add_component(MeshRenderer(temp_mesh, temp_material))
 
         test_mesh_1.transform.position.set(0, 2, 0)
         test_mesh_1.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(45))
@@ -72,7 +69,35 @@ class TestGame(Game):
         test_mesh_2.add_child(GameObject().add_component(Camera()))
 
         self.add_object(test_mesh_1)
+
+        temp_mesh = Mesh('monkey.obj')
+        temp_material = Material() # (Texture('test.png'), Vector3(1, 1, 1))
+        temp_material.add('diffuse', Texture('tegre_skin.jpg'))
+        temp_material.add('specular_intensity', 1.)
+        temp_material.add('specular_exponent', 8.)
+        test_mesh_3 = GameObject().add_component(MeshRenderer(temp_mesh, temp_material))
         self.add_object(test_mesh_3)
+        test_mesh_3.transform.position = 5, 5, 5
+        test_mesh_3.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(70))
+
+        self.add_object(GameObject().add_component(MeshRenderer(Mesh('monkey.obj'), material)))
+
+    @timer
+    def input(self, dt):
+        super().input(dt)
+
+    @timer
+    def update(self, dt):
+        super().update(dt)
+
+    @timer
+    def render(self, render_engine):
+        super().render(render_engine)
+
+    def __del__(self):
+        print('========GAME=========================================================================',
+              timer,
+              '=====================================================================================', sep='\n')
 
 # Temp function
 def test_mesh(type, *args):

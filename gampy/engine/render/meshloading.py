@@ -39,14 +39,14 @@ class IndexedModel:
             v1 = self._positions[i1] - self._positions[i0]
             v2 = self._positions[i2] - self._positions[i0]
 
-            normal = v1.cross(v2).normalized()
+            normal = v1.cross(v2).view(Vector3).normalized()
 
             self._normals[i0] = self._normals[i0] + normal
             self._normals[i1] = self._normals[i1] + normal
             self._normals[i2] = self._normals[i2] + normal
 
         for i in range(len(self._normals)):
-            self._normals[i] = self._normals[i].normalized()
+            self._normals[i] = self._normals[i].view(Vector3).normalized()
 
 
 class OBJModel:
@@ -103,9 +103,11 @@ class OBJModel:
 
     def to_indexed_model(self):
         result = IndexedModel()
+        normal_model = IndexedModel()
+        result_index_map = dict()
+        normal_index_map = dict()
         index_map = dict()
 
-        current_vertex_index = 0
         for i in range(len(self._indices)):
             current_index = self._indices[i]
 
@@ -113,33 +115,45 @@ class OBJModel:
             if self._has_tex_coords:
                 current_tex = self._tex_coords[current_index.tex_coords_index]
             else:
-                current_tex = [0, 0]
+                current_tex = Vector2(0, 0)
             if self._has_normals:
                 current_norm = self._normals[current_index.normal_index]
             else:
-                current_norm = [0, 0, 0]
+                current_norm = Vector3(0, 0, 0)
 
-            prev_vertex_index = -1
-            for j in range(i):
-                old_index = self._indices[j]
+            model_vertex_index = result_index_map.get(current_index, -1)
 
-                if current_index.vertex_index == old_index.vertex_index and \
-                    current_index.tex_coords_index == old_index.tex_coords_index and \
-                    current_index.normal_index == old_index.normal_index:
-                    prev_vertex_index = j
-                    break
+            if model_vertex_index == -1:
+                model_vertex_index = len(result._positions)
+                result_index_map.update({current_index: model_vertex_index})
 
-            if prev_vertex_index == -1:
-                index_map.update({i: current_vertex_index})
                 result._positions.append(current_pos)
                 result._tex_coords.append(current_tex)
-                result._normals.append(current_norm)
-                result._indices.append(current_vertex_index)
-                current_vertex_index += 1
-            else:
-                result._indices.append(index_map[prev_vertex_index])
+                if self._has_normals:
+                    result._normals.append(current_norm)
+
+            normal_vertex_index = normal_index_map.get(current_index.vertex_index, -1)
+
+            if normal_vertex_index == -1:
+                normal_vertex_index = len(normal_model._positions)
+                normal_index_map.update({current_index.vertex_index: normal_vertex_index})
+
+                normal_model._positions.append(current_pos)
+                normal_model._tex_coords.append(current_tex)
+                normal_model._normals.append(current_norm)
+
+            result._indices.append(model_vertex_index)
+            normal_model._indices.append(normal_vertex_index)
+            index_map.update({model_vertex_index: normal_vertex_index})
 
         result._indices = numpy.array(result._indices, dtype=numpy.uint32)
+
+        if not self._has_normals:
+            normal_model.calc_normals()
+
+            for i in range(len(result._positions)):
+                result._normals.append(normal_model._normals[index_map[i]])
+
         return result
 
     def _parse_obj_index(self, token):
@@ -161,6 +175,22 @@ class OBJModel:
 class OBJIndex:
 
     def __init__(self):
-        self.vertex_index = None
-        self.tex_coords_index = None
-        self.normal_index = None
+        self.vertex_index = 0
+        self.tex_coords_index = 0
+        self.normal_index = 0
+
+    def __eq__(self, other):
+        return other and self.vertex_index == other.vertex_index and \
+               self.tex_coords_index == other.tex_coords_index and \
+               self.normal_index == other.normal_index
+
+    def __hash__(self):
+        BASE = 17
+        MULTIPLIER = 31
+
+        result = BASE
+        result = MULTIPLIER * result + self.vertex_index
+        result = MULTIPLIER * result + self.tex_coords_index
+        result = MULTIPLIER * result + self.normal_index
+
+        return result

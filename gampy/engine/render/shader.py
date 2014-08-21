@@ -125,15 +125,19 @@ class Shader:
 
     @classmethod
     def _load_shader(cls, file_name, type='vertex'):
+        INCLUDE_DIRECTIVE = '#include'
         file_name = '{file}.glsl{ext}'.format(file=file_name, ext=type[0])
-        shader = ''
+        shader_list = []
         with open(os.path.join(os.path.dirname(__file__), '..', '..', 'res', 'shaders', type, file_name), 'r', 1) as file:
             for line in file:
-                shader += line + '\n'
+                if line.startswith(INCLUDE_DIRECTIVE):
+                    shader_list.append(cls._load_shader(line[len(INCLUDE_DIRECTIVE) + 2:-6], 'headers'))
+                else:
+                    shader_list.append(line + '\n')
 
             file.close()
 
-        return shader
+        return ''.join(shader_list)
 
     @classmethod
     def get_instance(cls):

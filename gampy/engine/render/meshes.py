@@ -1,12 +1,10 @@
 __author__ = 'michiel'
 
-from gampy.engine.core.vectors import Vector3, Vector2
-import OpenGL.GL as gl
-import numpy
-from OpenGL.arrays import vbo
 import os
-from gampy.engine.core.util import cast_object_indices, cast_object_vertexes, remove_empty_strings
+import numpy
+from gampy.engine.core.vectors import Vector3, Vector2
 from gampy.engine.render.meshloading import OBJModel
+from gampy.engine.render.resourcemanagement import MeshResource
 
 class MeshLoadError(Exception):
 
@@ -15,83 +13,104 @@ class MeshLoadError(Exception):
         super(MeshLoadError, self).__init__(message)
 
 
-class Vertex:
+class Vertex(numpy.ndarray):
 
     # Amount of numbers in vertex
     SIZE = 8
 
-    def __init__(self, position=None, tex_coord=None, normal=None):
-        if position == None:
-            position = Vector3()
-        if tex_coord == None:
-            tex_coord = Vector2()
-        if normal == None:
-            normal = Vector3()
+    def __new__(subtype, position=None, tex_coord=None, normal=None,
+                shape=None, dtype=numpy.float32, buffer=None, offset=0,
+                strides=None, order=None):
+        if shape is None:
+            shape = Vertex.SIZE
+        obj = numpy.ndarray.__new__(subtype, shape, dtype, buffer, offset, strides,
+                                    order)
+        if position is not None:
+            obj[0:3] = position
+        if tex_coord is not None:
+            obj[3:5] = tex_coord
+        if normal is not None:
+            obj[5:] = normal
+        return obj
 
-        if not isinstance(position, Vector3):
-            position = Vector3(position)
-        if not isinstance(tex_coord, Vector2):
-            tex_coord = Vector2(tex_coord)
-        if not isinstance(normal, Vector3):
-            normal = Vector3(normal)
+    def __array_finalize__(self, obj):
+        if obj is None: return
 
-        self.position = position
-        self.tex_coord = tex_coord
-        self._normal = normal
+    # def __init__(self, position=None, tex_coord=None, normal=None):
+    #     if position == None:
+    #         position = Vector3()
+    #     if tex_coord == None:
+    #         tex_coord = Vector2()
+    #     if normal == None:
+    #         normal = Vector3()
+    #
+    #     if not isinstance(position, Vector3):
+    #         position = Vector3(position)
+    #     if not isinstance(tex_coord, Vector2):
+    #         tex_coord = Vector2(tex_coord)
+    #     if not isinstance(normal, Vector3):
+    #         normal = Vector3(normal)
+    #
+    #     self._array = numpy.zeros(Vertex.SIZE, dtype=numpy.float32)
+    #
+    #     self.position = position
+    #     self.tex_coord = tex_coord
+    #     self.normal = normal
+
+    @property
+    def position(self):
+        return self[0:3]
+
+    @position.setter
+    def position(self, value):
+        self[0:3] = value
+
+    @property
+    def tex_coord(self):
+        return self[3:5]
+
+    @tex_coord.setter
+    def tex_coord(self, value):
+        self[3:5] = value
 
     @property
     def normal(self):
-        return self._normal
+        return self[5:]
 
     @normal.setter
     def normal(self, normal):
-        self._normal = normal
+        self[5:] = normal
 
 
 class Mesh:
 
+    loaded_models = dict()
+
     def __init__(self, vertices, indices=None, calc_norm=False, usage=None):
-        self.size = 0
-        self.ibo = None     # Index Buffer Object id
-        self.vbo = None     # Vertex Buffer Object id
+        self.resource = None
+        self._filename = None
 
         if isinstance(vertices, str):
             """A file has been passed in"""
-            self._load_mesh(vertices)
+            old_resource = Mesh.loaded_models.get(vertices, False)
+            self._filename = vertices
+            if old_resource:
+                self.resource = old_resource
+                self.resource.add_reference()
+            else:
+                self._load_mesh(vertices)
+                Mesh.loaded_models.update({vertices: self.resource})
         else:
-            self._add_vertices(vertices, indices, calc_norm, usage)
+            self._add_vertices(vertices, indices, calc_norm)
 
-    def _add_vertices(self, vertices, indices, calc_norm=False, usage=None):
+    def _add_vertices(self, vertices, indices, calc_norm=False):
         if calc_norm:
             self._calc_normals(vertices, indices)
 
-        self.size = len(indices)
-
-        if usage == None:
-            usage = gl.GL_STATIC_DRAW
-
-        self.vbo = vbo.VBO(data=cast_object_vertexes(vertices), usage=usage, target=gl.GL_ARRAY_BUFFER)
-        self.ibo = vbo.VBO(data=cast_object_indices(indices), usage=usage, target=gl.GL_ELEMENT_ARRAY_BUFFER)
+        self.resource = MeshResource(vertices, indices)
 
     def draw(self):
-        self.vbo.bind()
-        self.ibo.bind()
-        try:
-            gl.glEnableVertexAttribArray(0)     # Vertices attributes
-            gl.glEnableVertexAttribArray(1)     # Texture coordinate attributes
-            gl.glEnableVertexAttribArray(2)     # Normals attributes
-
-            gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, False, Vertex.SIZE * 4, None)
-            gl.glVertexAttribPointer(1, 2, gl.GL_FLOAT, False, Vertex.SIZE * 4, self.vbo + 12)
-            gl.glVertexAttribPointer(2, 3, gl.GL_FLOAT, False, Vertex.SIZE * 4, self.vbo + 20)
-
-            gl.glDrawElements(gl.GL_TRIANGLES, self.size, gl.GL_UNSIGNED_INT, None)
-        finally:
-            self.vbo.unbind()
-            self.ibo.unbind()
-            gl.glDisableVertexAttribArray(0)
-            gl.glDisableVertexAttribArray(1)
-            gl.glDisableVertexAttribArray(2)
+        self.resource.draw(Vertex.SIZE)
 
     def _calc_normals(self, vertices, indices):
         for i in range(0, len(indices), 3):
@@ -99,17 +118,17 @@ class Mesh:
             i1 = indices[i + 1]
             i2 = indices[i + 2]
 
-            v1 = vertices[i1].position - vertices[i0].position
-            v2 = vertices[i2].position - vertices[i0].position
+            v1 = Vector3(vertices[i1].position - vertices[i0].position)
+            v2 = Vector3(vertices[i2].position - vertices[i0].position)
 
-            normal = v1.cross(v2).normalized()
+            normal = v1.cross(v2).view(Vector3).normalized()
 
             vertices[i0].normal = vertices[i0].normal + normal
             vertices[i1].normal = vertices[i1].normal + normal
             vertices[i2].normal = vertices[i2].normal + normal
 
         for i in range(len(vertices)):
-            vertices[i].normal = vertices[i].normal.normalized()
+            vertices[i].normal = vertices[i].normal.view(Vector3).normalized()
 
     def update(self):
         pass
@@ -126,10 +145,14 @@ class Mesh:
         model.calc_normals()
 
         vertices = []
-        for i in range(len(model.indices)):
+        for i in range(len(model.positions)):
             vertex = Vertex(model.positions[i], model.tex_coords[i], model.normals[i])
             vertices.append(vertex)
 
         indices = model.indices
 
         self._add_vertices(vertices, indices)
+
+    def __del__(self):
+        if self.resource.remove_reference() and self._filename is not None:
+            Mesh.loaded_models.pop(self._filename)

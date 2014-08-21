@@ -1,8 +1,7 @@
 __author__ = 'michiel'
 
 from gampy.engine.core.eventinterface import EventInterface
-from gampy.engine.core.transform import Transform
-import gampy.engine.core.util as core_util
+
 
 class GameComponent(EventInterface):
 

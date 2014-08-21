@@ -3,6 +3,7 @@ __author__ = 'michiel'
 from gampy.engine.core.eventinterface import EventInterface
 from gampy.engine.core.transform import Transform
 
+
 class GameObject(EventInterface):
 
     def __init__(self):

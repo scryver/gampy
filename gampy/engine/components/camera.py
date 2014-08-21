@@ -80,4 +80,5 @@ class Camera(GameComponent):
 
 
     def move(self, direction, amount):
-        self.transform.position = self.transform.position + direction * amount
+        result = self.transform.position + direction * amount
+        self.transform.position.set(result)

@@ -4,10 +4,14 @@ import OpenGL.GL as gl
 
 from gampy.engine.core.vectors import Vector3
 import gampy.engine.render.forwardpass as forward_pass
+import gampy.engine.core.time as timing
+
+timer = timing.Timing()
 
 
 class RenderEngine:
 
+    @timer
     def __init__(self):
         print(RenderEngine.get_open_gl_version())
         gl.glClearColor(0., 0., 0., 0.)
@@ -32,12 +36,15 @@ class RenderEngine:
         self.lights = []
         self.active_light = None
 
+    @timer
     def add_light(self, light):
         self.lights.append(light)
 
+    @timer
     def add_camera(self, camera):
         self.main_camera = camera
 
+    @timer
     def render(self, object):
         self._clear_screen()
 
@@ -63,27 +70,37 @@ class RenderEngine:
         gl.glDepthMask(gl.GL_TRUE)
         gl.glDisable(gl.GL_BLEND)
 
+    @timer
     def _render_lights(self):
         for light in self.lights:
             self.active_light = light
             yield light.shader
 
     @classmethod
+    @timer
     def _clear_screen(cls):
         # todo: Add stencil buffer
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
     @classmethod
+    @timer
     def _set_clear_color(cls, color):
         gl.glClearColor(color.x, color.y, color.z, 1.0)
 
     @classmethod
+    @timer
     def get_open_gl_version(cls):
         return gl.glGetString(gl.GL_VERSION)
 
     @classmethod
+    @timer
     def _set_textures(cls, enabled=False):
         if enabled:
             gl.glEnable(gl.GL_TEXTURE_2D)
         else:
             gl.glDisable(gl.GL_TEXTURE_2D)
+
+    def __del__(self):
+        print('========RENDER ENGINE================================================================',
+              timer,
+              '=====================================================================================', sep='\n')
