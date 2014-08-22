@@ -4,6 +4,7 @@ import os.path
 import OpenGL.GL as gl
 import numpy
 from gampy.engine.core.vectors import Vector3, Matrix4
+from gampy.engine.render.resourcemanagement import ShaderResource
 
 class ShaderException(Exception):
 
@@ -35,6 +36,8 @@ class UniformAddError(ShaderException):
 
 class Shader:
 
+    loaded_shaders = dict()
+
     _instance = None
     INCLUDE_DIRECTIVE = '#include'
     UNIFORM_KEYWORD = 'uniform'
@@ -42,42 +45,77 @@ class Shader:
     STRUCT_KEYWORD = 'struct'
 
     def __init__(self, file_name):
-        self.program = gl.glCreateProgram()
-        self.uniforms = dict()
+        self.resource = None
+        self._filename = None
 
-        vertex_shader_text = self._load_shader(file_name, 'vertex')
-        fragment_shader_text = self._load_shader(file_name, 'fragment')
+        old_resource = Shader.loaded_shaders.get(file_name, False)
+        self._filename = file_name
+        if old_resource:
+            self.resource = old_resource
+            self.resource.add_reference()
+        else:
+            self.resource = ShaderResource()
 
-        self._add_vertex_shader(vertex_shader_text)
-        self._add_fragment_shader(fragment_shader_text)
+            vertex_shader_text = self._load_shader(file_name, 'vertex')
+            fragment_shader_text = self._load_shader(file_name, 'fragment')
 
-        self._add_all_attributes(vertex_shader_text)
+            self._add_vertex_shader(vertex_shader_text)
+            self._add_fragment_shader(fragment_shader_text)
 
-        self._compile_shader()
+            self._add_all_attributes(vertex_shader_text)
 
-        self._add_all_uniforms(vertex_shader_text)
-        self._add_all_uniforms(fragment_shader_text)
+            self._compile_shader()
 
-        if self.program == 0:
-            raise ShaderCreateError('Could not find valid memory location in constructor')
+            self._add_all_uniforms(vertex_shader_text)
+            self._add_all_uniforms(fragment_shader_text)
+
+            Shader.loaded_shaders.update({file_name: self.resource})
 
     def bind(self):
-        gl.glUseProgram(self.program)
+        gl.glUseProgram(self.resource.program)
 
     def unbind(self):
         gl.glUseProgram(0)
 
     def update_uniforms(self, transform, material, render_engine):
-        pass
+        world_matrix = transform.transformation
+        MVP_matrix = render_engine.main_camera.view_projection() * world_matrix
+        for uniform_name in self.resource.uniform_names:
+            type = self.resource.uniform_types[uniform_name]
 
-    def _add_uniform(self, uniform):
-        uniform_location = gl.glGetUniformLocation(self.program, uniform)
-
-        if uniform_location == -1:
-            raise UniformAddError('Could not find uniform "{}"'.format(uniform))
-
-        updateDict = { uniform: uniform_location }
-        self.uniforms.update(updateDict)
+            if type == 'sampler2D':
+                sampler_slot = render_engine.sampler_slot(uniform_name)
+                material.get_mapped_value(uniform_name, 'tex').bind(sampler_slot)
+                self.set_uniform(uniform_name, sampler_slot)
+            elif uniform_name.startswith('T_'):
+                if uniform_name == 'T_MVP':
+                    self.set_uniform(uniform_name, MVP_matrix)
+                elif uniform_name == 'T_model':
+                    self.set_uniform(uniform_name, world_matrix)
+                else:
+                    raise ShaderException('Set invalid transform uniform "{}"'.format(uniform_name))
+            elif uniform_name.startswith('R_'):
+                name = uniform_name[2:]
+                if type == 'vec3' or type == 'float':
+                    self.set_uniform(uniform_name, render_engine.get_mapped_value(name, type))
+                elif type == 'DirectionalLight':
+                    self.set_uniform_dl(uniform_name, render_engine.active_light)
+                elif type == 'PointLight':
+                    self.set_uniform_pl(uniform_name, render_engine.active_light)
+                elif type == 'SpotLight':
+                    self.set_uniform_sl(uniform_name, render_engine.active_light)
+                else:
+                    render_engine.update_uniform_struct(transform, material, self, uniform_name, type)
+            elif uniform_name.startswith('C_'):
+                if uniform_name == 'C_eyePosition':
+                    self.set_uniform(uniform_name, render_engine.main_camera.transform.transformed_position())
+                else:
+                    raise ShaderException('Set invalid camera uniform "{}"'.format(uniform_name))
+            else:
+                if type == 'vec3' or type == 'float':
+                    self.set_uniform(uniform_name, material.get_mapped_value(uniform_name, type))
+                else:
+                    raise ShaderException('Set invalid material uniform type"{}" with name "{}"'.format(type, uniform_name))
 
     def _add_all_attributes(self, shader_txt: str):
         attribute_start_location = shader_txt.find(Shader.ATTRIBUTE_KEYWORD)
@@ -170,35 +208,37 @@ class Shader:
             end = shader_txt.find(';', begin)
 
             uniform_line = shader_txt[begin:end].strip()
-            unif_name_end = end + 1
+            unif_name_end = len(uniform_line)
 
-            while shader_txt[unif_name_end - 1].isspace() or shader_txt[unif_name_end - 1] == ';':
+            while uniform_line[unif_name_end - 1].isspace() or uniform_line[unif_name_end - 1] == ';':
                 unif_name_end -= 1
 
             unif_name_start = unif_name_end
 
-            while not shader_txt[unif_name_start - 1].isspace():
+            while not uniform_line[unif_name_start - 1].isspace():
                 unif_name_start -= 1
 
             unif_type_end = unif_name_start
 
-            while shader_txt[unif_type_end - 1].isspace():
+            while uniform_line[unif_type_end - 1].isspace():
                 unif_type_end -= 1
 
-            unif_type_start = unif_type_end
+            unif_type_start = 0
 
-            while not shader_txt[unif_type_start - 1].isspace():
-                unif_type_start -= 1
+            while uniform_line[unif_type_start].isspace():
+                unif_type_start += 1
 
             uniform_type = uniform_line[unif_type_start:unif_type_end]
             uniform_name = uniform_line[unif_name_start:unif_name_end]
 
-            self._add_uniform_with_struct_check(uniform_name, uniform_type, structs)
+            self.resource.uniform_names.update({uniform_name: uniform_name})
+            self.resource.uniform_types.update({uniform_name: uniform_type})
+            self._add_uniform(uniform_name, uniform_type, structs)
 
             uniform_start_location = shader_txt.find(Shader.UNIFORM_KEYWORD,
                                                      uniform_start_location + len(Shader.UNIFORM_KEYWORD))
 
-    def _add_uniform_with_struct_check(self, uniform_name: str, uniform_type: str, structs: dict):
+    def _add_uniform(self, uniform_name: str, uniform_type: str, structs: dict):
         add_this = True
         struct_components = structs.get(uniform_type)
 
@@ -206,10 +246,17 @@ class Shader:
             add_this = False
 
             for name in struct_components:
-                self._add_uniform_with_struct_check(uniform_name + '.' + name, struct_components[name], structs)
+                self._add_uniform(uniform_name + '.' + name, struct_components[name], structs)
 
-        if add_this:
-            self._add_uniform(uniform_name)
+        if not add_this:
+            return
+
+        uniform_location = gl.glGetUniformLocation(self.resource.program, uniform_name)
+
+        if uniform_location == -1:
+            raise UniformAddError('Could not find uniform "{}"'.format(uniform_name))
+
+        self.resource.uniforms.update({uniform_name: uniform_location})
 
     def _add_vertex_shader(self, text):
         self._add_program(text, gl.GL_VERTEX_SHADER)
@@ -221,18 +268,18 @@ class Shader:
         self._add_program(text, gl.GL_FRAGMENT_SHADER)
 
     def _set_attribute_location(self, attribute_name, location):
-        gl.glBindAttribLocation(self.program, location, attribute_name)
+        gl.glBindAttribLocation(self.resource.program, location, attribute_name)
 
     def _compile_shader(self):
-        gl.glLinkProgram(self.program)
+        gl.glLinkProgram(self.resource.program)
 
-        if gl.glGetProgramiv(self.program, gl.GL_LINK_STATUS) == 0:
-            raise ShaderCompileError(gl.glGetProgramInfoLog(self.program))
+        if gl.glGetProgramiv(self.resource.program, gl.GL_LINK_STATUS) == 0:
+            raise ShaderCompileError(gl.glGetProgramInfoLog(self.resource.program))
 
-        gl.glValidateProgram(self.program)
+        gl.glValidateProgram(self.resource.program)
 
-        if gl.glGetProgramiv(self.program, gl.GL_VALIDATE_STATUS) == 0:
-            raise ShaderCompileError(gl.glGetProgramInfoLog(self.program))
+        if gl.glGetProgramiv(self.resource.program, gl.GL_VALIDATE_STATUS) == 0:
+            raise ShaderCompileError(gl.glGetProgramInfoLog(self.resource.program))
 
     def _add_program(self, text, type):
         shader = gl.glCreateShader(type)
@@ -246,22 +293,43 @@ class Shader:
         if gl.glGetShaderiv(shader, gl.GL_COMPILE_STATUS) == 0:
             raise ShaderCreateError(gl.glGetShaderInfoLog(shader))
 
-        gl.glAttachShader(self.program, shader)
+        gl.glAttachShader(self.resource.program, shader)
 
     def set_uniform(self, uniform, value):
-        if uniform in self.uniforms.keys():
+        if uniform in self.resource.uniforms.keys():
             if isinstance(value, int):
-                gl.glUniform1i(self.uniforms.get(uniform), value)
+                gl.glUniform1i(self.resource.uniforms.get(uniform), value)
             elif isinstance(value, float):
-                gl.glUniform1f(self.uniforms.get(uniform), value)
+                gl.glUniform1f(self.resource.uniforms.get(uniform), value)
             elif isinstance(value, Vector3):
-                gl.glUniform3f(self.uniforms.get(uniform), value.x, value.y, value.z)
+                gl.glUniform3f(self.resource.uniforms.get(uniform), value.x, value.y, value.z)
             elif isinstance(value, Matrix4):
-                gl.glUniformMatrix4fv(self.uniforms.get(uniform), 1, True, value.m.view(numpy.ndarray))
+                gl.glUniformMatrix4fv(self.resource.uniforms.get(uniform), 1, True, value.m.view(numpy.ndarray))
             else:
-                raise AttributeError('Value "{}" is not an int, float, Vector3 or Matrix'.format(value))
+                raise AttributeError('Uniform "{}" with value "{}" is not an int, float, Vector3 or Matrix'.format(uniform, value))
         else:
             raise AttributeError('Uniform "{}" is not added to the list'.format(uniform))
+
+    def set_uniform_bl(self, uniform, value):
+        self.set_uniform(uniform + '.base.color', value.color)
+        self.set_uniform(uniform + '.base.intensity', value.intensity)
+
+    def set_uniform_dl(self, uniform, value):
+        self.set_uniform_bl(uniform, value)
+        self.set_uniform(uniform + '.direction', value.direction)
+
+    def set_uniform_pl(self, uniform, value):
+        self.set_uniform_bl(uniform, value)
+        self.set_uniform(uniform + '.attenuation.constant', value.constant)
+        self.set_uniform(uniform + '.attenuation.linear', value.linear)
+        self.set_uniform(uniform + '.attenuation.exponent', value.exponent)
+        self.set_uniform(uniform + '.position', value.transform.transformed_position())
+        self.set_uniform(uniform + '.range', value.range)
+
+    def set_uniform_sl(self, uniform, value):
+        self.set_uniform_pl(uniform + '.pointLight', value)
+        self.set_uniform(uniform + '.direction', value.direction)
+        self.set_uniform(uniform + '.cutoff', value.cutoff)
 
     @classmethod
     def _load_shader(cls, file_name, type='vertex'):

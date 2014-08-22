@@ -3,17 +3,29 @@ __author__ = 'michiel'
 import OpenGL.GL as gl
 
 from gampy.engine.core.vectors import Vector3
-import gampy.engine.render.forwardpass as forward_pass
 import gampy.engine.core.time as timing
+from gampy.engine.render.resourcemanagement import MappedValue
+from gampy.engine.render.shader import Shader
 
 timer = timing.Timing()
 
 
-class RenderEngine:
+class RenderEngine(MappedValue):
 
     @timer
     def __init__(self):
-        print(RenderEngine.get_open_gl_version())
+        super().__init__()
+
+        self.main_camera = None
+
+        self.lights = []
+        self.active_light = None
+        self._forward_ambient = Shader('forward_ambient')
+        self._sampler_map = {'diffuse': 0, 'normal': 1}
+        self._map = dict()
+        self.add_mapped_value('ambient', Vector3(0.1, 0.1, 0.1))
+
+        print(RenderEngine.open_gl_version())
         gl.glClearColor(0., 0., 0., 0.)
 
         # do not render backfacing faces and front is determined by clockwise
@@ -30,12 +42,6 @@ class RenderEngine:
 
         gl.glEnable(gl.GL_TEXTURE_2D)
 
-        self.main_camera = None
-        self.active_ambient_light = Vector3(0.1, 0.1, 0.1)
-
-        self.lights = []
-        self.active_light = None
-
     @timer
     def add_light(self, light):
         self.lights.append(light)
@@ -44,15 +50,18 @@ class RenderEngine:
     def add_camera(self, camera):
         self.main_camera = camera
 
+    def update_uniform_struct(self, transform, material, shader, uniform_name, uniform_type):
+        raise NotImplementedError('Set invalid rendering uniform type "{}" with name "{}"'.format(uniform_type, uniform_name))
+
     @timer
     def render(self, object):
-        self._clear_screen()
+        # todo: Add stencil buffer
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         self.lights.clear()
         object.add_to_render_engine(self)
 
-        forwardAmbient = forward_pass.Ambient.get_instance()
-        object.render(forwardAmbient, self)
+        object.render(self._forward_ambient, self)
 
         # Add colors together (will be disabled through gl.glDisable(gl.GL_BLEND)
         gl.glEnable(gl.GL_BLEND)
@@ -70,6 +79,9 @@ class RenderEngine:
         gl.glDepthMask(gl.GL_TRUE)
         gl.glDisable(gl.GL_BLEND)
 
+    def sampler_slot(self, sampler_name: str):
+        return self._sampler_map[sampler_name]
+
     @timer
     def _render_lights(self):
         for light in self.lights:
@@ -78,18 +90,7 @@ class RenderEngine:
 
     @classmethod
     @timer
-    def _clear_screen(cls):
-        # todo: Add stencil buffer
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-
-    @classmethod
-    @timer
-    def _set_clear_color(cls, color):
-        gl.glClearColor(color.x, color.y, color.z, 1.0)
-
-    @classmethod
-    @timer
-    def get_open_gl_version(cls):
+    def open_gl_version(cls):
         return gl.glGetString(gl.GL_VERSION)
 
     @classmethod

@@ -3,12 +3,10 @@ __author__ = 'michiel'
 
 from gampy.engine.render.material import Material
 from gampy.engine.render.texture import Texture
-from gampy.engine.render.window import Window
 from gampy.engine.core.vectors import Vector3, Quaternion
 from gampy.engine.render.meshes import Mesh
 from gampy.engine.core.game import Game
 from gampy.engine.core.gameobject import GameObject
-from gampy.engine.core.transform import Transform
 from gampy.engine.components.meshrenderer import MeshRenderer
 from gampy.engine.components.camera import Camera
 import gampy.engine.components.lights as light_components
@@ -22,33 +20,32 @@ class TestGame(Game):
 
     @timer
     def init(self):
-        mesh = test_mesh('plane', 10, 10) # Mesh('cube.obj')
+        mesh = test_mesh('plane', 10, 10)
         mesh2 = test_mesh('plane', 1, 1)
-        material = Material() # (Texture('test.png'), Vector3(1, 1, 1))
-        material.add('diffuse', Texture('test.png'))
-        material.add('specular_intensity', 1.)
-        material.add('specular_exponent', 8.)
+        material = Material()
+        material.add_mapped_value('diffuse', Texture('test.png'))
+        material.add_mapped_value('specularIntensity', 1.)  # important that this is a float!
+        material.add_mapped_value('specularExponent', 8.)
 
         mesh_renderer = MeshRenderer(mesh, material)
 
         plane_object = GameObject()
         plane_object.add_component(mesh_renderer)
         plane_object.transform.position = (0, -1, 5)
-        # plane_object.transform.rotation = 0, -45, 0
 
         directional_light_object = GameObject()
-        directional_light = light_components.DirectionalLight(Vector3(0, 0.2, 0.8),
+        directional_light = light_components.DirectionalLight(Vector3(0., 0.2, 0.8),
                                                               0.4)
         directional_light_object.add_component(directional_light)
         directional_light.transform.rotation = Quaternion(Vector3(1, 0, 0), math.radians(-45))
 
         point_light_object = GameObject()
-        # point_light_object.transform.position.set(5, 0, 5)
-        point_light = light_components.PointLight(Vector3(0, 1, 0), 0.4, (0, 0, 1))
+        point_light = light_components.PointLight(Vector3(0., 1., 0.), 0.4, (0., 0., 0.8))
         point_light_object.add_component(point_light)
+        point_light.transform.position = (10, 0, 10)
 
         spot_light_object = GameObject()
-        spot_light = light_components.SpotLight(Vector3(0, 1, 1), 0.4, (0, 0, .1), 0.7)
+        spot_light = light_components.SpotLight(Vector3(0., 1., 1.), 0.4, (0., 0., 1.), 0.5)
         spot_light_object.add_component(spot_light)
         spot_light_object.transform.position = (5, 0.2, 5)
         spot_light_object.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(90))
@@ -69,18 +66,19 @@ class TestGame(Game):
         test_mesh_2.add_child(GameObject().add_component(Camera()))
 
         self.add_object(test_mesh_1)
+        # self.add_object(GameObject().add_component(Camera()))
 
-        # temp_mesh = Mesh('monkey.obj')
+        # temp_mesh = Mesh('suzanne.obj')
         # temp_material = Material() # (Texture('test.png'), Vector3(1, 1, 1))
-        # temp_material.add('diffuse', Texture('tegre_skin.jpg'))
-        # temp_material.add('specular_intensity', 1.)
-        # temp_material.add('specular_exponent', 8.)
+        # temp_material.add_mapped_value('diffuse', Texture('tegre_skin.jpg'))
+        # temp_material.add_mapped_value('specularIntensity', 2.)
+        # temp_material.add_mapped_value('specularExponent', 32.)
         # test_mesh_3 = GameObject().add_component(MeshRenderer(temp_mesh, temp_material))
         # self.add_object(test_mesh_3)
-        # test_mesh_3.transform.position = 5, 5, 5
+        # test_mesh_3.transform.position = (5, 5, 5)
         # test_mesh_3.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(70))
-        #
-        # self.add_object(GameObject().add_component(MeshRenderer(Mesh('monkey.obj'), material)))
+
+        # self.add_object(GameObject().add_component(MeshRenderer(Mesh('suzanne.obj'), material)))
 
     @timer
     def input(self, dt):

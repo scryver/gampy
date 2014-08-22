@@ -1,27 +1,23 @@
 __author__ = 'michiel'
 
-import numbers
-
 from gampy.engine.render.texture import Texture
-from gampy.engine.core.vectors import Vector3
+from gampy.engine.render.resourcemanagement import MappedValue
 
+class Material(MappedValue):
 
-class Material:
+    def add_mapped_value(self, name, value):
+        if isinstance(value, Texture):
+            name = 'tex_' + name
+            self._map.update({name: value})
+        else:
+            super().add_mapped_value(name, value)
 
-    def __init__(self):
-        self._material_map = dict()
-
-    def add(self, name, value):
-        self._material_map.update({name: value})
-
-    def get(self, name, var_type='float'):
-        result = self._material_map.get(name)
+    def get_mapped_value(self, name, type=None):
+        result = super().get_mapped_value(name, type)
         if result is not None:
             return result
 
-        if var_type == 'float':
-            return 0.
-        elif var_type == 'vector3':
-            return Vector3()
-        elif var_type == 'texture':
+        if type == 'tex':
             return Texture('test.png')
+        else:
+            return False

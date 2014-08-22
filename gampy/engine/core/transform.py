@@ -18,6 +18,7 @@ class Transform:
         self._old_scale  = None
         self._parent = None
         self._parent_matrix = Matrix4().init_identity()
+        self._transformed_parent_m = self._parent_matrix.copy()
 
     def update(self):
         if self._old_position is not None:
@@ -71,7 +72,9 @@ class Transform:
         return self._parent_matrix
 
     def transformed_position(self):
-        return self._get_parent_matrix().transform(self._position)
+        if self.has_changed() or self._parent.has_changed():
+            self._transformed_parent_m = self._get_parent_matrix().transform(self._position)
+        return self._transformed_parent_m
 
     def transformed_rotation(self):
         parent_rotation = Quaternion()

@@ -2,7 +2,7 @@ __author__ = 'michiel'
 
 import OpenGL.GL as gl
 from OpenGL.arrays import vbo
-from gampy.engine.core.util import cast_object_indices, cast_object_vertexes
+from gampy.engine.core.vectors import Vector3
 import numpy
 
 class MeshResource:
@@ -69,9 +69,9 @@ class MeshResource:
 
 class TextureResource:
 
-    def __init__(self, id):
+    def __init__(self):
         self._ref_count = 1 # keep track of references to this data block
-        self._id = id
+        self._id = gl.glGenTextures(1)
 
     def add_reference(self):
         self._ref_count += 1
@@ -86,3 +86,79 @@ class TextureResource:
 
     def __del__(self):
         gl.glDeleteBuffers(1, self._id)
+
+
+class ShaderResource:
+
+    def __init__(self):
+        self._ref_count = 1 # keep track of references to this data block
+        self._program = gl.glCreateProgram()
+
+        if self._program == 0:
+            raise gl.Error('Could not find valid memory location for shader program in constructor')
+
+        self._uniforms = dict()
+        self._uniform_names = dict()
+        self._uniform_types = dict()
+
+    @property
+    def uniforms(self):
+        return self._uniforms
+
+    @property
+    def uniform_names(self):
+        return self._uniform_names
+
+    @property
+    def uniform_types(self):
+        return self._uniform_types
+
+    def add_reference(self):
+        self._ref_count += 1
+
+    def remove_reference(self):
+        self._ref_count -= 1
+        return self._ref_count == 0
+
+    @property
+    def program(self):
+        return self._program
+
+    def __del__(self):
+        gl.glDeleteBuffers(1, self._program)
+
+
+class MappedValue:
+
+    def __init__(self):
+        self._map = dict()
+
+    def add_mapped_value(self, name, value):
+        if isinstance(value, int):
+            type = 'int'
+        elif isinstance(value, float):
+            type = 'float'
+        elif isinstance(value, Vector3):
+            type = 'vec3'
+        else:
+            type = False
+
+        if type:
+            name = type + '_' + name
+        self._map.update({name: value})
+
+    def get_mapped_value(self, name, type=None):
+        if type:
+            name = type + '_' + name
+        result = self._map.get(name)
+        if result is not None:
+            return result
+
+        if type == 'int':
+            return 0
+        elif type == 'float':
+            return 0.
+        elif type == 'vec3':
+            return Vector3()
+        else:
+            return False

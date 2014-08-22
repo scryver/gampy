@@ -23,12 +23,14 @@ class Texture:
                 self.resource = old_resource
                 self.resource.add_reference()
             else:
-                self.resource = TextureResource(Texture._load_texture(texture))
+                self.resource = Texture._load_texture(texture)
                 Texture.loaded_textures.update({texture: self.resource})
         else:
-            self.resource = TextureResource(Texture._load_texture(texture))
+            self.resource = Texture._load_texture(texture)
 
-    def bind(self):
+    def bind(self, sampler_slot):
+        assert isinstance(sampler_slot, int) and sampler_slot >= 0 and sampler_slot < 32
+        gl.glActiveTexture(gl.GL_TEXTURE0 + sampler_slot)
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.resource.id)
 
     def __del__(self):
@@ -41,29 +43,7 @@ class Texture:
 
     @classmethod
     def _load_texture(cls, texture_name: str):
-        # # http://pyopengl.sourceforge.net/context/tutorials/nehe6.html
-        #
-        # # PIL defines an "open" method which is Image specific!
-        # tex = Image.open('../res/textures/{tex}'.format(tex=texture_name))
-        # if tex.mode == 'P':
-        #     tex = tex.convert('RGB')
-        # components, format = getLengthFormat(tex)
-        #
-        # tx, ty, texture = tex.size[0], tex.size[1], tex.tostring("raw", tex.mode, 0, -1)
-        #
-        # # Generate a texture ID
-        # id = gl.glGenTextures(1)
-        # # Make our new texture ID the current 2D texture
-        # gl.glBindTexture(gl.GL_TEXTURE_2D, id)
-        # gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT, 1)
-        # # Copy the texture data into the current texture ID
-        # # gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-        # gl.glTexImage2D(
-        #     gl.GL_TEXTURE_2D, 0, components, tx, ty, 0,
-        #     format, gl.GL_UNSIGNED_BYTE, texture
-        # )
-        #
-        # return id
+        # http://pyopengl.sourceforge.net/context/tutorials/nehe6.html
 
         img = Image.open(os.path.join(os.path.dirname(__file__), '..', '..', 'res', 'textures', texture_name)) # .jpg, .bmp, etc. also work
         if img.mode == 'P':
@@ -71,8 +51,8 @@ class Texture:
         img_data = numpy.array(list(img.getdata()), numpy.int8)[::-1]
         components, format = getLengthFormat(img)
 
-        texture = gl.glGenTextures(1)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, texture)
+        texture = TextureResource()
+        gl.glBindTexture(gl.GL_TEXTURE_2D, texture.id)
 
         gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)        # Repeat texture in x and y
         gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)

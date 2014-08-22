@@ -26,15 +26,18 @@ class Camera(GameComponent):
         self.projection = Matrix4().init_perspective(fov, aspect, z_near, z_far)
 
         self.mouse_locked = False
+        self._transformation = None
 
     def view_projection(self):
-        camera_rotation = self.transform.transformed_rotation().conjugate().to_rotation_matrix()
-        camera_position = self.transform.transformed_position() * -1.
-        camera_translation = Matrix4().init_translation(camera_position.x,
-                                                        camera_position.y,
-                                                        camera_position.z)
+        if self._transformation is None or self.transform.has_changed():
+            camera_rotation = self.transform.transformed_rotation().conjugate().to_rotation_matrix()
+            camera_position = self.transform.transformed_position() * -1.
+            camera_translation = Matrix4().init_translation(camera_position.x,
+                                                            camera_position.y,
+                                                            camera_position.z)
+            self._transformation = self.projection * camera_rotation * camera_translation
 
-        return self.projection * camera_rotation * camera_translation
+        return self._transformation
 
     def add_to_render_engine(self, render_engine):
         render_engine.add_camera(self)

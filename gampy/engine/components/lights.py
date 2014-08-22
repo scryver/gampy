@@ -1,7 +1,7 @@
 __author__ = 'michiel'
 
-import gampy.engine.render.forwardpass as forwardpass
 from gampy.engine.components.gamecomponent import GameComponent
+from gampy.engine.render.shader import Shader
 import math
 
 
@@ -27,7 +27,7 @@ class DirectionalLight(BaseLight):
 
     def __init__(self, color, intensity):
         super(DirectionalLight, self).__init__(color, intensity)
-        self._shader = forwardpass.Directional.get_instance()
+        self._shader = Shader('forward_directional')
 
     @property
     def direction(self):
@@ -40,7 +40,7 @@ class PointLight(BaseLight):
 
     def __init__(self, color, intensity, attenuation):
         super().__init__(color, intensity)
-        self._shader = forwardpass.Point.get_instance()
+        self._shader = Shader('forward_point')
 
         constant, linear, exponent = attenuation
         self.constant = constant
@@ -69,7 +69,7 @@ class SpotLight(PointLight):
 
     def __init__(self, color, intensity, attenuation, cutoff):
         super().__init__(color, intensity, attenuation)
-        self._shader = forwardpass.Spot.get_instance()
+        self._shader = Shader('forward_spot')
 
         self.cutoff = cutoff
 
