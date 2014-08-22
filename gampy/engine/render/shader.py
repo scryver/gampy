@@ -351,3 +351,46 @@ class Shader:
         if not cls._instance:
             cls._instance = cls()
         return cls._instance
+
+    def __del__(self):
+        if self.resource.remove_reference() and self._filename is not None:
+            Shader.loaded_shaders.pop(self._filename)
+
+
+class Attenuation(numpy.ndarray):
+
+    def __new__(subtype, constant, linear, exponent):
+        data = [constant, linear, exponent]
+        dtype=numpy.float32
+        buffer=None
+        offset=0
+        strides=None
+        order=None
+        obj = numpy.ndarray.__new__(subtype, 3, dtype, buffer, offset, strides,
+                                    order)
+        obj[:] = data
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None: return
+
+    @property
+    def constant(self):
+        return self[0]
+    @constant.setter
+    def constant(self, value):
+        self[0] = value
+
+    @property
+    def linear(self):
+        return self[1]
+    @linear.setter
+    def linear(self, value):
+        self[1] = value
+
+    @property
+    def exponent(self):
+        return self[2]
+    @exponent.setter
+    def exponent(self, value):
+        self[2] = value

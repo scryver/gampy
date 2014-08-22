@@ -1,8 +1,8 @@
 __author__ = 'michiel'
 
-from gampy.engine.render.window import Window
+from gampy.engine.tkinter.window import Window
 from gampy.engine.core.time import Time
-from gampy.engine.core.input import Input
+from gampy.engine.tkinter.input import Input
 from gampy.engine.render.renderengine import RenderEngine
 
 
@@ -17,9 +17,16 @@ class CoreEngine:
         self.height = height
         self.frame_time = 1 / fps
         self.render_engine = None
+        self.game.engine(self)
+        self._fullscreen = False
 
         self.frame_rater = 0.
         self.frame_rater_count = 0.
+
+    def toggle_fullscreen(self):
+        self._fullscreen = not self._fullscreen
+        Window.root.attributes('-fullscreen', self._fullscreen)
+        Window.update()
 
     def start(self):
         if self.is_running:

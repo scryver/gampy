@@ -7,8 +7,10 @@ from gampy.engine.core.vectors import Vector3, Quaternion
 from gampy.engine.render.meshes import Mesh
 from gampy.engine.core.game import Game
 from gampy.engine.core.gameobject import GameObject
+from gampy.engine.components.gamecomponent import GameComponent
 from gampy.engine.components.meshrenderer import MeshRenderer
 from gampy.engine.components.camera import Camera
+from gampy.engine.components.inputs import FreeLook, FreeMove
 import gampy.engine.components.lights as light_components
 import math
 import gampy.engine.core.time as timing
@@ -20,6 +22,8 @@ class TestGame(Game):
 
     @timer
     def init(self):
+        self.add_object(GameObject().add_component(Camera()).add_component(FreeMove(10)).add_component(FreeLook(0.5)))
+
         mesh = test_mesh('plane', 10, 10)
         mesh2 = test_mesh('plane', 1, 1)
         material = Material()
@@ -63,10 +67,13 @@ class TestGame(Game):
         test_mesh_2.transform.position = (0, 0, 5)
 
         test_mesh_1.add_child(test_mesh_2)
-        test_mesh_2.add_child(GameObject().add_component(Camera()))
+        # test_mesh_2.add_child(GameObject().add_component(Camera()))
 
         self.add_object(test_mesh_1)
-        # self.add_object(GameObject().add_component(Camera()))
+
+        mesh3 = GameObject().add_component(LookAtComponent()).add_component(MeshRenderer(test_mesh('pyramid'), material))
+        mesh3.transform.position = 0, 5, 0
+        self.add_object(mesh3)
 
         # temp_mesh = Mesh('suzanne.obj')
         # temp_material = Material() # (Texture('test.png'), Vector3(1, 1, 1))
@@ -96,6 +103,24 @@ class TestGame(Game):
         print('========GAME=========================================================================',
               timer,
               '=====================================================================================', sep='\n')
+
+
+class LookAtComponent(GameComponent):
+
+    def __init__(self):
+        super().__init__()
+        self._render_engine = None
+
+    def update(self, dt):
+        if self._render_engine is not None:
+            new_rotation = self.transform.look_at_direction(self._render_engine.main_camera.transform.transformed_position(), Vector3(0, 1, 0))
+
+            # self.transform.rotation = self.transform.rotation.nlerp(new_rotation, dt * 5, True)
+            self.transform.rotation = self.transform.rotation.slerp(new_rotation, dt * 5, True)
+
+    def render(self, shader, render_engine):
+        self._render_engine = render_engine
+
 
 # Temp function
 def test_mesh(type, *args):

@@ -21,5 +21,5 @@ class GameComponent(EventInterface):
     def transform(self):
         return self.parent.transform
 
-    def add_to_render_engine(self, render_engine):
+    def add_to_engine(self, engine):
         pass

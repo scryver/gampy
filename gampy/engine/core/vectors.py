@@ -88,7 +88,7 @@ class Vector2(Vector):
         return Vector2(self.x * cosine - self.y * sinus, self.x * sinus + self.y * cosine)
 
     def lerp(self, destination, lerp_factor):
-        return (destination - self) * lerp_factor + self
+        return (destination - self) * lerp_factor + self # .normalized()
 
 
 class Vector3(Vector):
@@ -161,7 +161,7 @@ class Vector3(Vector):
             return NotImplemented
 
     def lerp(self, destination, lerp_factor):
-        return (destination - self) * lerp_factor + self
+        return (destination - self) * lerp_factor + self #.normalized()
 
 
 class Matrix4(numpy.matrix):
@@ -192,13 +192,13 @@ class Matrix4(numpy.matrix):
             # DONT KNOW IF THIS IS NECESSARY
                 f = x.normalized()
                 r = y.view(Vector3).normalized()
-                r = r.cross(f)
-                u = f.cross(r)
+                r = r.cross(f).view(Vector3)
+                u = f.cross(r).view(Vector3)
             # END OF DONT KNOW
             else:
-                f = x # forward
-                u = y # up
-                r = z # right
+                f = x.view(Vector3) # forward
+                u = y.view(Vector3) # up
+                r = z.view(Vector3) # right
 
             self[0, 0:3] = [r.x, r.y, r.z]
             self[1, 0:3] = [u.x, u.y, u.z]
@@ -292,6 +292,8 @@ class Matrix4(numpy.matrix):
 
 class Quaternion(Vector):
 
+    EPSILON = 1e3
+
     def __new__(cls, x=None, y=None, z=None, w=None):
         """
         all depends on x, if x is None then a default Quaternion will be created
@@ -305,15 +307,27 @@ class Quaternion(Vector):
         """
         data = [0, 0, 0, 1]
         if x is not None:
-            if isinstance(x, Vector3):
+            if isinstance(x, Matrix4):
+                trace = x[0, 0]  + x[1, 1] + x[2, 2]
+                if trace > 0:
+                    s = 0.5 / numpy.sqrt(trace + 1)
+                    data = [(x[1, 2] - x[2, 1]) * s, (x[2, 0] - x[0, 2]) * s, (x[0, 1] - x[1, 0]) * s, 0.25 / s]
+                else:
+                    s = 2 * numpy.sqrt(1 + x[0, 0] - x[1, 1] - x[2, 2])
+                    if x[0, 0] > x[1, 1] and x[0, 0] > x[2, 2]:
+                        data = [0.25 * s, (x[1, 0] + x[0, 1]) / s, (x[2, 0] + x[0, 2]) / s, (x[1, 2] - x[2, 1]) / s]
+                    elif x[1, 1] > x[2, 2]:
+                        data = [(x[1, 0] + x[0, 1]) / s, 0.25 * s, (x[2, 1] + x[1, 2]) / s, (x[2, 0] - x[0, 2]) / s]
+                    else:
+                        data = [(x[2, 0] + x[0, 2]) / s, (x[1, 2] + x[2, 1]) / s, 0.25 * s, (x[0, 1] - x[1, 0]) / s]
+
+                length = numpy.sqrt(sum([i * i for i in data]))
+                data = [i / length for i in data]
+            elif isinstance(x, Vector3):
                 sin_half_angle = sin(y / 2)
                 cos_half_angle = cos(y / 2)
 
-                w = cos_half_angle
-                z = x.z * sin_half_angle
-                y = x.y * sin_half_angle
-                x = x.x * sin_half_angle
-                data = [x, y, z, w]
+                data = [x.x * sin_half_angle, x.y * sin_half_angle, x.z * sin_half_angle, cos_half_angle]
             elif isinstance(x, Quaternion):
                 data = x.copy()
             elif isinstance(x, numpy.ndarray):
@@ -377,44 +391,26 @@ class Quaternion(Vector):
     @property
     def forward(self):
         return Vector3(0, 0, 1).rotate(self)
-        # return Vector3(2 * (self.x * self.z - self.w * self.y),
-        #                2 * (self.y * self.z + self.w * self.x),
-        #                1 - 2 * (self.x * self.x + self.y * self.y))
 
     @property
     def back(self):
         return Vector3(0, 0, -1).rotate(self)
-        # return Vector3(-2 * (self.x * self.z - self.w * self.y),
-        #                -2 * (self.y * self.z + self.w * self.x),
-        #                -(1 - 2 * (self.x * self.x + self.y * self.y)))
 
     @property
     def up(self):
         return Vector3(0, 1, 0).rotate(self)
-        # return Vector3(2 * (self.x * self.y + self.w * self.z),
-        #                1 - 2 * (self.x * self.x + self.z * self.z),
-        #                2 * (self.y * self.z - self.w * self.x))
 
     @property
     def down(self):
         return Vector3(0, -1, 0).rotate(self)
-        # return Vector3(-2 * (self.x * self.y + self.w * self.z),
-        #                -(1 - 2 * (self.x * self.x + self.z * self.z)),
-        #                -2 * (self.y * self.z - self.w * self.x))
 
     @property
     def right(self):
         return Vector3(1, 0, 0).rotate(self)
-        # return Vector3(1 - 2 * (self.y * self.y + self.z * self.z),
-        #                2 * (self.x * self.y - self.w * self.z),
-        #                2 * (self.x * self.z + self.w * self.y))
 
     @property
     def left(self):
         return Vector3(-1, 0, 0).rotate(self)
-        # return Vector3(-(1 - 2 * (self.y * self.y + self.z * self.z)),
-        #                -2 * (self.x * self.y - self.w * self.z),
-        #                -2 * (self.x * self.z + self.w * self.y))
 
     def __mul__(self, other):
         if isinstance(other, Quaternion):
@@ -435,5 +431,36 @@ class Quaternion(Vector):
             z =  own_w * other_z + own_x * other_y - own_y * other_x
 
             return Quaternion(x, y, z, w)
+        elif isinstance(other, Number):
+            return Quaternion(super().__mul__(other))
         else:
             super().__mul__(other)
+
+    # Normalized Linear Interpelation
+    def nlerp(self, destination, lerp_factor, shortest=True):
+        corrected_dest = destination
+        if shortest and numpy.dot(self, destination) < 0:
+            corrected_dest = Quaternion(-destination.x, -destination.y, -destination.z, -destination.w)
+
+
+        return ((corrected_dest - self) * lerp_factor + self).view(Quaternion).normalized()
+
+    def slerp(self, destination, lerp_factor, shortest=True):
+        cosine = numpy.dot(self, destination)
+        corrected_dest = destination
+
+        if shortest and cosine < 0:
+            cosine = -cosine
+            corrected_dest = Quaternion(-destination.x, -destination.y, -destination.z, -destination.w)
+
+        if abs(cosine) >= 1 - Quaternion.EPSILON:
+            return self.nlerp(corrected_dest, lerp_factor, False)
+
+        sine = numpy.sqrt(1 - cosine * cosine)
+        angle = numpy.arctan2(sine, cosine)
+        inv_sine = 1 / sine
+
+        src_factor = numpy.sin((1 - lerp_factor) * angle) * inv_sine
+        dest_factor = numpy.sin(lerp_factor * angle) * inv_sine
+
+        return self * src_factor + corrected_dest * dest_factor

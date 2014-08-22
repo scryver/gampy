@@ -85,6 +85,12 @@ class Transform:
 
         return parent_rotation * self._rotation
 
+    def look_at(self, point, up):
+        self.rotation = self.look_at_direction(point, up)
+
+    def look_at_direction(self, point, up):
+        return Quaternion(Matrix4().init_rotation((point - self.position).normalized(), up))
+
     @property
     def position(self):
         return self._position

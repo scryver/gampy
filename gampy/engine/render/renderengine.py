@@ -58,9 +58,6 @@ class RenderEngine(MappedValue):
         # todo: Add stencil buffer
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
-        self.lights.clear()
-        object.add_to_render_engine(self)
-
         object.render(self._forward_ambient, self)
 
         # Add colors together (will be disabled through gl.glDisable(gl.GL_BLEND)
