@@ -58,7 +58,7 @@ class RenderEngine(MappedValue):
         # todo: Add stencil buffer
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
-        object.render(self._forward_ambient, self)
+        object.render_all(self._forward_ambient, self)
 
         # Add colors together (will be disabled through gl.glDisable(gl.GL_BLEND)
         gl.glEnable(gl.GL_BLEND)
@@ -69,7 +69,7 @@ class RenderEngine(MappedValue):
         # Only add color if the pixel is same as previous
         gl.glDepthFunc(gl.GL_EQUAL)
 
-        object_render = object.render
+        object_render = object.render_all
         [object_render(shader, self) for shader in self._render_lights()]
 
         gl.glDepthFunc(gl.GL_LESS)

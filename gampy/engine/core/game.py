@@ -15,7 +15,7 @@ class Game(EventInterface):
         self._root_object.update_all(dt)
 
     def render(self, render_engine):
-        render_engine.render_all(self._root_object)
+        render_engine.render(self._root_object)
 
     def add_object(self, game_object):
         self._root_object.add_child(game_object)

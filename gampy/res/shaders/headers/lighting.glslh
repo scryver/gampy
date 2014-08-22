@@ -1,0 +1,106 @@
+uniform vec3 C_eyePosition;
+uniform float specularIntensity;
+uniform float specularExponent;
+
+struct BaseLight
+{
+    vec3 color;
+    float intensity;
+};
+
+struct DirectionalLight
+{
+    BaseLight base;
+    vec3 direction;
+};
+
+struct Attenuation
+{
+    float constant;
+    float linear;
+    float exponent;
+};
+
+struct PointLight
+{
+    BaseLight base;
+    Attenuation attenuation;
+    vec3 position;
+    float range;
+};
+
+struct SpotLight
+{
+    PointLight pointLight;
+    vec3 direction;
+    float cutoff;
+};
+
+vec4 CalcLight(BaseLight base, vec3 direction, vec3 normal, vec3 worldPosition)
+{
+    float diffuseFactor = dot(normal, -direction);
+    vec4 diffuseColor = vec4(0, 0, 0, 0);
+    vec4 specularColor = vec4(0, 0, 0, 0);
+    
+    if (diffuseFactor > 0)
+    {
+        diffuseColor = vec4(base.color, 1.0) * base.intensity * diffuseFactor;
+        
+        vec3 directionToCamera = normalize(C_eyePosition - worldPosition);
+        //vec3 reflectDirection = normalize(reflect(direction, normal));
+        vec3 halfDirection = normalize(directionToCamera - direction);
+        
+        float specularFactor = dot(halfDirection, normal);
+        //float specularFactor = dot(directionToCamera, reflectDirection);
+        specularFactor = pow(specularFactor, specularExponent);
+        
+        if (specularFactor > 0)
+        {
+            specularColor = vec4(base.color, 1.0) * specularIntensity * specularFactor;
+        }
+    }
+    
+    return diffuseColor + specularColor;
+}
+
+vec4 CalcDirectionalLight(DirectionalLight directionalLight, vec3 normal, vec3 worldPosition)
+{
+    return CalcLight(directionalLight.base, -directionalLight.direction, normal, worldPosition);
+}
+
+vec4 CalcPointLight(PointLight pointLight, vec3 normal, vec3 worldPosition)
+{
+    vec3 lightDirection = worldPosition - pointLight.position;
+    float distanceToPoint = length(lightDirection);
+    
+    if (distanceToPoint > pointLight.range)
+        return vec4(0, 0, 0, 0);
+        
+    lightDirection = normalize(lightDirection);
+    
+    vec4 color = CalcLight(pointLight.base, lightDirection, normal, worldPosition);
+    
+    float attenuation = pointLight.attenuation.constant +
+                        pointLight.attenuation.linear * distanceToPoint +
+                        pointLight.attenuation.exponent * distanceToPoint *
+                        distanceToPoint + 0.0001; // Do not divide by zero
+                        // (GL can execute both statements for if's)
+                        
+    return color / attenuation;
+}
+
+vec4 CalcSpotLight(SpotLight spotLight, vec3 normal, vec3 worldPosition)
+{
+    vec3 lightDirection = normalize(worldPosition - spotLight.pointLight.position);
+    float spotFactor = dot(lightDirection, spotLight.direction);
+    
+    vec4 color = vec4(0, 0, 0, 0);
+    
+    if (spotFactor > spotLight.cutoff)
+    {
+        color = CalcPointLight(spotLight.pointLight, normal, worldPosition) *
+                (1.0 - (1.0 - spotFactor)/(1.0 - spotLight.cutoff));
+    }
+    
+    return color;
+}
