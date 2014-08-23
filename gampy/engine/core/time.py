@@ -58,5 +58,5 @@ class Timing:
             ts = self.timings[key]['timings']
             count = self.timings[key]['count']
             total = self.timings[key]['total']
-            s += 'average: {avg:10.2f} | total: {tot:10.2f} | count: {cnt:9}\n'.format(avg=total / count, tot=total, cnt=count)
+            s += 'average: {avg:13.5f} | total: {tot:10.2f} | count: {cnt:9}\n'.format(avg=total / count, tot=total, cnt=count)
         return '{}'.format(s)

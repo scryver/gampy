@@ -92,7 +92,7 @@ class Mesh:
 
         if isinstance(vertices, str):
             """A file has been passed in"""
-            old_resource = Mesh.loaded_models.get(vertices, False)
+            old_resource = Mesh.loaded_models.get(vertices, None)
             self._filename = vertices
             if old_resource:
                 self.resource = old_resource

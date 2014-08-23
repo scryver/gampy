@@ -20,16 +20,20 @@ timer = timing.Timing()
 
 class TestGame(Game):
 
-    @timer
+    # @timer
     def init(self):
         self.add_object(GameObject().add_component(Camera()).add_component(FreeMove(10)).add_component(FreeLook(0.5)))
 
         mesh = test_mesh('plane', 10, 10)
-        mesh2 = test_mesh('plane', 1, 1)
         material = Material()
-        material.add_mapped_value('diffuse', Texture('test.png'))
+        material.add_mapped_value('diffuse', Texture('bricks.jpg'))
         material.add_mapped_value('specularIntensity', 1.)  # important that this is a float!
         material.add_mapped_value('specularExponent', 8.)
+        mesh2 = test_mesh('plane', 1, 1)
+        material2 = Material()
+        material2.add_mapped_value('diffuse', Texture('bricks2.jpg'))
+        material2.add_mapped_value('specularIntensity', 1.)  # important that this is a float!
+        material2.add_mapped_value('specularExponent', 8.)
 
         mesh_renderer = MeshRenderer(mesh, material)
 
@@ -46,23 +50,24 @@ class TestGame(Game):
         point_light_object = GameObject()
         point_light = light_components.PointLight(Vector3(0., 1., 0.), 0.4, (0., 0., 0.8))
         point_light_object.add_component(point_light)
-        point_light.transform.position = (10, 0, 10)
+        point_light.transform.position = (0, 0.5, 0)
 
         spot_light_object = GameObject()
-        spot_light = light_components.SpotLight(Vector3(0., 1., 1.), 0.4, (0., 0., 1.), 0.5)
+        spot_light = light_components.SpotLight(Vector3(1., 1., 0.), 0.4, (0., 0., 0.5), 0.3)
         spot_light_object.add_component(spot_light)
-        spot_light_object.transform.position = (5, 0.2, 5)
+        spot_light_object.transform.position = (5, 1, 5)
         spot_light_object.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(90))
+        spot_light_object.transform.rotation += Quaternion(Vector3(1, 0, 0), math.radians(30))
 
         self.add_object(plane_object)
         self.add_object(directional_light_object)
         self.add_object(point_light_object)
         self.add_object(spot_light_object)
 
-        test_mesh_1 = GameObject().add_component(MeshRenderer(mesh2, material))
-        test_mesh_2 = GameObject().add_component(MeshRenderer(mesh2, material))
+        test_mesh_1 = GameObject().add_component(MeshRenderer(mesh2, material2))
+        test_mesh_2 = GameObject().add_component(MeshRenderer(mesh2, material2))
 
-        test_mesh_1.transform.position = (0, 2, 0)
+        test_mesh_1.transform.position = (0, 0, 0)
         test_mesh_1.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(45))
         test_mesh_2.transform.position = (0, 0, 5)
 
@@ -118,7 +123,7 @@ class LookAtComponent(GameComponent):
             # self.transform.rotation = self.transform.rotation.nlerp(new_rotation, dt * 5, True)
             self.transform.rotation = self.transform.rotation.slerp(new_rotation, dt * 5, True)
 
-    def render(self, shader, render_engine):
+    def render(self, shader, render_engine, camera_view):
         self._render_engine = render_engine
 
 

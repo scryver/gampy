@@ -1,9 +1,8 @@
 __author__ = 'michiel'
 
-from gampy.engine.core.eventinterface import EventInterface
 from gampy.engine.core.gameobject import GameObject
 
-class Game(EventInterface):
+class Game:
 
     def init(self):
         self._root = self._root_object

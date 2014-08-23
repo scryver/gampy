@@ -4,6 +4,7 @@ from gampy.engine.tkinter.window import Window
 from gampy.engine.core.time import Time
 from gampy.engine.tkinter.input import Input
 from gampy.engine.render.renderengine import RenderEngine
+import gampy.engine.core.vectors as vec
 
 
 class CoreEngine:
@@ -19,6 +20,7 @@ class CoreEngine:
         self.render_engine = None
         self.game.engine(self)
         self._fullscreen = False
+        self.update_time = self.frame_time
 
         self.frame_rater = 0.
         self.frame_rater_count = 0.
@@ -65,14 +67,14 @@ class CoreEngine:
 
             while unprocessed_time > self.frame_time:
                 render = True
-                unprocessed_time -= self.frame_time
+                unprocessed_time -= self.update_time
 
                 if not Window.is_display_open:
                     self.stop()
 
-                self.game.input(self.frame_time)
+                self.game.input(self.update_time)
                 Input.update()
-                self.game.update(self.frame_time)
+                self.game.update(self.update_time)
 
                 if frame_counter >= 1.0:
                     # Frame Rate

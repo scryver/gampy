@@ -3,16 +3,16 @@ __author__ = 'michiel'
 import OpenGL.GL as gl
 
 from gampy.engine.core.vectors import Vector3
-import gampy.engine.core.time as timing
+# import gampy.engine.core.time as timing
 from gampy.engine.render.resourcemanagement import MappedValue
 from gampy.engine.render.shader import Shader
 
-timer = timing.Timing()
+# timer = timing.Timing()
 
 
 class RenderEngine(MappedValue):
 
-    @timer
+    # @timer
     def __init__(self):
         super().__init__()
 
@@ -42,23 +42,24 @@ class RenderEngine(MappedValue):
 
         gl.glEnable(gl.GL_TEXTURE_2D)
 
-    @timer
+    # @timer
     def add_light(self, light):
         self.lights.append(light)
 
-    @timer
+    # @timer
     def add_camera(self, camera):
         self.main_camera = camera
 
     def update_uniform_struct(self, transform, material, shader, uniform_name, uniform_type):
         raise NotImplementedError('Set invalid rendering uniform type "{}" with name "{}"'.format(uniform_type, uniform_name))
 
-    @timer
+    # @timer
     def render(self, object):
         # todo: Add stencil buffer
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+        camera_view = self.main_camera.view_projection()
 
-        object.render_all(self._forward_ambient, self)
+        object.render_all(self._forward_ambient, self, camera_view)
 
         # Add colors together (will be disabled through gl.glDisable(gl.GL_BLEND)
         gl.glEnable(gl.GL_BLEND)
@@ -70,7 +71,7 @@ class RenderEngine(MappedValue):
         gl.glDepthFunc(gl.GL_EQUAL)
 
         object_render = object.render_all
-        [object_render(shader, self) for shader in self._render_lights()]
+        [object_render(shader, self, camera_view) for shader in self._render_lights()]
 
         gl.glDepthFunc(gl.GL_LESS)
         gl.glDepthMask(gl.GL_TRUE)
@@ -79,26 +80,26 @@ class RenderEngine(MappedValue):
     def sampler_slot(self, sampler_name: str):
         return self._sampler_map[sampler_name]
 
-    @timer
+    # @timer
     def _render_lights(self):
         for light in self.lights:
             self.active_light = light
             yield light.shader
 
     @classmethod
-    @timer
+    # @timer
     def open_gl_version(cls):
         return gl.glGetString(gl.GL_VERSION)
 
     @classmethod
-    @timer
+    # @timer
     def _set_textures(cls, enabled=False):
         if enabled:
             gl.glEnable(gl.GL_TEXTURE_2D)
         else:
             gl.glDisable(gl.GL_TEXTURE_2D)
 
-    def __del__(self):
-        print('========RENDER ENGINE================================================================',
-              timer,
-              '=====================================================================================', sep='\n')
+    # def __del__(self):
+    #     print('========RENDER ENGINE================================================================',
+    #           timer,
+    #           '=====================================================================================', sep='\n')

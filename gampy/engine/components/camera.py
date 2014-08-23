@@ -5,9 +5,14 @@ from gampy.engine.core.vectors import Matrix4
 from gampy.engine.core.coreengine import Window
 from gampy.engine.components.gamecomponent import GameComponent
 import math
+import gampy.engine.core.time as timing
+
+timer = timing.Timing()
 
 
 class Camera(GameComponent):
+
+    _is_printed = False
 
     def __init__(self, fov=None, aspect=None, z_near=None, z_far=None):
         super().__init__()
@@ -23,6 +28,7 @@ class Camera(GameComponent):
 
         self._transformation = None
 
+    @timer
     def view_projection(self):
         if self._transformation is None or self.transform.has_changed():
             camera_rotation = self.transform.transformed_rotation().conjugate().to_rotation_matrix()
@@ -36,3 +42,10 @@ class Camera(GameComponent):
 
     def add_to_engine(self, engine):
         engine.render_engine.add_camera(self)
+
+    def __del__(self):
+        if not Camera._is_printed:
+            Camera._is_printed = True
+            print('========CAMERA=======================================================================',
+                  timer,
+                  '=====================================================================================', sep='\n')

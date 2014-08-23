@@ -77,9 +77,9 @@ class Shader:
     def unbind(self):
         gl.glUseProgram(0)
 
-    def update_uniforms(self, transform, material, render_engine):
+    def update_uniforms(self, transform, material, render_engine, camera_view):
         world_matrix = transform.transformation
-        MVP_matrix = render_engine.main_camera.view_projection() * world_matrix
+        MVP_matrix = camera_view * world_matrix
         for uniform_name in self.resource.uniform_names:
             type = self.resource.uniform_types[uniform_name]
 
