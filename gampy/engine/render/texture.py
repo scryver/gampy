@@ -31,7 +31,7 @@ class Texture:
             self._filename = 'internal'
             if data is None:
                 data = Image.new('RGBA', (width, height), 'white')
-                self.resource = Texture._load_texture_from_image(data, tex_target, filters, attachements)
+                self.resource = Texture._load_texture_from_image(data, tex_target, filters, attachements, False)
             else:
                 self.resource = resourcemanagement.TextureResource(width, height, 1, data, filters, internal_format, format, tex_target, attachements)
             Texture.loaded_textures.update({self._filename: self.resource})
@@ -60,10 +60,13 @@ class Texture:
         return cls._load_texture_from_image(img, tex_target, filters, attachements)
 
     @classmethod
-    def _load_texture_from_image(cls, image, tex_target, filters, attachements):
+    def _load_texture_from_image(cls, image, tex_target, filters, attachements, flip=True):
         if image.mode == 'P':
             image = image.convert('RGB')
-        img_data = numpy.array(list(image.getdata()), numpy.int8)[::-1]
+
+        img_data = numpy.array(list(image.getdata()), numpy.int8)
+        if flip:
+            img_data = img_data[::-1]
         components, format = resourcemanagement.getLengthFormat(image)
 
         texture = resourcemanagement.TextureResource(image.size[0], image.size[1], 1, img_data, filters, components, format, tex_target, attachements)

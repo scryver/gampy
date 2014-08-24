@@ -24,19 +24,6 @@ class RenderEngine(MappedValue):
     # @timer
     def __init__(self):
         super().__init__()
-        # Temp vars
-        # self.temp_target = Texture((Window.width, Window.height, None), gl.GL_TEXTURE_2D, gl.GL_NEAREST, None,
-        #                            None, False, gl.GL_COLOR_ATTACHMENT0)
-        # self.mesh = Mesh('plane.obj')
-        # self.material = Material(self.temp_target, 1., 8.)
-        # self.transform = Transform()
-        # self.transform.scale = 0.9
-        # self.transform.rotate(Vector3(1, 0, 0), math.radians(90))
-        # self.transform.rotate(Vector3(0, 0, 1), math.radians(180))
-        # self.camera = Camera(Matrix4().init_identity())
-        # self.camera_obj = GameObject().add_component(self.camera)
-        # self.camera.transform.rotate(Vector3(0, 1, 0), math.radians(180.))
-
         self.main_camera = None
 
         self.lights = []
@@ -76,10 +63,6 @@ class RenderEngine(MappedValue):
 
     # @timer
     def render(self, object):
-        Window.bind_as_render_target()
-        # self.temp_target.bind_as_render_target()
-        # gl.glClearColor(0., 0., 0., 0.)
-
         # todo: Add stencil buffer
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
         camera_view = self.main_camera.view_projection()
@@ -102,22 +85,6 @@ class RenderEngine(MappedValue):
         gl.glDepthFunc(gl.GL_LESS)
         gl.glDepthMask(gl.GL_TRUE)
         gl.glDisable(gl.GL_BLEND)
-
-        # TEMP RENDER
-        # Window.bind_as_render_target()
-        #
-        # temp = self.main_camera
-        # self.main_camera = self.camera
-        #
-        # gl.glClearColor(0., 0., 0.5, 1.)
-        # gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-        # self._forward_ambient.bind()
-        # self._forward_ambient.update_uniforms(self.transform, self.material, self, self.main_camera.view_projection(), self.main_camera.transform.transformed_position())
-        # try:
-        #     self.mesh.draw()
-        # finally:
-        #     self._forward_ambient.unbind()
-        # self.main_camera = temp
 
     def sampler_slot(self, sampler_name: str):
         return self._sampler_map[sampler_name]

@@ -25,19 +25,6 @@ class TestGame(Game):
 
     # @timer
     def init(self):
-        # temp_target = Texture((Window.width, Window.height, None), gl.GL_TEXTURE_2D, gl.GL_NEAREST, None,
-        #                            None, False, gl.GL_COLOR_ATTACHMENT0)
-        # mesh = Mesh('plane.obj')
-        # material = Material(temp_target, 1., 8.)
-        # view_plane_obj = GameObject().add_component(MeshRenderer(mesh, material))
-        # view_plane_obj.transform.scale
-        # self.transform = Transform()
-        # self.transform.scale = 0.9
-        # self.transform.rotate(Vector3(1, 0, 0), math.radians(90))
-        # self.transform.rotate(Vector3(0, 0, 1), math.radians(180))
-
-
-
         camera = GameObject().add_component(Camera()).add_component(FreeMove(10)).add_component(FreeLook(0.5))
         camera.transform.position = (-1, .5, -1)
         self.add_object(camera)
@@ -45,7 +32,6 @@ class TestGame(Game):
         mesh = test_mesh('plane', 12, 12)
         material = Material(Texture('bricks.jpg'), normal_map=Texture('bricks_normal.jpg'),
                             disp_map=Texture('bricks_disp.png'), disp_map_scale=0.02, disp_map_offset=-0.5)
-        mesh2 = test_mesh('plane', 2, 2)
         mesh2 = test_mesh('plane', 1, 1)
         material2 = Material(Texture('bricks2.jpg'), normal_map=Texture('bricks2_normal.jpg'),
                              disp_map=Texture('bricks2_disp.jpg'), disp_map_scale=0.02, disp_map_offset=1.)
@@ -57,7 +43,6 @@ class TestGame(Game):
         plane_object.add_component(ChangeTexComponent(Texture('bricks_normal.jpg'), Texture('bricks_normal_i.jpg'),
                                                      Input.KEY_M))
         plane_object.transform.position = (0, -.5, 0)
-        plane_object.transform.scale = (12, 12, 12)
 
         directional_light_object = GameObject()
         directional_light = light_components.DirectionalLight(Vector3(1, 1, 1), 0.3)

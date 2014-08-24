@@ -90,6 +90,7 @@ class TextureResource:
         self._width = width
         self._height = height
         self._frame_buffer = 0
+        self._render_buffer = 0
 
         self.init_textures(data, filters, components, formats, clamp)
         self.init_render_targets(attachments)
@@ -139,11 +140,13 @@ class TextureResource:
         if attachments[0] is None:
             return
 
+        has_depth = False
         draw_buffers = numpy.array([0 for i in range(self._num_texs)])
 
         for i in range(self._num_texs):
             # Todo add stencil buffer
             if attachments[i] == gl.GL_DEPTH_ATTACHMENT:
+                has_depth = True
                 draw_buffers[i] = gl.GL_NONE
             else:
                 draw_buffers[i] = attachments[i]
@@ -158,6 +161,13 @@ class TextureResource:
 
         if self._frame_buffer == 0:
             return
+
+        if not has_depth:
+            self._render_buffer = gl.glGenRenderbuffers(1)
+            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self._render_buffer)
+            gl.glRenderbufferStorage(gl.GL_RENDERBUFFER, gl.GL_DEPTH_COMPONENT, self._width, self._height)
+            gl.glFramebufferRenderbuffer(gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, gl.GL_RENDERBUFFER,
+                                         self._render_buffer)
 
         gl.glDrawBuffers(self._num_texs, draw_buffers)
 
@@ -179,6 +189,8 @@ class TextureResource:
             gl.glDeleteTextures(self._id[i])
         if self._frame_buffer != 0:
             gl.glDeleteFramebuffers(int(self._frame_buffer))
+        if self._render_buffer != 0:
+            gl.glDeleteRenderbuffers(1, int(self._render_buffer))
 
 
 def getLengthFormat( image ):
