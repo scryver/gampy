@@ -3,6 +3,7 @@ __author__ = 'michiel'
 from math import radians, tan, sin, cos
 from numbers import Number
 import numpy
+from numpy import NaN
 
 class Vector(numpy.ndarray):
 
@@ -22,7 +23,7 @@ class Vector(numpy.ndarray):
 
     def normalized(self):
         try:
-            return self / self.length
+            return numpy.nan_to_num(self / self.length).view(self.__class__)
         except ZeroDivisionError:
             return self.__class__()
 
@@ -36,14 +37,16 @@ class Vector(numpy.ndarray):
         if other == 0:
             result = None
         else:
-            result = super().__truediv__(other)
+            result = numpy.nan_to_num(super().__truediv__(other))
         return self.__class__(result)
 
     def __eq__(self, other):
-        if isinstance(other, Vector):
+        if other is None:
+            return False
+        elif isinstance(other, Vector):
             return numpy.array_equal(self, other)
         else:
-            return numpy.all(self == other)
+            super().__eq__(other)
 
     def __ne__(self, other):
         return ~(self == other)

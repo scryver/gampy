@@ -5,13 +5,14 @@ from PIL import Image
 import numpy
 import os.path
 import numbers
-from gampy.engine.render.resourcemanagement import TextureResource
+import gampy.engine.render.resourcemanagement as resourcemanagement
 
 class Texture:
 
     loaded_textures = dict()
 
-    def __init__(self, texture):
+    def __init__(self, texture, tex_target=gl.GL_TEXTURE_2D, filters=None, internal_format=gl.GL_RGBA,
+                 format=gl.GL_RGBA, clamp=False, attachements=None):
         self.resource = None
         self._filename = None
 
@@ -23,15 +24,25 @@ class Texture:
                 self.resource = old_resource
                 self.resource.add_reference()
             else:
-                self.resource = Texture._load_texture(texture)
+                self.resource = Texture._load_texture(texture, tex_target, filters, attachements)
                 Texture.loaded_textures.update({texture: self.resource})
+        elif isinstance(texture, tuple):
+            width, height, data = texture
+            self._filename = 'internal'
+            if data is None:
+                data = Image.new('RGBA', (width, height), 'white')
+                self.resource = Texture._load_texture_from_image(data, tex_target, filters, attachements)
+            else:
+                self.resource = resourcemanagement.TextureResource(width, height, 1, data, filters, internal_format, format, tex_target, attachements)
+            Texture.loaded_textures.update({self._filename: self.resource})
         else:
-            self.resource = Texture._load_texture(texture)
+            raise TypeError('Texture "{tex}" not supported'.format(tex=texture))
+            # self.resource = Texture._load_texture(texture, tex_target, filters, attachements)
 
     def bind(self, sampler_slot):
         assert isinstance(sampler_slot, int) and sampler_slot >= 0 and sampler_slot < 32
         gl.glActiveTexture(gl.GL_TEXTURE0 + sampler_slot)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, self.resource.id)
+        self.resource.bind(0)
 
     def __del__(self):
         if self.resource.remove_reference() and self._filename is not None:
@@ -42,48 +53,22 @@ class Texture:
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
 
     @classmethod
-    def _load_texture(cls, texture_name: str):
+    def _load_texture(cls, texture_name: str, tex_target, filters, attachements):
         # http://pyopengl.sourceforge.net/context/tutorials/nehe6.html
 
         img = Image.open(os.path.join(os.path.dirname(__file__), '..', '..', 'res', 'textures', texture_name)) # .jpg, .bmp, etc. also work
-        if img.mode == 'P':
-            img = img.convert('RGB')
-        img_data = numpy.array(list(img.getdata()), numpy.int8)[::-1]
-        components, format = getLengthFormat(img)
+        return cls._load_texture_from_image(img, tex_target, filters, attachements)
 
-        texture = TextureResource()
-        gl.glBindTexture(gl.GL_TEXTURE_2D, texture.id)
+    @classmethod
+    def _load_texture_from_image(cls, image, tex_target, filters, attachements):
+        if image.mode == 'P':
+            image = image.convert('RGB')
+        img_data = numpy.array(list(image.getdata()), numpy.int8)[::-1]
+        components, format = resourcemanagement.getLengthFormat(image)
 
-        gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)        # Repeat texture in x and y
-        gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
-        gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)    # Linear filter for colors
-        gl.glTexParameterf(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
-
-        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, components, img.size[0], img.size[1], 0, format, gl.GL_UNSIGNED_BYTE, img_data)
+        texture = resourcemanagement.TextureResource(image.size[0], image.size[1], 1, img_data, filters, components, format, tex_target, attachements)
 
         return texture
 
-
-
-def getLengthFormat( image ):
-    """Return PIL image component-length and format
-
-    This returns the number of components, and the OpenGL
-    mode constant describing the PIL image's format.  It
-    currently only supports GL_RGBA, GL_RGB and GL_LUIMANCE
-    formats (PIL: RGBA, RGBX, RGB, and L), the Texture
-    object's ensureRGB converts Paletted images to RGB
-    before they reach this function.
-    """
-    if image.mode == "RGB":
-        length = 3
-        format = gl.GL_RGB
-    elif image.mode in ("RGBA","RGBX"):
-        length = 4
-        format = gl.GL_RGBA
-    elif image.mode == "L":
-        length = 1
-        format = gl.GL_LUMINANCE
-    else:
-        raise TypeError ("Currently only support Luminance, RGB and RGBA images. Image is type %s"%image.mode)
-    return length, format
+    def bind_as_render_target(self):
+        self.resource.bind_as_render_target()

@@ -2,6 +2,7 @@ __author__ = 'michiel'
 
 import tkinter
 import OpenGL.Tk
+import OpenGL.GL as gl
 import queue
 
 from gampy.engine.core.transform import Transform
@@ -18,7 +19,7 @@ class Window:
     width = 0
     height = 0
     queue = None
-    center = Vector2(width / 2, height / 2)
+    center = Vector2(width // 2, height // 2)
 
     @classmethod
     def create(cls, width: int, height: int, title: str):
@@ -88,9 +89,14 @@ class Window:
         Transform.width = event.width
         Transform.height = event.height
 
-        cls.set_center(cls.width, cls.height)
+        cls.set_center(event.width, event.height)
 
     @classmethod
     def set_center(cls, width, height):
-        cls.center.x = width / 2
-        cls.center.y = height / 2
+        cls.center.x = width // 2
+        cls.center.y = height // 2
+
+    @classmethod
+    def bind_as_render_target(cls):
+        gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, 0)
+        gl.glViewport(0, 0, cls.width, cls.height)

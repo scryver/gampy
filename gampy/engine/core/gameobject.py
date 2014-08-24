@@ -50,6 +50,7 @@ class GameObject(EventInterface):
 
     # @timer
     def input(self, dt):
+        self.transform.clear_has_changed()
         self.transform.update()
         [component.input(dt) for component in self.components]
 
@@ -58,8 +59,8 @@ class GameObject(EventInterface):
         [component.update(dt) for component in self.components]
 
     # @timer
-    def render(self, shader, render_engine, camera_view):
-        [component.render(shader, render_engine, camera_view) for component in self.components]
+    def render(self, shader, render_engine, camera_view, camera_pos):
+        [component.render(shader, render_engine, camera_view, camera_pos) for component in self.components]
 
     # @timer
     def input_all(self, dt):
@@ -72,9 +73,9 @@ class GameObject(EventInterface):
         [child.update_all(dt) for child in self.children]
 
     # @timer
-    def render_all(self, shader, render_engine, camera_view):
-        self.render(shader, render_engine, camera_view)
-        [child.render_all(shader, render_engine, camera_view) for child in self.children]
+    def render_all(self, shader, render_engine, camera_view, camera_pos):
+        self.render(shader, render_engine, camera_view, camera_pos)
+        [child.render_all(shader, render_engine, camera_view, camera_pos) for child in self.children]
 
     # def __del__(self):
     #     if not GameObject._is_printed:

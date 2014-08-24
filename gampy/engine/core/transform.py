@@ -25,6 +25,10 @@ class Transform:
         self._parent = None
         self._parent_matrix = Matrix4().init_identity()
         self._transformed_parent_m = self._parent_matrix.copy()
+        self._has_changed = False
+
+    def clear_has_changed(self):
+        self._has_changed = False
 
     # @timer
     def update(self):
@@ -43,18 +47,26 @@ class Transform:
 
     # @timer
     def has_changed(self):
+        if self._has_changed:
+            return True
+
         if self._parent is not None and self._parent.has_changed():
+            self._has_changed = True
             return True
 
         if self._position != self._old_position:
+            self._has_changed = True
             return True
 
         if self._rotation != self._old_rotation:
+            self._has_changed = True
             return True
 
         if self._scale != self._old_scale:
+            self._has_changed = True
             return True
 
+        self._has_changed = False
         return False
 
     # @timer

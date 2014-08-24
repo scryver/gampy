@@ -16,21 +16,21 @@ class MeshLoadError(Exception):
 class Vertex(numpy.ndarray):
 
     # Amount of numbers in vertex
-    SIZE = 8
+    SIZE = 11
 
-    def __new__(subtype, position=None, tex_coord=None, normal=None,
-                shape=None, dtype=numpy.float32, buffer=None, offset=0,
-                strides=None, order=None):
+    def __new__(subtype, position=None, tex_coord=None, normal=None, tangent=None,
+                shape=None, dtype=numpy.float32):
         if shape is None:
             shape = Vertex.SIZE
-        obj = numpy.ndarray.__new__(subtype, shape, dtype, buffer, offset, strides,
-                                    order)
+        obj = numpy.zeros(shape, dtype).view(Vertex)
         if position is not None:
             obj[0:3] = position
         if tex_coord is not None:
             obj[3:5] = tex_coord
         if normal is not None:
-            obj[5:] = normal
+            obj[5:8] = normal
+        if tangent is not None:
+            obj[8:] = tangent
         return obj
 
     def __array_finalize__(self, obj):
@@ -75,18 +75,26 @@ class Vertex(numpy.ndarray):
 
     @property
     def normal(self):
-        return self[5:]
+        return self[5:8]
 
     @normal.setter
     def normal(self, normal):
-        self[5:] = normal
+        self[5:8] = normal
+
+    @property
+    def tangent(self):
+        return self[8:]
+
+    @tangent.setter
+    def tangent(self, normal):
+        self[8:] = normal
 
 
 class Mesh:
 
     loaded_models = dict()
 
-    def __init__(self, vertices, indices=None, calc_norm=False, usage=None):
+    def __init__(self, vertices, indices=None, calc_norm=False, calc_tangent=False, usage=None):
         self.resource = None
         self._filename = None
 
@@ -94,18 +102,20 @@ class Mesh:
             """A file has been passed in"""
             old_resource = Mesh.loaded_models.get(vertices, None)
             self._filename = vertices
-            if old_resource:
+            if old_resource is not None:
                 self.resource = old_resource
                 self.resource.add_reference()
             else:
                 self._load_mesh(vertices)
                 Mesh.loaded_models.update({vertices: self.resource})
         else:
-            self._add_vertices(vertices, indices, calc_norm)
+            self._add_vertices(vertices, indices, calc_norm, calc_tangent)
 
-    def _add_vertices(self, vertices, indices, calc_norm=False):
+    def _add_vertices(self, vertices, indices, calc_norm=False, calc_tangent=False):
         if calc_norm:
             self._calc_normals(vertices, indices)
+        if calc_tangent:
+            self._calc_tangents(vertices)
 
         self.resource = MeshResource(vertices, indices)
 
@@ -118,10 +128,10 @@ class Mesh:
             i1 = indices[i + 1]
             i2 = indices[i + 2]
 
-            v1 = Vector3(vertices[i1].position - vertices[i0].position)
-            v2 = Vector3(vertices[i2].position - vertices[i0].position)
+            edge1 = Vector3(vertices[i1].position - vertices[i0].position)
+            edge2 = Vector3(vertices[i2].position - vertices[i0].position)
 
-            normal = v1.cross(v2).view(Vector3).normalized()
+            normal = edge1.cross(edge2).view(Vector3).normalized()
 
             vertices[i0].normal = vertices[i0].normal + normal
             vertices[i1].normal = vertices[i1].normal + normal
@@ -129,6 +139,18 @@ class Mesh:
 
         for i in range(len(vertices)):
             vertices[i].normal = vertices[i].normal.view(Vector3).normalized()
+
+    def _calc_tangents(self, vertices, indices=None):
+        for i in range(len(vertices)):
+            c1 = numpy.cross(vertices[i].normal, Vector3(0, 0, 1)).view(Vector3)
+            c2 = numpy.cross(vertices[i].normal, Vector3(0, 1, 0)).view(Vector3)
+
+            if c1.length > c2.length:
+                tangent = c1.normalized()
+            else:
+                tangent = c2.normalized()
+
+            vertices[i].tangent = tangent
 
     def update(self):
         pass
@@ -138,11 +160,11 @@ class Mesh:
         ext = split_array[len(split_array) - 1]
 
         if ext != 'obj':
-            raise MeshLoadError('Not an OBJ file')
+            raise MeshLoadError('Not an OBJ file "{filename}"'.format(file_name))
 
         test = OBJModel(os.path.join(os.path.dirname(__file__), '..', '..', 'res', 'models', file_name))
         model = test.to_indexed_model()
-        model.calc_normals()
+        # model.calc_normals()
 
         vertices = []
         for i in range(len(model.positions)):

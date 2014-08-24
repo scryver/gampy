@@ -1,0 +1,12 @@
+#include "sampling.glslh"
+
+void main()
+{
+    vec3 directionToEye = normalize(C_eyePosition - worldPosition0);
+    vec2 texCoords = CalcParallaxTexCoords(dispMap, tbnMatrix, directionToEye, texCoord0, dispMapScale, dispMapBias);
+    
+    // 255/128 to make 128 the absolute zero, otherwise the up is never straight
+    vec3 normal = normalize(tbnMatrix * (255.0/128.0 * texture2D(normalMap, texCoords).xyz - 1));
+    gl_FragColor = texture2D(diffuse, texCoords) *
+                   CalcLightingEffect(normalize(normal), worldPosition0);
+}

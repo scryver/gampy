@@ -34,6 +34,10 @@ class UniformAddError(ShaderException):
         super(UniformAddError, self).__init__(message)
 
 
+import gampy.engine.core.time as timing
+
+timer = timing.Timing()
+
 class Shader:
 
     loaded_shaders = dict()
@@ -77,9 +81,15 @@ class Shader:
     def unbind(self):
         gl.glUseProgram(0)
 
-    def update_uniforms(self, transform, material, render_engine, camera_view):
-        world_matrix = transform.transformation
-        MVP_matrix = camera_view * world_matrix
+    @timer
+    def _calc_vars(self, transform, camera_view):
+        world = transform.transformation
+        return world, camera_view * world
+
+    @timer
+    def update_uniforms(self, transform, material, render_engine, camera_view, camera_pos):
+        world_matrix, MVP_matrix = self._calc_vars(transform, camera_view)
+        # MVP_matrix = camera_view * world_matrix
         for uniform_name in self.resource.uniform_names:
             type = self.resource.uniform_types[uniform_name]
 
@@ -108,7 +118,7 @@ class Shader:
                     render_engine.update_uniform_struct(transform, material, self, uniform_name, type)
             elif uniform_name.startswith('C_'):
                 if uniform_name == 'C_eyePosition':
-                    self.set_uniform(uniform_name, render_engine.main_camera.transform.transformed_position())
+                    self.set_uniform(uniform_name, camera_pos)
                 else:
                     raise ShaderException('Set invalid camera uniform "{}"'.format(uniform_name))
             else:
@@ -295,6 +305,7 @@ class Shader:
 
         gl.glAttachShader(self.resource.program, shader)
 
+    @timer
     def set_uniform(self, uniform, value):
         if uniform in self.resource.uniforms.keys():
             if isinstance(value, int):
@@ -310,14 +321,17 @@ class Shader:
         else:
             raise AttributeError('Uniform "{}" is not added to the list'.format(uniform))
 
+    @timer
     def set_uniform_bl(self, uniform, value):
         self.set_uniform(uniform + '.base.color', value.color)
         self.set_uniform(uniform + '.base.intensity', value.intensity)
 
+    @timer
     def set_uniform_dl(self, uniform, value):
         self.set_uniform_bl(uniform, value)
         self.set_uniform(uniform + '.direction', value.direction)
 
+    @timer
     def set_uniform_pl(self, uniform, value):
         self.set_uniform_bl(uniform, value)
         self.set_uniform(uniform + '.attenuation.constant', value.constant)
@@ -326,6 +340,7 @@ class Shader:
         self.set_uniform(uniform + '.position', value.transform.transformed_position())
         self.set_uniform(uniform + '.range', value.range)
 
+    @timer
     def set_uniform_sl(self, uniform, value):
         self.set_uniform_pl(uniform + '.pointLight', value)
         self.set_uniform(uniform + '.direction', value.direction)
@@ -338,9 +353,10 @@ class Shader:
         with open(os.path.join(os.path.dirname(__file__), '..', '..', 'res', 'shaders', type, file_name), 'r', 1) as file:
             for line in file:
                 if line.startswith(Shader.INCLUDE_DIRECTIVE):
-                    shader_list.append(cls._load_shader(line[len(Shader.INCLUDE_DIRECTIVE) + 2:-6], 'headers'))
+                    dotpos = line.rindex('.')
+                    shader_list.append(cls._load_shader(line[len(Shader.INCLUDE_DIRECTIVE) + 2:dotpos], 'headers'))
                 else:
-                    shader_list.append(line + '\n')
+                    shader_list.append(line)
 
             file.close()
 
@@ -352,9 +368,17 @@ class Shader:
             cls._instance = cls()
         return cls._instance
 
+    _is_printed = False
+
     def __del__(self):
         if self.resource.remove_reference() and self._filename is not None:
             Shader.loaded_shaders.pop(self._filename)
+
+            if not Shader._is_printed:
+                Shader._is_printed = True
+                print('========SHADER=======================================================================',
+                      timer,
+                      '=====================================================================================', sep='\n')
 
 
 class Attenuation(numpy.ndarray):

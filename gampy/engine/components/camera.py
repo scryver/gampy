@@ -24,7 +24,10 @@ class Camera(GameComponent):
             z_near = 0.1
         if z_far is None:
             z_far = 1000.
-        self.projection = Matrix4().init_perspective(fov, aspect, z_near, z_far)
+        if isinstance(fov, Matrix4):
+            self.projection = fov
+        else:
+            self.projection = Matrix4().init_perspective(fov, aspect, z_near, z_far)
 
         self._transformation = None
 

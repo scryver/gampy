@@ -12,6 +12,7 @@ class IndexedModel:
         self._positions = []
         self._tex_coords = []
         self._normals = []
+        self._tangents = []
         self._indices = []
 
     @property
@@ -29,6 +30,10 @@ class IndexedModel:
     @property
     def normals(self):
         return self._normals
+
+    @property
+    def tangents(self):
+        return self._tangents
 
     def calc_normals(self):
         for i in range(0, len(self._indices), 3):
@@ -48,6 +53,35 @@ class IndexedModel:
         for i in range(len(self._normals)):
             self._normals[i] = self._normals[i].view(Vector3).normalized()
 
+    def calc_tangents(self):
+        for i in range(0, len(self._indices), 3):
+            i0 = self._indices[i]
+            i1 = self._indices[i + 1]
+            i2 = self._indices[i + 2]
+
+            edge1 = self._positions[i1] - self._positions[i0]
+            edge2 = self._positions[i2] - self._positions[i0]
+
+            delta_u1 = self._tex_coords[i1].x - self._tex_coords[i0].x
+            delta_v1 = self._tex_coords[i1].y - self._tex_coords[i0].y
+            delta_u2 = self._tex_coords[i2].x - self._tex_coords[i0].x
+            delta_v2 = self._tex_coords[i2].y - self._tex_coords[i0].y
+
+            cross = (delta_u1 * delta_v2 - delta_u2 * delta_v1)
+            tangent = Vector3()
+            if cross != 0:
+                inv = 1. / cross
+                tangent.x = inv * (delta_v2 * edge1.x - delta_v1 * edge2.x)
+                tangent.y = inv * (delta_v2 * edge1.y - delta_v1 * edge2.y)
+                tangent.z = inv * (delta_v2 * edge1.z - delta_v1 * edge2.z)
+
+            self._tangents[i0] = self._tangents[i0] + tangent
+            self._tangents[i1] = self._tangents[i1] + tangent
+            self._tangents[i2] = self._tangents[i2] + tangent
+
+        for i in range(len(self._tangents)):
+            self._tangents[i] = self._tangents[i].view(Vector3).normalized()
+
 
 class OBJModel:
 
@@ -61,18 +95,18 @@ class OBJModel:
 
         with open(file_name, 'r', 1) as mesh_reader:
             for line in mesh_reader:
-                tokens = line.split(' ')
+                tokens = line.strip('\n').split(' ')
                 tokens = remove_empty_strings(tokens)
 
                 # empty lines and comments
                 if len(tokens) == 0 or tokens[0] == '#':
                     continue
                 elif tokens[0] == 'v':
-                    positions.append(Vector3(tokens[1], tokens[2], tokens[3]))
+                    positions.append(Vector3(float(tokens[1]), float(tokens[2]), float(tokens[3])))
                 elif tokens[0] == 'vt':
-                    tex_coords.append(Vector2(tokens[1], tokens[2]))
+                    tex_coords.append(Vector2(float(tokens[1]), float(tokens[2])))
                 elif tokens[0] == 'vn':
-                    normals.append(Vector3(tokens[1], tokens[2], tokens[3]))
+                    normals.append(Vector3(float(tokens[1]), float(tokens[2]), float(tokens[3])))
                 elif tokens[0] == 'f':
                     for i in range(len(tokens) - 3):
                         indices.append(self._parse_obj_index(tokens[1]))
@@ -127,10 +161,11 @@ class OBJModel:
                 model_vertex_index = len(result._positions)
                 result_index_map.update({current_index: model_vertex_index})
 
-                result._positions.append(current_pos)
-                result._tex_coords.append(current_tex)
+                result.positions.append(current_pos)
+                result.tex_coords.append(current_tex)
                 if self._has_normals:
-                    result._normals.append(current_norm)
+                    result.normals.append(current_norm)
+                result.tangents.append(Vector3())
 
             normal_vertex_index = normal_index_map.get(current_index.vertex_index, -1)
 
@@ -138,9 +173,10 @@ class OBJModel:
                 normal_vertex_index = len(normal_model._positions)
                 normal_index_map.update({current_index.vertex_index: normal_vertex_index})
 
-                normal_model._positions.append(current_pos)
-                normal_model._tex_coords.append(current_tex)
-                normal_model._normals.append(current_norm)
+                normal_model.positions.append(current_pos)
+                normal_model.tex_coords.append(current_tex)
+                normal_model.normals.append(current_norm)
+                normal_model.tangents.append(Vector3())
 
             result._indices.append(model_vertex_index)
             normal_model._indices.append(normal_vertex_index)
@@ -150,9 +186,10 @@ class OBJModel:
 
         if not self._has_normals:
             normal_model.calc_normals()
+            result._normals = [normal_model.normals[index_map[i]] for i in range(len(result.positions))]
 
-            for i in range(len(result._positions)):
-                result._normals.append(normal_model._normals[index_map[i]])
+        normal_model.calc_tangents()
+        result._tangents = [normal_model.tangents[index_map[i]] for i in range(len(result.positions))]
 
         return result
 
@@ -163,12 +200,13 @@ class OBJModel:
         result.vertex_index = int(values[0]) - 1
 
         if len(values) > 1:
-            self._has_tex_coords = True
-            result.tex_coords_index = int(values[1]) - 1
+            if values[1] != '':
+                self._has_tex_coords = True
+                result.tex_coords_index = int(values[1]) - 1
             if len(values) > 2:
-                self._has_normals = True
-                result.normal_index = int(values[2]) - 1
-
+                if values[2] != '':
+                    self._has_normals = True
+                    result.normal_index = int(values[2]) - 1
         return result
 
 

@@ -1,17 +1,12 @@
 #version 120
 
-#include "lighting.glh"
-
-varying vec2 texCoord0;
-varying vec3 normal0;
-varying vec3 worldPosition0;
-
-uniform sampler2D diffuse;
+#include "forward_fragment.glslh"
 
 uniform DirectionalLight R_directionalLight;
 
-void main()
+vec4 CalcLightingEffect(vec3 normal, vec3 worldPosition)
 {
-    gl_FragColor = texture2D(diffuse, texCoord0.xy) *
-                   CalcDirectionalLight(R_directionalLight, normalize(normal0), worldPosition0);
+    return CalcDirectionalLight(R_directionalLight, normal, worldPosition);
 }
+
+#include "fragment_main.glslh"

@@ -14,7 +14,7 @@ class GameComponent(EventInterface):
     def update(self, dt):
         pass
 
-    def render(self, shader, render_engine, camera_view):
+    def render(self, shader, render_engine, camera_view, camera_pos):
         pass
 
     @property
