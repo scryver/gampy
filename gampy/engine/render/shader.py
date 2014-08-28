@@ -47,6 +47,7 @@ class Shader:
     UNIFORM_KEYWORD = 'uniform'
     ATTRIBUTE_KEYWORD = 'attribute'
     STRUCT_KEYWORD = 'struct'
+    COMMENT_DIRECTIVE = '//'
 
     def __init__(self, file_name):
         self.resource = None
@@ -89,24 +90,18 @@ class Shader:
     @timer
     def update_uniforms(self, transform, material, render_engine, camera_view, camera_pos):
         world_matrix, MVP_matrix = self._calc_vars(transform, camera_view)
-        # MVP_matrix = camera_view * world_matrix
         for uniform_name in self.resource.uniform_names:
             type = self.resource.uniform_types[uniform_name]
 
-            if type == 'sampler2D':
-                sampler_slot = render_engine.sampler_slot(uniform_name)
-                material.get_mapped_value(uniform_name, 'tex').bind(sampler_slot)
-                self.set_uniform(uniform_name, sampler_slot)
-            elif uniform_name.startswith('T_'):
-                if uniform_name == 'T_MVP':
-                    self.set_uniform(uniform_name, MVP_matrix)
-                elif uniform_name == 'T_model':
-                    self.set_uniform(uniform_name, world_matrix)
-                else:
-                    raise ShaderException('Set invalid transform uniform "{}"'.format(uniform_name))
-            elif uniform_name.startswith('R_'):
+            if uniform_name.startswith('R_'):
                 name = uniform_name[2:]
-                if type == 'vec3' or type == 'float':
+                if name == 'lightMatrix':
+                    self.set_uniform(uniform_name, render_engine.light_matrix * world_matrix)
+                elif type == 'sampler2D':
+                    sampler_slot = render_engine.sampler_slot(name)
+                    render_engine.get_mapped_value(name, 'tex').bind(sampler_slot)
+                    self.set_uniform(uniform_name, sampler_slot)
+                elif type == 'vec3' or type == 'float':
                     self.set_uniform(uniform_name, render_engine.get_mapped_value(name, type))
                 elif type == 'DirectionalLight':
                     self.set_uniform_dl(uniform_name, render_engine.active_light)
@@ -116,6 +111,17 @@ class Shader:
                     self.set_uniform_sl(uniform_name, render_engine.active_light)
                 else:
                     render_engine.update_uniform_struct(transform, material, self, uniform_name, type)
+            elif uniform_name.startswith('T_'):
+                if uniform_name == 'T_MVP':
+                    self.set_uniform(uniform_name, MVP_matrix)
+                elif uniform_name == 'T_model':
+                    self.set_uniform(uniform_name, world_matrix)
+                else:
+                    raise ShaderException('Set invalid transform uniform "{}"'.format(uniform_name))
+            elif type == 'sampler2D':
+                sampler_slot = render_engine.sampler_slot(uniform_name)
+                material.get_mapped_value(uniform_name, 'tex').bind(sampler_slot)
+                self.set_uniform(uniform_name, sampler_slot)
             elif uniform_name.startswith('C_'):
                 if uniform_name == 'C_eyePosition':
                     self.set_uniform(uniform_name, camera_pos)
@@ -142,7 +148,7 @@ class Shader:
             end = shader_txt.find(';', begin)
 
             attribute_line = shader_txt[begin:end].strip()
-            attribute_type = attribute_line[:attribute_line.find(' ')].strip()
+            # attribute_type = attribute_line[:attribute_line.find(' ')].strip()
             attribute_name = attribute_line[attribute_line.find(' ') + 1:].strip()
 
             self._set_attribute_location(attribute_name, attribute_index)
@@ -352,15 +358,16 @@ class Shader:
         shader_list = []
         with open(os.path.join(os.path.dirname(__file__), '..', '..', 'res', 'shaders', type, file_name), 'r', 1) as file:
             for line in file:
+                line = line.strip()
                 if line.startswith(Shader.INCLUDE_DIRECTIVE):
                     dotpos = line.rindex('.')
                     shader_list.append(cls._load_shader(line[len(Shader.INCLUDE_DIRECTIVE) + 2:dotpos], 'headers'))
-                else:
+                elif not line.startswith(Shader.COMMENT_DIRECTIVE):
                     shader_list.append(line)
 
             file.close()
 
-        return ''.join(shader_list)
+        return '\n'.join(shader_list)
 
     @classmethod
     def get_instance(cls):

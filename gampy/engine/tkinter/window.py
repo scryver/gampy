@@ -98,5 +98,6 @@ class Window:
 
     @classmethod
     def bind_as_render_target(cls):
-        gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, 0)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
         gl.glViewport(0, 0, cls.width, cls.height)

@@ -12,9 +12,9 @@ class Transform:
 
     # @timer
     def __init__(self):
-        self.position = Vector3()
-        self.rotation = Quaternion()
-        self.scale  = Vector3(1., 1., 1.)
+        self._position = Vector3()
+        self._rotation = Quaternion()
+        self._scale  = Vector3(1., 1., 1.)
         self._translation_m = None
         self._rotation_m = None
         self._scale_m = None
@@ -43,7 +43,8 @@ class Transform:
 
     # @timer
     def rotate(self, axis, angle):
-        self.rotation = (Quaternion(axis, angle) * self._rotation).view(Quaternion).normalized()
+        self._rotation = (Quaternion(axis, angle) * self._rotation).view(Quaternion).normalized()
+        return self
 
     # @timer
     def has_changed(self):
@@ -124,11 +125,11 @@ class Transform:
 
     # @timer
     def look_at(self, point, up):
-        self.rotation = self.look_at_direction(point, up)
+        self._rotation = self.look_at_direction(point, up)
 
     # @timer
     def look_at_direction(self, point, up):
-        return Quaternion(Matrix4().init_rotation((point - self.position).normalized(), up))
+        return Quaternion(Matrix4().init_rotation((point - self._position).normalized(), up))
 
     @property
     def position(self):
@@ -174,8 +175,11 @@ class Transform:
         except:
             x, y, z = value, None, None
 
-        if y == None and z == None and isinstance(x, Vector3):
-            self._scale = x
+        if y is None and z is None:
+            if isinstance(x, Vector3):
+                self._scale = x
+            else:
+                self._scale = Vector3(x, x, x)
         else:
             self._scale = Vector3(x, y, z)
 

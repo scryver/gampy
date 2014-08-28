@@ -57,3 +57,17 @@ def matrix44_mult_numba(a, b):
             result[i, j] = a[i, 0] * b[0, j] + a[i, 1] * b[1, j] + a[i, 2] * b[2, j] + a[i, 3] * b[3, j]
 
     return result
+
+import linecache
+
+def traceit(frame, event, arg):
+    if event == "line":
+        lineno = frame.f_lineno
+        filename = frame.f_globals["__file__"]
+        if (filename.endswith(".pyc") or
+            filename.endswith(".pyo")):
+            filename = filename[:-1]
+        name = frame.f_globals["__name__"]
+        line = linecache.getline(filename, lineno)
+        print("{name:20}:{linenr:4}: {line}".format(name=name, linenr=lineno, line=line.rstrip()))
+    return traceit

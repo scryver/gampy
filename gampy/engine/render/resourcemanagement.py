@@ -1,10 +1,9 @@
 __author__ = 'michiel'
 
 import OpenGL.GL as gl
+from OpenGL.GL import framebufferobjects
 from OpenGL.arrays import vbo
-from gampy.engine.core.vectors import Vector3
 import numpy
-from PIL import Image
 
 class MeshResource:
 
@@ -75,8 +74,8 @@ class TextureResource:
 
     def __init__(self, width, height, num_textures = 1, data=None, filters=None, components=gl.GL_RGBA,
                  formats=gl.GL_RGBA, tex_target=gl.GL_TEXTURE_2D, attachments=None, clamp=False):
-        if data is None:
-            raise ValueError('Texture resource data is none')
+        # if data is None:
+        #     raise ValueError('Texture resource data is none')
         if num_textures == 1:
             data = [data]
             filters = [filters]
@@ -89,6 +88,7 @@ class TextureResource:
         self._tex_target = tex_target
         self._width = width
         self._height = height
+        self._fbo = None
         self._frame_buffer = 0
         self._render_buffer = 0
 
@@ -114,8 +114,9 @@ class TextureResource:
         if filters[0] is None:
             filters = [gl.GL_LINEAR for i in range(self._num_texs)]
         for i in range(self._num_texs):
-            self._id.append(gl.glGenTextures(1))
-            gl.glBindTexture(self._tex_target, self._id[i])
+            texture = gl.glGenTextures(1)
+            self._id.append(texture)
+            gl.glBindTexture(self._tex_target, texture)
             gl.glTexParameterf(self._tex_target, gl.GL_TEXTURE_MIN_FILTER, filters[i])    # Linear filter for colors
             gl.glTexParameterf(self._tex_target, gl.GL_TEXTURE_MAG_FILTER, filters[i])
 
@@ -126,9 +127,6 @@ class TextureResource:
             #     gl.glTexParameterf(self._tex_target, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)        # Repeat texture in x and y
             #     gl.glTexParameterf(self._tex_target, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
 
-            gl.glTexImage2D(self._tex_target, 0, components[i], self._width, self._height, 0,
-                            formats[i], gl.GL_UNSIGNED_BYTE, data[i])
-
             if filters[i] == gl.GL_NEAREST_MIPMAP_NEAREST or filters[i] == gl.GL_NEAREST_MIPMAP_LINEAR or \
                filters[i] == gl.GL_LINEAR_MIPMAP_NEAREST or filters[i] == gl.GL_LINEAR_MIPMAP_LINEAR:
                 pass
@@ -136,14 +134,21 @@ class TextureResource:
                 gl.glTexParameteri(self._tex_target, gl.GL_TEXTURE_BASE_LEVEL, 0)
                 gl.glTexParameteri(self._tex_target, gl.GL_TEXTURE_MAX_LEVEL, 0)
 
+            gl.glTexImage2D(self._tex_target, 0, components[i], self._width, self._height, 0,
+                            formats[i], gl.GL_UNSIGNED_BYTE, data[i])
+
     def init_render_targets(self, attachments):
+        if not framebufferobjects.glBindFramebuffer:
+            raise SystemError('Missing required extension')
+
         if attachments[0] is None:
             return
+        self.unbind()
 
         has_depth = False
-        draw_buffers = numpy.array([0 for i in range(self._num_texs)])
+        draw_buffers = numpy.array([0 for _ in range(self._num_texs)])
 
-        for i in range(self._num_texs):
+        for i, texture in enumerate(self._id):
             # Todo add stencil buffer
             if attachments[i] == gl.GL_DEPTH_ATTACHMENT:
                 has_depth = True
@@ -151,13 +156,12 @@ class TextureResource:
             else:
                 draw_buffers[i] = attachments[i]
 
-            if attachments[i] == gl.GL_NONE:
+            if attachments[i] == gl.GL_NONE or attachments[i] is None:
                 continue
             if self._frame_buffer == 0:
                 self._frame_buffer = gl.glGenFramebuffers(1)
                 gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._frame_buffer)
-
-            gl.glFramebufferTexture2D(gl.GL_FRAMEBUFFER, attachments[i], self._tex_target, self._id[i], 0)
+            gl.glFramebufferTexture2D(gl.GL_FRAMEBUFFER, attachments[i], self._tex_target, texture, 0)
 
         if self._frame_buffer == 0:
             return
@@ -171,22 +175,26 @@ class TextureResource:
 
         gl.glDrawBuffers(self._num_texs, draw_buffers)
 
-        if gl.glCheckFramebufferStatus(gl.GL_FRAMEBUFFER) != gl.GL_FRAMEBUFFER_COMPLETE:
-            raise gl.error.GLError('Framebuffer not completed in texture resource render target init.\n')
+        # if gl.glCheckFramebufferStatus(gl.GL_FRAMEBUFFER) != gl.GL_FRAMEBUFFER_COMPLETE:
+        framebufferobjects.checkFramebufferStatus()
+            # raise gl.error.GLError('Framebuffer not completed in texture resource render target init.\n')
 
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
     def bind(self, tex_id):
         gl.glBindTexture(self._tex_target, self._id[tex_id])
 
+    def unbind(self):
+        gl.glBindTexture(self._tex_target, 0)
+
     def bind_as_render_target(self):
-        self.bind(0)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._frame_buffer)
         gl.glViewport(0, 0, self._width, self._height)
 
     def __del__(self):
-        for i in range(len(self._id)):
-            gl.glDeleteTextures(self._id[i])
+        for i, tex in enumerate(self._id):
+            gl.glDeleteTextures(tex)
         if self._frame_buffer != 0:
             gl.glDeleteFramebuffers(int(self._frame_buffer))
         if self._render_buffer != 0:
@@ -254,40 +262,4 @@ class ShaderResource:
         return self._program
 
     def __del__(self):
-        gl.glDeleteBuffers(1, self._program)
-
-
-class MappedValue:
-
-    def __init__(self):
-        self._map = dict()
-
-    def add_mapped_value(self, name, value):
-        if isinstance(value, int):
-            type = 'int'
-        elif isinstance(value, float):
-            type = 'float'
-        elif isinstance(value, Vector3):
-            type = 'vec3'
-        else:
-            type = False
-
-        if type:
-            name = type + '_' + name
-        self._map.update({name: value})
-
-    def get_mapped_value(self, name, type=None):
-        if type:
-            name = type + '_' + name
-        result = self._map.get(name)
-        if result is not None:
-            return result
-
-        if type == 'int':
-            return 0
-        elif type == 'float':
-            return 0.
-        elif type == 'vec3':
-            return Vector3()
-        else:
-            return False
+        gl.glDeleteProgram(self._program)

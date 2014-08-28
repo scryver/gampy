@@ -1,10 +1,10 @@
 __author__ = 'michiel'
 
 import OpenGL.GL as gl
+import uuid
 from PIL import Image
 import numpy
 import os.path
-import numbers
 import gampy.engine.render.resourcemanagement as resourcemanagement
 
 class Texture:
@@ -12,7 +12,7 @@ class Texture:
     loaded_textures = dict()
 
     def __init__(self, texture, tex_target=gl.GL_TEXTURE_2D, filters=None, internal_format=gl.GL_RGBA,
-                 format=gl.GL_RGBA, clamp=False, attachements=None):
+                 format=gl.GL_RGBA, clamp=False, attachments=None):
         self.resource = None
         self._filename = None
 
@@ -24,20 +24,15 @@ class Texture:
                 self.resource = old_resource
                 self.resource.add_reference()
             else:
-                self.resource = Texture._load_texture(texture, tex_target, filters, attachements)
+                self.resource = Texture._load_texture(texture, tex_target, filters, attachments, clamp)
                 Texture.loaded_textures.update({texture: self.resource})
         elif isinstance(texture, tuple):
             width, height, data = texture
-            self._filename = 'internal'
-            if data is None:
-                data = Image.new('RGBA', (width, height), 'white')
-                self.resource = Texture._load_texture_from_image(data, tex_target, filters, attachements, False)
-            else:
-                self.resource = resourcemanagement.TextureResource(width, height, 1, data, filters, internal_format, format, tex_target, attachements)
+            self._filename = uuid.uuid4()
+            self.resource = resourcemanagement.TextureResource(width, height, 1, data, filters, internal_format, format, tex_target, attachments, clamp)
             Texture.loaded_textures.update({self._filename: self.resource})
         else:
             raise TypeError('Texture "{tex}" not supported'.format(tex=texture))
-            # self.resource = Texture._load_texture(texture, tex_target, filters, attachements)
 
     def bind(self, sampler_slot):
         assert isinstance(sampler_slot, int) and sampler_slot >= 0 and sampler_slot < 32
@@ -53,23 +48,24 @@ class Texture:
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
 
     @classmethod
-    def _load_texture(cls, texture_name: str, tex_target, filters, attachements):
+    def _load_texture(cls, texture_name: str, tex_target, filters, attachments, clamp):
         # http://pyopengl.sourceforge.net/context/tutorials/nehe6.html
 
         img = Image.open(os.path.join(os.path.dirname(__file__), '..', '..', 'res', 'textures', texture_name)) # .jpg, .bmp, etc. also work
-        return cls._load_texture_from_image(img, tex_target, filters, attachements)
+        return cls._load_texture_from_image(img, tex_target, filters, attachments, clamp)
 
     @classmethod
-    def _load_texture_from_image(cls, image, tex_target, filters, attachements, flip=True):
+    def _load_texture_from_image(cls, image, tex_target, filters, attachments, clamp, flip=True, internal_format=gl.GL_RGBA,
+                 format=gl.GL_RGBA):
         if image.mode == 'P':
             image = image.convert('RGB')
 
-        img_data = numpy.array(list(image.getdata()), numpy.int8)
+        img_data = numpy.array(list(image.getdata()), numpy.int16)
         if flip:
             img_data = img_data[::-1]
         components, format = resourcemanagement.getLengthFormat(image)
 
-        texture = resourcemanagement.TextureResource(image.size[0], image.size[1], 1, img_data, filters, components, format, tex_target, attachements)
+        texture = resourcemanagement.TextureResource(image.size[0], image.size[1], 1, img_data, filters, components, format, tex_target, attachments, clamp)
 
         return texture
 

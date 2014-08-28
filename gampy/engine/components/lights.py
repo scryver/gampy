@@ -2,7 +2,30 @@ __author__ = 'michiel'
 
 from gampy.engine.components.gamecomponent import GameComponent
 from gampy.engine.render.shader import Shader
+from gampy.engine.core.vectors import Matrix4
 import math
+
+
+class ShadowInfo:
+
+    def __init__(self, projection=None, bias=0., flip_faces=True):
+        if projection is None:
+            projection = Matrix4()
+        self._projection = projection
+        self._bias= bias
+        self._flip_faces = flip_faces
+
+    @property
+    def projection(self):
+        return self._projection
+
+    @property
+    def bias(self):
+        return self._bias
+
+    @property
+    def flip_faces(self):
+        return self._flip_faces
 
 
 class BaseLight(GameComponent):
@@ -11,6 +34,7 @@ class BaseLight(GameComponent):
         super().__init__()
         self.color = color
         self.intensity = intensity
+        self.shadow_info = None
 
     @property
     def shader(self):
@@ -28,6 +52,7 @@ class DirectionalLight(BaseLight):
     def __init__(self, color, intensity):
         super(DirectionalLight, self).__init__(color, intensity)
         self._shader = Shader('forward_directional')
+        self.shadow_info = ShadowInfo(Matrix4().init_orthographic(-40, 40, -40, 40, -40, 40), 1.0, True)
 
     @property
     def direction(self):
