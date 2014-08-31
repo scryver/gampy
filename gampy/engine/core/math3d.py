@@ -33,6 +33,9 @@ class Vector(numpy.ndarray):
     def cross(self, other):
         return numpy.cross(self, other)
 
+    def reflect(self, normal):
+        return (self - (normal * (self.dot(normal) * 2))).view(self.__class__)
+
     def __truediv__(self, other):
         if other == 0:
             result = None

@@ -1,7 +1,7 @@
 __author__ = 'michiel'
 
 from gampy.engine.core.math3d import Vector3
-from gampy.engine.physics.bounding import BoundingSphere, IntersectData
+from gampy.engine.physics.bounding import BoundingSphere, IntersectData, Collider
 
 
 class PhysicsEngine:
@@ -26,11 +26,13 @@ class PhysicsEngine:
 
     def handle_collisions(self):
         for obj1, obj2 in self.compare_gen():
-            intersect = obj1.bounding_sphere().intersect(obj2.bounding_sphere())
+            intersect = obj1.collider().intersect(obj2.collider())
 
             if intersect.does_intersect:
-                obj1.velocity = -obj1.velocity
-                obj2.velocity = -obj2.velocity
+                direction = intersect.direction.normalized()
+                other_direction = direction.reflect(obj1.velocity.normalized())
+                obj1.velocity = obj1.velocity.reflect(other_direction)
+                obj2.velocity = obj2.velocity.reflect(direction)
 
 
     def all_gen(self):
@@ -38,23 +40,31 @@ class PhysicsEngine:
             yield obj
 
     def compare_gen(self):
-        num_objs = len(self._objects)
-        for i in range(num_objs):
-            for j in range(i + 1, num_objs):
+        num_objects = len(self._objects)
+        for i in range(num_objects):
+            for j in range(i + 1, num_objects):
                 yield self._objects[i], self._objects[j]
 
 
 
 class PhysicsObject:
 
-    def __init__(self, position, velocity, radius):
-        if not isinstance(position, Vector3):
-            position = Vector3(position)
-        if not isinstance(velocity, Vector3):
-            velocity = Vector3(velocity)
-        self._position = position
-        self._velocity = velocity
-        self._radius = radius
+    def __init__(self, collider, velocity=None):
+        if isinstance(collider, PhysicsObject):
+            self._collider = collider._collider
+            self._position = collider.position
+            self._old_position = collider.position
+            self._velocity = collider.velocity
+            self._collider.add_reference()
+        else:
+            if not isinstance(collider, Collider):
+                raise TypeError('Collider argument is not a subtype of Collider, type is "{}"'.format(type(collider)))
+            if not isinstance(velocity, Vector3):
+                velocity = Vector3(velocity)
+            self._position = collider.center
+            self._old_position = self._position
+            self._velocity = velocity
+            self._collider = collider
 
     @property
     def position(self):
@@ -68,19 +78,21 @@ class PhysicsObject:
     def velocity(self, value):
         self._velocity = value
 
-    @property
-    def radius(self):
-        return self._radius
-
-    def bounding_sphere(self):
-        return BoundingSphere(self._position, self._radius)
+    def collider(self):
+        difference = self._position - self._old_position
+        self._old_position = self._position
+        return self._collider.transform(difference)
 
     def integrate(self, dt):
         self._position += self._velocity * dt
 
+    def __del__(self):
+        if self._collider.remove_reference():
+            del self._collider
+
 
 def test():
-    test1 = PhysicsObject([0, 1, 0], [1, 2, 3], 1.)
+    test1 = PhysicsObject(BoundingSphere([0, 1, 0], 1.), [1, 2, 3])
     test1.integrate(20.)
 
     test_pos = test1.position

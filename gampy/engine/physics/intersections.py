@@ -1,11 +1,15 @@
 __author__ = 'michiel'
 
+from gampy.engine.core.math3d import Vector3
+
 
 class IntersectData:
 
-    def __init__(self, does_intersect, distance):
+    def __init__(self, does_intersect, direction):
+        if not isinstance(direction, Vector3):
+            direction = Vector3(direction)
         self._intersects = does_intersect
-        self._distance = distance
+        self._direction = direction
 
     @property
     def does_intersect(self):
@@ -17,8 +21,8 @@ class IntersectData:
 
     @property
     def distance(self):
-        return self._distance
+        return self._direction.length
 
-    @distance.setter
-    def distance(self, value):
-        self._distance = value
+    @property
+    def direction(self):
+        return self._direction

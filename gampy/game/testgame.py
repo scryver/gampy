@@ -19,7 +19,7 @@ import math
 import gampy.engine.core.time as timing
 import gampy.engine.physics.bounding as bounding
 import gampy.engine.physics.physicsengine as physicsengine
-from gampy.engine.physics.physicsengine import PhysicsObject, PhysicsEngine
+from gampy.engine.physics.physicsengine import PhysicsObject, PhysicsEngine, BoundingSphere
 
 timer = timing.Timing()
 
@@ -56,9 +56,9 @@ class TestGame(Game):
               .add_component(light_components.DirectionalLight(Vector3(1, 1, 1), 0.4)))
 
         self.add_to_scene(Entity(Vector3(0, 2, 0), Quaternion(Vector3(0, 1, 0), 0.4))
-              .add_component(MeshRenderer(Mesh('plane4.obj'), material2))
+              .add_component(MeshRenderer(test_mesh('plane', 4, 4), material2))
               .add_child(Entity(Vector3(0, 0, 25))
-                     .add_component(MeshRenderer(Mesh('plane4.obj'), material2))
+                     .add_component(MeshRenderer(test_mesh('plane', 4, 4), material2))
                      .add_child(Entity(Vector3(0, 1, 0), Quaternion(Vector3(0, 1, 0), math.radians(180)))
                             .add_component(Camera(Matrix4().init_perspective(math.radians(70.),
                                                                              Window.aspect, 0.1,
@@ -73,12 +73,12 @@ class TestGame(Game):
 
         physics_engine = PhysicsEngine()
 
-        physics_engine.add_object(PhysicsObject([-10, 4, 10], [1, 0, 0], 1.))
-        physics_engine.add_object(PhysicsObject([10, 4, 10], [-1, 0, 0], 2.))
+        physics_engine.add_object(PhysicsObject(BoundingSphere([-10, 4, 10], 1.), [1, 0, 0]))
+        physics_engine.add_object(PhysicsObject(BoundingSphere([10, 4, 9], 1.), [-1, 0, 0]))
 
         physics_engine_component = physics_components.PhysicsEngineComponent(physics_engine)
         for index in range(physics_engine.num_objects):
-            self.add_to_scene(Entity(scale=physics_engine.get_object(index).radius)
+            self.add_to_scene(Entity()
                 .add_component(physics_components.PhysicsObjectComponent(physics_engine.get_object(index)))
                 .add_component(MeshRenderer(Mesh('sphere.obj', calc_norm=True, calc_tangent=True), material)))
 
