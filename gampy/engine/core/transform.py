@@ -1,6 +1,7 @@
 __author__ = 'michiel'
 
-from gampy.engine.core.vectors import Vector3, Matrix4, Quaternion
+from gampy.engine.core.math3d import Vector3, Matrix4, Quaternion
+from numbers import Number
 # import gampy.engine.core.time as timing
 #
 # timer = timing.Timing()
@@ -11,10 +12,18 @@ class Transform:
     # _is_printed = False
 
     # @timer
-    def __init__(self):
-        self._position = Vector3()
-        self._rotation = Quaternion()
-        self._scale  = Vector3(1., 1., 1.)
+    def __init__(self, position=None, rotation=None, scale=None):
+        if position is None:
+            position = Vector3(0, 0, 0)
+        if rotation is None:
+            rotation = Quaternion(0, 0, 0, 1)
+        if scale is None:
+            scale = Vector3(1, 1, 1)
+        elif isinstance(scale, Number):
+            scale = Vector3(scale, scale, scale)
+        self._position = position
+        self._rotation = rotation
+        self._scale  = scale
         self._translation_m = None
         self._rotation_m = None
         self._scale_m = None

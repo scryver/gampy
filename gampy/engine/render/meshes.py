@@ -2,7 +2,7 @@ __author__ = 'michiel'
 
 import os
 import numpy
-from gampy.engine.core.vectors import Vector3, Vector2
+from gampy.engine.core.math3d import Vector3, Vector2
 from gampy.engine.render.meshloading import OBJModel
 from gampy.engine.render.resourcemanagement import MeshResource
 

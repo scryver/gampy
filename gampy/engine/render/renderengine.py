@@ -1,12 +1,12 @@
 __author__ = 'michiel'
 
 import OpenGL.GL as gl
-
-from gampy.engine.core.vectors import Vector3, Matrix4
+from gampy.engine.core.math3d import Vector3, Matrix4
 from gampy.engine.render.mapper import MappedValue
 from gampy.engine.render.shader import Shader
 from gampy.engine.tkinter.window import Window
 import gampy.engine.core.time as timing
+
 
 timer = timing.Timing()
 
@@ -21,7 +21,7 @@ class RenderEngine(MappedValue):
         self.set_mapped_value('ambient', Vector3(0.1, 0.1, 0.1))
         self._forward_ambient = Shader('forward_ambient')
 
-        print(RenderEngine.open_gl_version())
+        print('OpenGL version: ', RenderEngine.open_gl_version())
         gl.glClearColor(0., 0., 0., 0.)
 
         self.main_camera = None
@@ -62,9 +62,7 @@ class RenderEngine(MappedValue):
         # todo: Add stencil buffer
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
-        objects = object.all_attached()
-
-        [obj.render(self._forward_ambient, self, camera_view, camera_pos) for obj in objects]
+        [obj.render(self._forward_ambient, self, camera_view, camera_pos) for obj in object.all_generator()]
 
         gl.glEnable(gl.GL_BLEND)                # Add colors together (will be disabled through gl.glDisable(gl.GL_BLEND)
         gl.glBlendFunc(gl.GL_ONE, gl.GL_ONE)    # One * color1 + One * color2
@@ -72,7 +70,7 @@ class RenderEngine(MappedValue):
         gl.glDepthFunc(gl.GL_EQUAL)             # Only add color if the pixel is same as previous
 
         # object_render = object.render_all
-        [[obj.render(light.shader, self, camera_view, camera_pos) for obj in objects]
+        [[obj.render(light.shader, self, camera_view, camera_pos) for obj in object.all_generator()]
             for light in self._render_lights()]
 
         gl.glDepthMask(gl.GL_TRUE)
@@ -91,7 +89,7 @@ class RenderEngine(MappedValue):
     @classmethod
     # @timer
     def open_gl_version(cls):
-        return gl.glGetString(gl.GL_VERSION)
+        return gl.glGetString(gl.GL_VERSION).decode()
 
     def __del__(self):
         print('========RENDER ENGINE================================================================',

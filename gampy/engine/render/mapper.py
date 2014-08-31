@@ -1,6 +1,6 @@
 __author__ = 'michiel'
 
-from gampy.engine.core.vectors import Vector3, Matrix4
+from gampy.engine.core.math3d import Vector3, Matrix4
 from gampy.engine.render.texture import Texture
 
 

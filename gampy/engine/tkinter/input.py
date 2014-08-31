@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 __author__ = 'michiel'
 
-import gampy.engine.core.vectors as vectors
+import gampy.engine.core.math3d as vectors
 from gampy.engine.core.coreengine import Window
 
 

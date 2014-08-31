@@ -2,7 +2,7 @@ __author__ = 'michiel'
 
 from gampy.engine.components.gamecomponent import GameComponent
 from gampy.engine.render.shader import Shader
-from gampy.engine.core.vectors import Matrix4
+from gampy.engine.core.math3d import Matrix4
 import math
 
 
@@ -92,11 +92,11 @@ class PointLight(BaseLight):
 
 class SpotLight(PointLight):
 
-    def __init__(self, color, intensity, attenuation, cutoff):
+    def __init__(self, color, intensity, attenuation, view_angle):
         super().__init__(color, intensity, attenuation)
         self._shader = Shader('forward_spot')
 
-        self.cutoff = cutoff
+        self.cutoff = math.cos(view_angle/2)
 
     @property
     def direction(self):

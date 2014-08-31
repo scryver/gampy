@@ -3,11 +3,11 @@ __author__ = 'michiel'
 
 from gampy.engine.render.material import Material
 from gampy.engine.render.texture import Texture
-from gampy.engine.core.vectors import Vector3, Quaternion, Matrix4
-from gampy.engine.render.meshes import Mesh
+from gampy.engine.core.math3d import Vector3, Quaternion, Matrix4
+from gampy.engine.render.meshes import Mesh, Vertex
 from gampy.engine.core.game import Game
 from gampy.engine.tkinter.input import Input
-from gampy.engine.core.gameobject import GameObject
+from gampy.engine.core.entity import Entity
 from gampy.engine.components.gamecomponent import GameComponent
 from gampy.engine.components.meshrenderer import MeshRenderer
 from gampy.engine.components.camera import Camera
@@ -16,7 +16,6 @@ from gampy.engine.components.inputs import FreeLook, FreeMove
 import gampy.engine.components.lights as light_components
 import math
 import gampy.engine.core.time as timing
-import OpenGL.GL as gl
 
 timer = timing.Timing()
 
@@ -25,56 +24,46 @@ class TestGame(Game):
 
     # @timer
     def init(self):
-        camera = GameObject().add_component(Camera()).add_component(FreeMove(10)).add_component(FreeLook(0.5))
-        camera.transform.position = (-1, .5, -1)
-        self.add_object(camera)
+        material = Material(Texture('bricks.jpg'), 0.0, 0, normal_map=Texture('bricks_normal.jpg'),
+                            disp_map=Texture('bricks_disp2.png'), disp_map_scale=0.03, disp_map_offset=-.5)
+        material2 = Material(Texture('bricks2.jpg'), 0.0, 0, normal_map=Texture('bricks2_normal.jpg'),
+                             disp_map=Texture('bricks2_disp.jpg'), disp_map_scale=0.04, disp_map_offset=-.5)
 
-        mesh = Mesh('plane4.obj')
-        material = Material(Texture('bricks.jpg'), normal_map=Texture('bricks_normal.jpg'),
-                            disp_map=Texture('bricks_disp2.png'), disp_map_scale=0.2, disp_map_offset=-1)
-        mesh2 = test_mesh('plane', 1, 1)
-        material2 = Material(Texture('bricks2.jpg'), normal_map=Texture('bricks2_normal.jpg'),
-                             disp_map=Texture('bricks2_disp.jpg'), disp_map_scale=0.03, disp_map_offset=-.5)
+        custom_mesh = Mesh([
+            Vertex([1.0, -1.0, 0.0], [1.0, 1.0]),
+            Vertex([1.0, 1.0, 0.0], [1.0, 0.0]),
+            Vertex([-1.0, -1.0, 0.0], [0.0, 1.0]),
+            Vertex([-1.0, 1.0, 0.0], [1.0, 1.0]),
+        ], [0, 1, 2, 2, 1, 3], True, True)
 
-        mesh_renderer = MeshRenderer(mesh, material)
+        self.add_to_scene(Entity(Vector3(0, -1, 5), scale=32.)
+              .add_component(MeshRenderer(Mesh('terrain02.obj'), material)))
 
-        plane_object = GameObject()
-        plane_object.add_component(mesh_renderer)
-        plane_object.transform.position = (0, -.5, 0)
-        self.add_object(plane_object)
+        self.add_to_scene(Entity(Vector3(7, 0, 7)).add_component(light_components.PointLight(Vector3(0, 1, 0), 0.4,
+                                                                                             (0., 0., 1.))))
 
-        directional_light_object = GameObject()
-        directional_light = light_components.DirectionalLight(Vector3(1, 1, 1), 0.5)
-        directional_light_object.add_component(directional_light)
-        directional_light.transform.position = 10, 10, 10
-        directional_light.transform.rotation = Quaternion(Vector3(1, 0, 0), math.radians(-65))
-        self.add_object(directional_light_object)
+        self.add_to_scene(Entity(Vector3(20, -11, 5), Quaternion(Vector3(1, 0, 0), math.radians(-60)) *
+                                 Quaternion(Vector3(0, 1, 0), math.radians(90)))
+              .add_component(light_components.SpotLight(Vector3(0, 1, 1), 0.4, (0., 0., 0.02), math.radians(91.1))))
 
-        # point_light_object = GameObject()
-        # point_light = light_components.PointLight(Vector3(0., 1., 0.), 0.4, (0., 0., 0.8))
-        # point_light_object.add_component(point_light)
-        # point_light.transform.position = (0, 2, 0)
-        # self.add_object(point_light_object)
-        #
-        # spot_light_object = GameObject()
-        # spot_light = light_components.SpotLight(Vector3(1., 1., 0.), 0.4, (0., 0., 0.5), 0.3)
-        # spot_light_object.add_component(spot_light)
-        # spot_light_object.transform.position = (5, 3, 5)
-        # spot_light_object.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(90))
-        # spot_light_object.transform.rotation += Quaternion(Vector3(1, 0, 0), math.radians(30))
-        # self.add_object(spot_light_object)
+        self.add_to_scene(Entity(rotation=Quaternion(Vector3(1, 0, 0), math.radians(-45)))
+              .add_component(light_components.DirectionalLight(Vector3(1, 1, 1), 0.6)))
 
-        test_mesh_1 = GameObject().add_component(MeshRenderer(mesh2, material2))
-        test_mesh_1.transform.position = (0, 0.25, 0)
-        test_mesh_1.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(45))
+        self.add_to_scene(Entity(Vector3(0, 2, 0), Quaternion(Vector3(0, 1, 0), 0.4))
+              .add_component(MeshRenderer(Mesh('plane3.obj'), material2))
+              .add_child(Entity(Vector3(0, 0, 25))
+                     .add_component(MeshRenderer(Mesh('plane3.obj'), material2))
+                     .add_child(Entity()
+                            .add_component(Camera(Matrix4().init_perspective(math.radians(70.),
+                                                                             Window.aspect, 0.1,
+                                                                             1000.)))
+                            .add_component(FreeLook(0.5)).add_component(FreeMove(10.)))))
 
-        test_mesh_2 = GameObject().add_component(MeshRenderer(mesh2, material2))
-        test_mesh_2.transform.position = (0, 0.25, 7)
-        test_mesh_2.transform.scale = (2, 2, 2)
+        self.add_to_scene(Entity(Vector3(24, -12, 5), Quaternion(Vector3(0, 1, 0), math.radians(30.)))
+              .add_component(MeshRenderer(Mesh('cube.obj'), material2)))
 
-        test_mesh_1.add_child(test_mesh_2)
-
-        self.add_object(test_mesh_1)
+        self.add_to_scene(Entity(Vector3(24, -12, 5), Quaternion(Vector3(0, 1, 0), math.radians(30.)))
+              .add_component(MeshRenderer(custom_mesh, material2)))
 
     @timer
     def input(self, dt):
@@ -141,7 +130,7 @@ class ChangeTexComponent(GameComponent):
 # Temp function
 def test_mesh(type, *args):
     from gampy.engine.render.meshes import Vertex
-    from gampy.engine.core.vectors import Vector2
+    from gampy.engine.core.math3d import Vector2
 
     def create_plane(depth, width):
         vertices = [

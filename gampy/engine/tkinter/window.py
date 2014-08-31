@@ -6,7 +6,7 @@ import OpenGL.GL as gl
 import queue
 
 from gampy.engine.core.transform import Transform
-from gampy.engine.core.vectors import Vector2
+from gampy.engine.core.math3d import Vector2
 
 
 class Window:
@@ -18,6 +18,7 @@ class Window:
     is_display_open = False
     width = 0
     height = 0
+    aspect = 0
     queue = None
     center = Vector2(width // 2, height // 2)
 
@@ -35,6 +36,9 @@ class Window:
         cls.width = width
         cls.height = height
         cls.set_center(width, height)
+        if height == 0:
+            height = 1
+        cls.aspect = width / height
 
         cls.queue = queue.Queue()
         cls.process_queue()
@@ -85,6 +89,7 @@ class Window:
 
         if cls.height <= 0:
             cls.height = 1
+        cls.aspect = cls.width / cls.height
 
         Transform.width = event.width
         Transform.height = event.height

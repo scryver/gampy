@@ -6,15 +6,15 @@ from gampy.engine.core.transform import Transform
 #
 # timer = timing.Timing()
 
-class GameObject(EventInterface):
+class Entity(EventInterface):
 
     # _is_printed = False
 
     # @timer
-    def __init__(self):
+    def __init__(self, position=None, rotation=None, scale=None):
         self.children = []
         self.components = []
-        self.transform = Transform()
+        self.transform = Transform(position, rotation, scale)
         self._engine = None
 
     # @timer
@@ -33,6 +33,7 @@ class GameObject(EventInterface):
         self.children.append(child)
         child.set_engine(self._engine)
         child.transform.parent = self.transform
+        return self
 
     # @timer
     def add_component(self, component):
@@ -47,6 +48,12 @@ class GameObject(EventInterface):
         [child.all_attached(result) for child in self.children]
         result.append(self)
         return result
+
+    def all_generator(self):
+        yield self
+        for child in self.children:
+            for grandchild in child.all_generator():
+                yield grandchild
 
     # @timer
     def input(self, dt):

@@ -2,7 +2,7 @@ __author__ = 'michiel'
 
 import math
 
-from gampy.engine.core.vectors import Vector3
+from gampy.engine.core.math3d import Vector3
 from gampy.engine.tkinter.input import Input
 from gampy.engine.core.coreengine import Window
 from gampy.engine.components.gamecomponent import GameComponent

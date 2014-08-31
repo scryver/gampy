@@ -1,7 +1,7 @@
 __author__ = 'michiel'
 
 
-from gampy.engine.core.vectors import Matrix4
+from gampy.engine.core.math3d import Matrix4
 from gampy.engine.core.coreengine import Window
 from gampy.engine.components.gamecomponent import GameComponent
 import math

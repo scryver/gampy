@@ -1,6 +1,6 @@
 __author__ = 'michiel'
 
-from gampy.engine.core.gameobject import GameObject
+from gampy.engine.core.entity import Entity
 
 class Game:
 
@@ -16,7 +16,7 @@ class Game:
     def render(self, render_engine):
         render_engine.render(self._root_object)
 
-    def add_object(self, game_object):
+    def add_to_scene(self, game_object):
         self._root_object.add_child(game_object)
 
     def engine(self, engine):
@@ -27,7 +27,7 @@ class Game:
         try:
             root = self._root
         except:
-            root = GameObject()
+            root = Entity()
             self._root = root
 
         return root
