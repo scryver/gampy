@@ -2,25 +2,3 @@ vec2 CalcParallaxTexCoords(sampler2D dispMap, mat3 tbnMatrix, vec3 directionToEy
 {
     return texCoords.xy + (directionToEye * tbnMatrix).xy * (texture2D(dispMap, texCoords.xy).r * scale + bias);
 }
-
-float SampleShadowMap(sampler2D shadowMap, vec2 coords, float compare)
-{
-    return step(compare, texture2D(shadowMap, coords.xy).r);
-}
-
-float SampleShadowMapLinear(sampler2D shadowMap, vec2 coords, float compare, vec2 texelSize)
-{
-    vec2 pixelPosition = coords/texelSize + vec2(0.5);
-    vec2 fracPart = fract(pixelPosition);
-    vec2 startTexel = (pixelPosition - fracPart) * texelSize;
-
-    float bottomLeftTexel = SampleShadowMap(shadowMap, startTexel, compare);
-    float bottomRightTexel = SampleShadowMap(shadowMap, startTexel + vec2(texelSize.x, 0.0), compare);
-    float topLeftTexel = SampleShadowMap(shadowMap, startTexel + vec2(0.0, texelSize.y), compare);
-    float topRightTexel = SampleShadowMap(shadowMap, startTexel + texelSize, compare);
-
-    float mixA = mix(bottomLeftTexel, topLeftTexel, fracPart.y);
-    float mixB = mix(bottomRightTexel, topRightTexel, fracPart.y);
-
-    return mix(mixA, mixB, fracPart.x);
-}

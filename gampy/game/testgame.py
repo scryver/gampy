@@ -31,7 +31,7 @@ class TestGame(Game):
 
         mesh = Mesh('plane4.obj')
         material = Material(Texture('bricks.jpg'), normal_map=Texture('bricks_normal.jpg'),
-                            disp_map=Texture('bricks_disp.png'), disp_map_scale=0.04, disp_map_offset=-1)
+                            disp_map=Texture('bricks_disp2.png'), disp_map_scale=0.2, disp_map_offset=-1)
         mesh2 = test_mesh('plane', 1, 1)
         material2 = Material(Texture('bricks2.jpg'), normal_map=Texture('bricks2_normal.jpg'),
                              disp_map=Texture('bricks2_disp.jpg'), disp_map_scale=0.03, disp_map_offset=-.5)
@@ -40,20 +40,21 @@ class TestGame(Game):
 
         plane_object = GameObject()
         plane_object.add_component(mesh_renderer)
-        plane_object.add_component(ChangeTexComponent(Texture('bricks_normal.jpg'), Texture('bricks_normal_i.jpg'),
-                                                     Input.KEY_M))
         plane_object.transform.position = (0, -.5, 0)
+        self.add_object(plane_object)
 
         directional_light_object = GameObject()
         directional_light = light_components.DirectionalLight(Vector3(1, 1, 1), 0.5)
         directional_light_object.add_component(directional_light)
         directional_light.transform.position = 10, 10, 10
         directional_light.transform.rotation = Quaternion(Vector3(1, 0, 0), math.radians(-65))
+        self.add_object(directional_light_object)
 
         # point_light_object = GameObject()
         # point_light = light_components.PointLight(Vector3(0., 1., 0.), 0.4, (0., 0., 0.8))
         # point_light_object.add_component(point_light)
         # point_light.transform.position = (0, 2, 0)
+        # self.add_object(point_light_object)
         #
         # spot_light_object = GameObject()
         # spot_light = light_components.SpotLight(Vector3(1., 1., 0.), 0.4, (0., 0., 0.5), 0.3)
@@ -61,39 +62,19 @@ class TestGame(Game):
         # spot_light_object.transform.position = (5, 3, 5)
         # spot_light_object.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(90))
         # spot_light_object.transform.rotation += Quaternion(Vector3(1, 0, 0), math.radians(30))
-
-        self.add_object(plane_object)
-        self.add_object(directional_light_object)
-        # self.add_object(point_light_object)
         # self.add_object(spot_light_object)
 
         test_mesh_1 = GameObject().add_component(MeshRenderer(mesh2, material2))
-        test_mesh_1.add_component(ChangeTexComponent(Texture('bricks2_normal.jpg'), Texture('bricks2_normal_i.jpg'),
-                                                     Input.KEY_N))
-        test_mesh_2 = GameObject().add_component(MeshRenderer(mesh2, material2))
-
         test_mesh_1.transform.position = (0, 0.25, 0)
         test_mesh_1.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(45))
+
+        test_mesh_2 = GameObject().add_component(MeshRenderer(mesh2, material2))
         test_mesh_2.transform.position = (0, 0.25, 7)
         test_mesh_2.transform.scale = (2, 2, 2)
 
         test_mesh_1.add_child(test_mesh_2)
-        # test_mesh_2.add_child(GameObject().add_component(Camera()))
 
         self.add_object(test_mesh_1)
-
-        # mesh3 = GameObject().add_component(LookAtComponent()).add_component(MeshRenderer(Mesh('cube.obj'), material))
-        # mesh3.transform.position = 0, 5, 0
-        # self.add_object(mesh3)
-
-        # temp_mesh = Mesh('monkey.obj')
-        # temp_material = Material(Texture('tegre_skin.jpg'), 2., 32.) # (Texture('test.png'), Vector3(1, 1, 1))
-        # test_mesh_3 = GameObject().add_component(MeshRenderer(temp_mesh, temp_material))
-        # self.add_object(test_mesh_3)
-        # test_mesh_3.transform.position = (5, 5, 5)
-        # test_mesh_3.transform.rotation = Quaternion(Vector3(0, 1, 0), math.radians(-90))
-
-        # self.add_object(GameObject().add_component(MeshRenderer(Mesh('suzanne.obj'), material)))
 
     @timer
     def input(self, dt):
