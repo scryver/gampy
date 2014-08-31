@@ -3,7 +3,7 @@ __author__ = 'michiel'
 from gampy.engine.core.eventinterface import EventInterface
 
 
-class GameComponent(EventInterface):
+class EntityComponent(EventInterface):
 
     def __init__(self):
         self.parent = None

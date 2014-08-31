@@ -51,6 +51,21 @@ class Vector(numpy.ndarray):
     def __ne__(self, other):
         return ~(self == other)
 
+    def max_value(self):
+        max = self[0]
+        for i in range(1, self.size):
+            if self[i] > max:
+                max = self[i]
+
+        return max
+
+    @classmethod
+    def max(cls, self, other):
+        result = cls()
+        for i in range(self.size):
+            result[i] = self[i] if self[i] >= other[i] else other[i]
+        return result
+
 
 class Vector2(Vector):
 

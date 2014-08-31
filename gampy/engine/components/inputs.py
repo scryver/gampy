@@ -5,10 +5,10 @@ import math
 from gampy.engine.core.math3d import Vector3
 from gampy.engine.tkinter.input import Input
 from gampy.engine.core.coreengine import Window
-from gampy.engine.components.gamecomponent import GameComponent
+from gampy.engine.components.entitycomponent import EntityComponent
 
 
-class FreeLook(GameComponent):
+class FreeLook(EntityComponent):
 
     # The global up vector
     y_axis = Vector3(0., 1., 0.)
@@ -50,7 +50,7 @@ class FreeLook(GameComponent):
 
 
 
-class FreeMove(GameComponent):
+class FreeMove(EntityComponent):
 
     def __init__(self, speed: float, forward_key=None, back_key=None, left_key=None, right_key=None):
         """

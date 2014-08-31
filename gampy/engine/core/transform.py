@@ -53,6 +53,7 @@ class Transform:
     # @timer
     def rotate(self, axis, angle):
         self._rotation = (Quaternion(axis, angle) * self._rotation).view(Quaternion).normalized()
+        self._has_changed = True
         return self
 
     # @timer
@@ -135,6 +136,7 @@ class Transform:
     # @timer
     def look_at(self, point, up):
         self._rotation = self.look_at_direction(point, up)
+        self._has_changed = True
 
     # @timer
     def look_at_direction(self, point, up):
@@ -156,6 +158,7 @@ class Transform:
             self._position = Vector3(x, y, z)
 
         self._init_translation()
+        self._has_changed = True
 
     @property
     def rotation(self):
@@ -173,6 +176,7 @@ class Transform:
             self._rotation = Quaternion(x, y, z, w)
 
         self._init_rotation()
+        self._has_changed = True
 
     @property
     def scale(self):
@@ -193,6 +197,7 @@ class Transform:
             self._scale = Vector3(x, y, z)
 
         self._init_scale()
+        self._has_changed = True
 
     @property
     def parent(self):

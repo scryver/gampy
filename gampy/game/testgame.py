@@ -8,14 +8,18 @@ from gampy.engine.render.meshes import Mesh, Vertex
 from gampy.engine.core.game import Game
 from gampy.engine.tkinter.input import Input
 from gampy.engine.core.entity import Entity
-from gampy.engine.components.gamecomponent import GameComponent
+from gampy.engine.components.entitycomponent import EntityComponent
 from gampy.engine.components.meshrenderer import MeshRenderer
 from gampy.engine.components.camera import Camera
 from gampy.engine.tkinter.window import Window
 from gampy.engine.components.inputs import FreeLook, FreeMove
 import gampy.engine.components.lights as light_components
+import gampy.engine.components.physics as physics_components
 import math
 import gampy.engine.core.time as timing
+import gampy.engine.physics.bounding as bounding
+import gampy.engine.physics.physicsengine as physicsengine
+from gampy.engine.physics.physicsengine import PhysicsObject, PhysicsEngine
 
 timer = timing.Timing()
 
@@ -24,10 +28,12 @@ class TestGame(Game):
 
     # @timer
     def init(self):
+        bounding.test()
+        physicsengine.test()
         material = Material(Texture('bricks.jpg'), 0.0, 0, normal_map=Texture('bricks_normal.jpg'),
-                            disp_map=Texture('bricks_disp2.png'), disp_map_scale=0.03, disp_map_offset=-.5)
+                            disp_map=Texture('bricks_disp.png'), disp_map_scale=0.03, disp_map_offset=-.5)
         material2 = Material(Texture('bricks2.jpg'), 0.0, 0, normal_map=Texture('bricks2_normal.jpg'),
-                             disp_map=Texture('bricks2_disp.jpg'), disp_map_scale=0.04, disp_map_offset=-.5)
+                             disp_map=Texture('bricks2_disp.jpg'), disp_map_scale=0.04, disp_map_offset=-1)
 
         custom_mesh = Mesh([
             Vertex([1.0, -1.0, 0.0], [1.0, 1.0]),
@@ -36,34 +42,48 @@ class TestGame(Game):
             Vertex([-1.0, 1.0, 0.0], [1.0, 1.0]),
         ], [0, 1, 2, 2, 1, 3], True, True)
 
-        self.add_to_scene(Entity(Vector3(0, -1, 5), scale=32.)
-              .add_component(MeshRenderer(Mesh('terrain02.obj'), material)))
-
-        self.add_to_scene(Entity(Vector3(7, 0, 7)).add_component(light_components.PointLight(Vector3(0, 1, 0), 0.4,
-                                                                                             (0., 0., 1.))))
-
-        self.add_to_scene(Entity(Vector3(20, -11, 5), Quaternion(Vector3(1, 0, 0), math.radians(-60)) *
-                                 Quaternion(Vector3(0, 1, 0), math.radians(90)))
-              .add_component(light_components.SpotLight(Vector3(0, 1, 1), 0.4, (0., 0., 0.02), math.radians(91.1))))
+        # self.add_to_scene(Entity(Vector3(0, -1, 5), scale=32.)
+        #       .add_component(MeshRenderer(Mesh('terrain02.obj'), material)))
+        #
+        # self.add_to_scene(Entity(Vector3(7, 0, 7)).add_component(light_components.PointLight(Vector3(0, 1, 0), 0.4,
+        #                                                                                      (0., 0., 1.))))
+        #
+        # self.add_to_scene(Entity(Vector3(20, -11, 5), Quaternion(Vector3(1, 0, 0), math.radians(-60)) *
+        #                          Quaternion(Vector3(0, 1, 0), math.radians(90)))
+        #       .add_component(light_components.SpotLight(Vector3(0, 1, 1), 0.4, (0., 0., 0.02), math.radians(91.1))))
 
         self.add_to_scene(Entity(rotation=Quaternion(Vector3(1, 0, 0), math.radians(-45)))
-              .add_component(light_components.DirectionalLight(Vector3(1, 1, 1), 0.6)))
+              .add_component(light_components.DirectionalLight(Vector3(1, 1, 1), 0.4)))
 
         self.add_to_scene(Entity(Vector3(0, 2, 0), Quaternion(Vector3(0, 1, 0), 0.4))
-              .add_component(MeshRenderer(Mesh('plane3.obj'), material2))
+              .add_component(MeshRenderer(Mesh('plane4.obj'), material2))
               .add_child(Entity(Vector3(0, 0, 25))
-                     .add_component(MeshRenderer(Mesh('plane3.obj'), material2))
-                     .add_child(Entity()
+                     .add_component(MeshRenderer(Mesh('plane4.obj'), material2))
+                     .add_child(Entity(Vector3(0, 1, 0), Quaternion(Vector3(0, 1, 0), math.radians(180)))
                             .add_component(Camera(Matrix4().init_perspective(math.radians(70.),
                                                                              Window.aspect, 0.1,
                                                                              1000.)))
                             .add_component(FreeLook(0.5)).add_component(FreeMove(10.)))))
 
-        self.add_to_scene(Entity(Vector3(24, -12, 5), Quaternion(Vector3(0, 1, 0), math.radians(30.)))
-              .add_component(MeshRenderer(Mesh('cube.obj'), material2)))
+        # self.add_to_scene(Entity(Vector3(24, -12, 5), Quaternion(Vector3(0, 1, 0), math.radians(30.)))
+        #       .add_component(MeshRenderer(Mesh('cube.obj'), material2)))
+        #
+        # self.add_to_scene(Entity(Vector3(24, -12, 5), Quaternion(Vector3(0, 1, 0), math.radians(30.)))
+        #       .add_component(MeshRenderer(custom_mesh, material2)))
 
-        self.add_to_scene(Entity(Vector3(24, -12, 5), Quaternion(Vector3(0, 1, 0), math.radians(30.)))
-              .add_component(MeshRenderer(custom_mesh, material2)))
+        physics_engine = PhysicsEngine()
+
+        physics_engine.add_object(PhysicsObject([-10, 4, 10], [1, 0, 0], 1.))
+        physics_engine.add_object(PhysicsObject([10, 4, 10], [-1, 0, 0], 2.))
+
+        physics_engine_component = physics_components.PhysicsEngineComponent(physics_engine)
+        for index in range(physics_engine.num_objects):
+            self.add_to_scene(Entity(scale=physics_engine.get_object(index).radius)
+                .add_component(physics_components.PhysicsObjectComponent(physics_engine.get_object(index)))
+                .add_component(MeshRenderer(Mesh('sphere.obj', calc_norm=True, calc_tangent=True), material)))
+
+        self.add_to_scene(Entity().add_component(physics_engine_component))
+
 
     @timer
     def input(self, dt):
@@ -83,7 +103,7 @@ class TestGame(Game):
               '=====================================================================================', sep='\n')
 
 
-class LookAtComponent(GameComponent):
+class LookAtComponent(EntityComponent):
 
     def __init__(self):
         super().__init__()
@@ -100,7 +120,7 @@ class LookAtComponent(GameComponent):
         self._render_engine = render_engine
 
 
-class ChangeTexComponent(GameComponent):
+class ChangeTexComponent(EntityComponent):
 
     def __init__(self, normal_map, inv_normal_map, key=Input.KEY_N):
         super().__init__()

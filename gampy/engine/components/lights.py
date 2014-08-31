@@ -1,6 +1,6 @@
 __author__ = 'michiel'
 
-from gampy.engine.components.gamecomponent import GameComponent
+from gampy.engine.components.entitycomponent import EntityComponent
 from gampy.engine.render.shader import Shader
 from gampy.engine.core.math3d import Matrix4
 import math
@@ -28,7 +28,7 @@ class ShadowInfo:
         return self._flip_faces
 
 
-class BaseLight(GameComponent):
+class BaseLight(EntityComponent):
 
     def __init__(self, color, intensity):
         super().__init__()

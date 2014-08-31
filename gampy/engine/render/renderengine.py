@@ -18,7 +18,7 @@ class RenderEngine(MappedValue):
         super().__init__()
         self._sampler_map = {'diffuse': 0, 'normalMap': 1, 'dispMap': 2}
 
-        self.set_mapped_value('ambient', Vector3(0.1, 0.1, 0.1))
+        self.set_mapped_value('ambient', Vector3(0.2, 0.2, 0.2))
         self._forward_ambient = Shader('forward_ambient')
 
         print('OpenGL version: ', RenderEngine.open_gl_version())

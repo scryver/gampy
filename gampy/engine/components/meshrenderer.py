@@ -1,12 +1,12 @@
 __author__ = 'michiel'
 
-from gampy.engine.components.gamecomponent import GameComponent
+from gampy.engine.components.entitycomponent import EntityComponent
 import gampy.engine.core.time as timing
 
 # timer = timing.Timing()
 
 
-class MeshRenderer(GameComponent):
+class MeshRenderer(EntityComponent):
 
     # _is_printed = False
 

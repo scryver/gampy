@@ -3,14 +3,14 @@ __author__ = 'michiel'
 
 from gampy.engine.core.math3d import Matrix4
 from gampy.engine.core.coreengine import Window
-from gampy.engine.components.gamecomponent import GameComponent
+from gampy.engine.components.entitycomponent import EntityComponent
 import math
 import gampy.engine.core.time as timing
 
 timer = timing.Timing()
 
 
-class Camera(GameComponent):
+class Camera(EntityComponent):
 
     _is_printed = False
 
