@@ -5,7 +5,6 @@ from gampy.engine.core.math3d import Vector3
 from gampy.engine.physics.intersections import IntersectData
 from gampy.engine.physics.collisions import Collider
 
-
 class BoundingSphere(Collider):
 
     def __init__(self, center, radius):

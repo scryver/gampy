@@ -1,5 +1,6 @@
 __author__ = 'michiel'
 
+import math
 
 from gampy.engine.render.material import Material
 from gampy.engine.render.texture import Texture
@@ -15,11 +16,11 @@ from gampy.engine.tkinter.window import Window
 from gampy.engine.components.inputs import FreeLook, FreeMove
 import gampy.engine.components.lights as light_components
 import gampy.engine.components.physics as physics_components
-import math
 import gampy.engine.core.time as timing
 import gampy.engine.physics.bounding as bounding
 import gampy.engine.physics.physicsengine as physicsengine
 from gampy.engine.physics.physicsengine import PhysicsObject, PhysicsEngine, BoundingSphere
+
 
 timer = timing.Timing()
 

@@ -1,7 +1,10 @@
 __author__ = 'michiel'
 
 from gampy.engine.core.math3d import Vector3
-from gampy.engine.physics.bounding import BoundingSphere, IntersectData, Collider
+from gampy.engine.physics.bounding import BoundingSphere, Collider
+import gampy.engine.core.time as timing
+
+timer = timing.Timing()
 
 
 class PhysicsEngine:
@@ -20,31 +23,37 @@ class PhysicsEngine:
         if isinstance(object, PhysicsObject):
             self._objects.append(object)
 
+    @timer
     def simulate(self, dt):
         for obj in self.all_gen():
             obj.integrate(dt)
 
+    @timer
     def handle_collisions(self):
-        for obj1, obj2 in self.compare_gen():
-            intersect = obj1.collider().intersect(obj2.collider())
+        for obj1, obj2, intersect in self.compare_gen():
+            direction = intersect.direction.normalized()
+            other_direction = direction.reflect(obj1.velocity.normalized())
+            obj1.velocity = obj1.velocity.reflect(other_direction)
+            obj2.velocity = obj2.velocity.reflect(direction)
 
-            if intersect.does_intersect:
-                direction = intersect.direction.normalized()
-                other_direction = direction.reflect(obj1.velocity.normalized())
-                obj1.velocity = obj1.velocity.reflect(other_direction)
-                obj2.velocity = obj2.velocity.reflect(direction)
-
-
+    @timer
     def all_gen(self):
         for obj in self._objects:
             yield obj
 
+    @timer
     def compare_gen(self):
         num_objects = len(self._objects)
         for i in range(num_objects):
             for j in range(i + 1, num_objects):
-                yield self._objects[i], self._objects[j]
+                intersect = self._objects[i].collider().intersect(self._objects[j].collider())
+                if intersect.does_intersect:
+                    yield self._objects[i], self._objects[j], intersect
 
+    def __del__(self):
+        print('========PHYSICS======================================================================',
+              timer,
+              '=====================================================================================', sep='\n')
 
 
 class PhysicsObject:

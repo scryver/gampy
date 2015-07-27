@@ -1,6 +1,7 @@
 __author__ = 'michiel'
 
 import OpenGL.GL as gl
+
 from gampy.engine.core.math3d import Vector3, Matrix4
 from gampy.engine.render.mapper import MappedValue
 from gampy.engine.render.shader import Shader

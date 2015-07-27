@@ -1,7 +1,9 @@
 __author__ = 'michiel'
 
-from gampy.engine.core.math3d import Vector3, Matrix4, Quaternion
 from numbers import Number
+
+from gampy.engine.core.math3d import Vector3, Matrix4, Quaternion
+
 # import gampy.engine.core.time as timing
 #
 # timer = timing.Timing()

@@ -1,7 +1,6 @@
 __author__ = 'michiel'
 
-from gampy.engine.core.math3d import Vector3, Matrix4, Quaternion
-from gampy.engine.core.transform import Transform
+from gampy.engine.core.math3d import Vector3
 from gampy.engine.core.util import ReferenceCounter
 
 

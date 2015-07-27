@@ -1,11 +1,12 @@
 __author__ = 'michiel'
 
+import math
 
 from gampy.engine.core.math3d import Matrix4
 from gampy.engine.core.coreengine import Window
 from gampy.engine.components.entitycomponent import EntityComponent
-import math
 import gampy.engine.core.time as timing
+
 
 timer = timing.Timing()
 

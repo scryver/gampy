@@ -4,7 +4,6 @@ from gampy.engine.tkinter.window import Window
 from gampy.engine.core.time import Time
 from gampy.engine.tkinter.input import Input
 from gampy.engine.render.renderengine import RenderEngine
-import gampy.engine.core.math3d as vec
 
 
 class CoreEngine:

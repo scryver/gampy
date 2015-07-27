@@ -1,10 +1,13 @@
 __author__ = 'michiel'
 
 import os.path
+
 import OpenGL.GL as gl
 import numpy
+
 from gampy.engine.core.math3d import Vector3, Matrix4
 from gampy.engine.render.resourcemanagement import ShaderResource
+
 
 class ShaderException(Exception):
 

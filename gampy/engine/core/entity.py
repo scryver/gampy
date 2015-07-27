@@ -2,6 +2,7 @@ __author__ = 'michiel'
 
 from gampy.engine.core.eventinterface import EventInterface
 from gampy.engine.core.transform import Transform
+
 # import gampy.engine.core.time as timing
 #
 # timer = timing.Timing()
@@ -52,8 +53,8 @@ class Entity(EventInterface):
     def all_generator(self):
         yield self
         for child in self.children:
-            for grandchild in child.all_generator():
-                yield grandchild
+            for c in child.all_generator():
+                yield c
 
     # @timer
     def input(self, dt):

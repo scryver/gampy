@@ -22,10 +22,10 @@ class Vector(numpy.ndarray):
         return numpy.sqrt(numpy.dot(self, self))
 
     def normalized(self):
-        try:
-            return numpy.nan_to_num(self / self.length).view(self.__class__)
-        except ZeroDivisionError:
+        if self.length == 0:
             return self.__class__()
+        else:
+            return (self / self.length).view(self.__class__)
 
     def dot(self, other):
         return numpy.dot(self, other)
@@ -34,7 +34,7 @@ class Vector(numpy.ndarray):
         return numpy.cross(self, other)
 
     def reflect(self, normal):
-        return (self - (normal * (self.dot(normal) * 2))).view(self.__class__)
+        return (self - (normal * (numpy.dot(self, normal) * 2))).view(self.__class__)
 
     def __truediv__(self, other):
         if other == 0:

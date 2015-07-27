@@ -1,9 +1,10 @@
 __author__ = 'michiel'
 
+import math
+
 from gampy.engine.components.entitycomponent import EntityComponent
 from gampy.engine.render.shader import Shader
 from gampy.engine.core.math3d import Matrix4
-import math
 
 
 class ShadowInfo:

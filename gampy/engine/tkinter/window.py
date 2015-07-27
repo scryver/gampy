@@ -1,9 +1,10 @@
 __author__ = 'michiel'
 
 import tkinter
+import queue
+
 import OpenGL.Tk
 import OpenGL.GL as gl
-import queue
 
 from gampy.engine.core.transform import Transform
 from gampy.engine.core.math3d import Vector2

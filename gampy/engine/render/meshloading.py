@@ -1,8 +1,8 @@
 __author__ = 'michiel'
 
-import os.path
 import numpy
-from gampy.engine.core.util import cast_object_indices, cast_object_vertexes, remove_empty_strings
+
+from gampy.engine.core.util import remove_empty_strings
 from gampy.engine.core.math3d import Vector2, Vector3
 
 
