@@ -10,10 +10,10 @@ setup(
     packages=['gampy', 'gampy.engine', 'gampy.engine.render', 'gampy.engine.events',
               'gampy.engine.input', 'gampy.engine.objects', 'gampy.test'],
     scripts=[],
-    url='http://pypi.python.org/pypi/Gampy/',
+    url='https://github.com/scryver/gampy',
     license='LICENSE.txt',
     description='A simple 3D game engine.',
-    long_description=open('README.txt').read(),
+    long_description=open('README.md').read(),
     install_requires=[
         "PyOpenGL >= 3.1.0",
     ],
