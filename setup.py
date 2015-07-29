@@ -1,6 +1,6 @@
 __author__ = 'michiel'
 
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='Gampy',
@@ -16,5 +16,6 @@ setup(
     long_description=open('README.md').read(),
     install_requires=[
         "PyOpenGL >= 3.1.0",
+        "PySDL2 >= 0.9.3",
     ],
 )

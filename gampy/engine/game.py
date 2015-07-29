@@ -9,7 +9,8 @@ import math
 from gampy.engine.render.shader import Shader
 from gampy.engine.resource_loader import load_shader, load_mesh
 from gampy.engine.objects.transform import Transform
-import gampy.engine.objects.util as util
+# import gampy.engine.objects.util as util
+
 
 class Game:
 
@@ -42,7 +43,7 @@ class Game:
     def update(self, dt):
         self.tmp += dt
         self.transform.set_translation(math.cos(self.tmp), 0, 5)
-        self.transform.set_rotation(0, math.cos(self.tmp) * 180, 0)
+        self.transform.set_rotation(0, math.cos(self.tmp) * 180, math.sin(self.tmp) * 180)
         # self.transform.set_scale(0.6 * math.cos(self.tmp), 0.6 * math.cos(self.tmp), 0.6 * math.cos(self.tmp))
         self.mesh.update(dt)
 

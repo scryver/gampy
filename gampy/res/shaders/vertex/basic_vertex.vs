@@ -1,7 +1,7 @@
-#version 330
+#version 130
 
 // location refers to attribure array
-layout (location = 0) in vec3 position;
+in vec3 position;
 
 out vec4 color;
 

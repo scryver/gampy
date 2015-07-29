@@ -5,12 +5,13 @@ import gampy.engine.events.time as time
 import gampy.engine.game as game
 import gampy.engine.input.input as game_input
 import gampy.engine.render.util as render_util
-import os
+# import os
 import sdl2
 import ctypes
 from gampy.engine.events.time import Timing
 
 timings = Timing()
+
 
 class MainComponent:
 
@@ -25,7 +26,7 @@ class MainComponent:
             width = MainComponent.WIDTH
         if height == 0:
             height = MainComponent.HEIGHT
-        if title == None:
+        if title is None:
             title = MainComponent.TITLE
 
         self.window = window.Window(width, height, title)
@@ -69,7 +70,8 @@ class MainComponent:
         while self.is_running:
             while sdl2.SDL_PollEvent(ctypes.byref(self.event)) != 0:
                 if self.event.type == sdl2.SDL_QUIT or \
-                  (self.event.type == sdl2.SDL_KEYDOWN and self.event.key.keysym.scancode == sdl2.SDL_SCANCODE_ESCAPE):
+                    (self.event.type == sdl2.SDL_KEYDOWN and
+                     self.event.key.keysym.scancode == sdl2.SDL_SCANCODE_ESCAPE):
                     self.is_running = False
 
             render = False
@@ -133,6 +135,7 @@ class MainComponent:
 if __name__ == '__main__':
 
     MainComponent.main()
+
 
     # try:
     #     # HACK FOR REPEATING KEYS
