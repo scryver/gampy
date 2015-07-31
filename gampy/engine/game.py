@@ -43,7 +43,7 @@ class Game:
     def update(self, dt):
         self.tmp += dt
         self.transform.set_translation(math.cos(self.tmp), 0, 5)
-        self.transform.set_rotation(0, math.cos(self.tmp) * 180, math.sin(self.tmp) * 180)
+        self.transform.set_rotation(math.sin(self.tmp) * 180, math.cos(self.tmp) * 180, 0)
         # self.transform.set_scale(0.6 * math.cos(self.tmp), 0.6 * math.cos(self.tmp), 0.6 * math.cos(self.tmp))
         self.mesh.update(dt)
 
@@ -56,4 +56,4 @@ class Game:
             self.shader.unbind()
 
     def destroy(self):
-        pass
+        del self.mesh

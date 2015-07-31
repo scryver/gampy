@@ -46,3 +46,9 @@ class Mesh:
 
     def update(self, dt):
         pass
+
+    def __delete__(self):
+        if self.vbo is not None:
+            self.vbo.delete()
+        if self.ibo is not None:
+            self.ibo.delete()
