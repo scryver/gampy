@@ -1,6 +1,9 @@
 __author__ = 'michiel'
 
 import sdl2
+from gampy.engine.events.time import Timing
+
+timings = Timing()
 
 
 class Window:
@@ -26,9 +29,16 @@ class Window:
 
         self.context = sdl2.SDL_GL_CreateContext(self.display)
 
+        x = sdl2.SDL_GL_SetSwapInterval(0)
+        if x < 0:
+            print("Setting swap interval failed")
+            print(sdl2.SDL_GetError())
+
+    @timings
     def render(self):
-        sdl2.SDL_GL_SwapWindow(self.display)
-        sdl2.SDL_Delay(10)
+        if self.is_display_open:
+            sdl2.SDL_GL_SwapWindow(self.display)
+        # sdl2.SDL_Delay(10)
 
     def display_closed(self):
         self.is_display_open = False
@@ -36,6 +46,7 @@ class Window:
     def dispose(self):
         sdl2.SDL_GL_DeleteContext(self.context)
         sdl2.SDL_DestroyWindow(self.display)
+        sdl2.SDL_Quit()
 
     def resize(self, event):
         pass
@@ -59,3 +70,6 @@ class Window:
     # @property
     # def title(self):
     #     return self.display.title()
+
+    def __del__(self):
+        print("Window", timings)

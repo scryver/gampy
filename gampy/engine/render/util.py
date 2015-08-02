@@ -1,11 +1,21 @@
 __author__ = 'michiel'
 
 import OpenGL.GL as gl
+from gampy.engine.events.time import Timing
+
+timings = Timing()
 
 
+@timings
 def clear_screen():
     # todo: Add stencil buffer
     gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+
+
+@timings
+def render():
+    gl.glFlush()
+    gl.glFinish()
 
 
 def init_graphics():
@@ -29,6 +39,7 @@ def init_graphics():
     gl.glLoadIdentity()
     # gl.glOrtho(-1, 1, -1, 1, 0.1, 1)
     # gl.glFrustum(-1, 1, -1, 1, 0.1, 1)
+
 
 def get_open_gl_version():
     return gl.glGetString(gl.GL_VERSION)

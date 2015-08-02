@@ -3,6 +3,9 @@ __author__ = 'michiel'
 from gampy.engine.objects.vectors import Vector3
 import OpenGL.GL as gl
 from OpenGL.arrays import vbo
+from gampy.engine.events.time import Timing
+
+timings = Timing()
 
 
 class Vertex:
@@ -32,6 +35,7 @@ class Mesh:
         self.vbo = vbo.VBO(data=vertices, usage=usage, target=gl.GL_ARRAY_BUFFER)
         self.ibo = vbo.VBO(data=indices, usage=usage, target=gl.GL_ELEMENT_ARRAY_BUFFER)
 
+    @timings
     def draw(self):
         self.vbo.bind()
         self.ibo.bind()
@@ -47,8 +51,9 @@ class Mesh:
     def update(self, dt):
         pass
 
-    def __delete__(self):
+    def __del__(self):
         if self.vbo is not None:
             self.vbo.delete()
         if self.ibo is not None:
             self.ibo.delete()
+        print("Mesh", timings)

@@ -3,14 +3,11 @@ __author__ = 'michiel'
 import gampy.engine.render.window as window
 import gampy.engine.events.time as time
 import gampy.engine.game as game
-import gampy.engine.input.input as game_input
 import gampy.engine.render.util as render_util
 # import os
 import sdl2
-import ctypes
-from gampy.engine.events.time import Timing
 
-timings = Timing()
+timings = time.Timing()
 
 
 class MainComponent:
@@ -20,7 +17,6 @@ class MainComponent:
     TITLE = 'Super Duper 3D Game Engine'
     FRAME_CAP = 5000.
 
-    @timings
     def __init__(self, width=0, height=0, title=None):
         if width == 0:
             width = MainComponent.WIDTH
@@ -38,26 +34,20 @@ class MainComponent:
         self.game = game.Game(MainComponent.WIDTH, MainComponent.HEIGHT)
         self.time = time.Time()
 
-    @timings
     def start(self):
         if self.is_running:
             return
 
         self._run()
 
-    @timings
     def stop(self):
         if not self.is_running:
             return
 
         self.is_running = False
-        self.input.destroy()
 
-    @timings
     def _run(self):
         self.is_running = True
-        self.event = sdl2.SDL_Event()
-        self.input = game_input.Input(self.event)
 
         frames = 0
         frame_counter = 0.
@@ -68,12 +58,6 @@ class MainComponent:
         unprocessed_time = 0.
 
         while self.is_running:
-            while sdl2.SDL_PollEvent(ctypes.byref(self.event)) != 0:
-                if self.event.type == sdl2.SDL_QUIT or \
-                    (self.event.type == sdl2.SDL_KEYDOWN and
-                     self.event.key.keysym.scancode == sdl2.SDL_SCANCODE_ESCAPE):
-                    self.is_running = False
-
             render = False
 
             start_time = time.Time.get_time()
@@ -88,12 +72,11 @@ class MainComponent:
                 unprocessed_time -= frame_time
 
                 if not self.window.is_display_open:
-                    self.stop()
+                    return self.stop()
 
                 self.time.delta = frame_time
 
-                self.game.input(self.input)
-                self.input.update()
+                self.game.input()
 
                 self.game.update(self.time.delta)
 
@@ -109,19 +92,21 @@ class MainComponent:
             else:
                 time.Time.sleep()
 
+            self.is_running = self.is_running and not self.game.should_stop()
+
+        self.stop()
         self._cleanUp()
 
     @timings
     def _render(self):
         render_util.clear_screen()
         self.game.render()
+        render_util.render()
         self.window.render()
 
-    @timings
     def _cleanUp(self):
         self.game.destroy()
         self.window.dispose()
-        sdl2.SDL_Quit()
 
     @staticmethod
     def main(*args, **kwargs):
@@ -129,7 +114,8 @@ class MainComponent:
         game.start()
 
     def __del__(self):
-        print(timings)
+        print("Main", timings)
+        print("Util", render_util.timings)
 
 
 if __name__ == '__main__':

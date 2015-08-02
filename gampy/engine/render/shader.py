@@ -2,8 +2,13 @@ __author__ = 'michiel'
 
 import OpenGL.GL as gl
 from gampy.engine.objects.vectors import Vector3, Matrix4
+from gampy.core import Matrix4 as NewMatrix4
 from gampy.engine.objects.util import cast_matrix
+from gampy.engine.objects.util import timings as cast_timings
 import ctypes
+from gampy.engine.events.time import Timing
+
+timings = Timing()
 
 
 class ShaderException(Exception):
@@ -43,9 +48,11 @@ class Shader:
         if self.program == 0:
             raise ShaderCreateError('Could not find valid memory location in constructor')
 
+    @timings
     def bind(self):
         gl.glUseProgram(self.program)
 
+    @timings
     def unbind(self):
         gl.glUseProgram(0)
 
@@ -93,6 +100,7 @@ class Shader:
 
         gl.glAttachShader(self.program, shader)
 
+    @timings
     def set_uniform(self, uniform, value):
         if uniform in self.uniforms.keys():
             if isinstance(value, int):
@@ -101,9 +109,13 @@ class Shader:
                 gl.glUniform1f(self.uniforms.get(uniform), value)
             elif isinstance(value, Vector3):
                 gl.glUniform3f(self.uniforms.get(uniform), value.x, value.y, value.z)
-            elif isinstance(value, Matrix4):
+            elif isinstance(value, (NewMatrix4, Matrix4)):
                 gl.glUniformMatrix4fv(self.uniforms.get(uniform), 1, True, cast_matrix(value))
             else:
                 raise AttributeError('Value "{}" is not an int, float, Vector3 or Matrix'.format(value))
         else:
             raise AttributeError('Uniform "{}" is not added to the list'.format(uniform))
+
+    def __del__(self):
+        print("Shader", timings)
+        print("Casting", cast_timings)
