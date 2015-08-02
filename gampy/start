@@ -1,0 +1,10 @@
+#!/bin/sh
+
+. ~/.virtualenvs/gampy/bin/activate
+cd ~/projects/gampy/gampy/core/build
+cmake ..
+make
+cd ..
+python build.py
+cd ../test
+python test_engine.py

@@ -9,7 +9,7 @@ from gampy.engine.objects.transform import Transform
 # import gampy.engine.objects.util as util
 from gampy.engine.events.time import Timing
 
-timings = Timing()
+timings = Timing('Game')
 
 
 class Game:
@@ -71,7 +71,8 @@ class Game:
             self.shader.unbind()
 
     def should_stop(self):
-        return self.inputs.should_stop()
+        return self.inputs.should_stop() or \
+            self.inputs.get_key(sdl2.SDLK_ESCAPE)
 
     def destroy(self):
         del self.mesh
@@ -79,4 +80,4 @@ class Game:
         self.inputs.destroy()
 
     def __del__(self):
-        print("Game", timings)
+        print(timings)

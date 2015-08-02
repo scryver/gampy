@@ -3,7 +3,7 @@ __author__ = 'michiel'
 import OpenGL.GL as gl
 from gampy.engine.events.time import Timing
 
-timings = Timing()
+timings = Timing('Render Util')
 
 
 @timings

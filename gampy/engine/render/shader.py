@@ -8,7 +8,7 @@ from gampy.engine.objects.util import timings as cast_timings
 import ctypes
 from gampy.engine.events.time import Timing
 
-timings = Timing()
+timings = Timing('Shader')
 
 
 class ShaderException(Exception):
@@ -117,5 +117,5 @@ class Shader:
             raise AttributeError('Uniform "{}" is not added to the list'.format(uniform))
 
     def __del__(self):
-        print("Shader", timings)
-        print("Casting", cast_timings)
+        print(timings)
+        print(cast_timings)

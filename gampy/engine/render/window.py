@@ -3,7 +3,7 @@ __author__ = 'michiel'
 import sdl2
 from gampy.engine.events.time import Timing
 
-timings = Timing()
+timings = Timing('Window')
 
 
 class Window:
@@ -72,4 +72,4 @@ class Window:
     #     return self.display.title()
 
     def __del__(self):
-        print("Window", timings)
+        print(timings)

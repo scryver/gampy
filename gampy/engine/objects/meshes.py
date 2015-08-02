@@ -5,7 +5,7 @@ import OpenGL.GL as gl
 from OpenGL.arrays import vbo
 from gampy.engine.events.time import Timing
 
-timings = Timing()
+timings = Timing('Mesh')
 
 
 class Vertex:
@@ -56,4 +56,4 @@ class Mesh:
             self.vbo.delete()
         if self.ibo is not None:
             self.ibo.delete()
-        print("Mesh", timings)
+        print(timings)

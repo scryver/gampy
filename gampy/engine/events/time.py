@@ -27,12 +27,16 @@ class Time:
 
 class Timing:
 
+    startl = '+' + '-' * 22 + '+' + '{name:-^17}' + '+' + '-' * 19 + '+' + \
+             '-' * 17 + '+'
     string = """\
-{key:<30} | avg: {avg:>10.3f} | total: {tot:>10.3f} | count: {cnt:>8d}
+| {key:<20} | avg: {avg:>10.3f} | total: {tot:>10.3f} | count: {cnt:>8d} |
 """.format
-    endl = '-' * (28 + 58)
+    endl = '+' + '-' * 22 + '+' + '-' * 17 + '+' + '-' * 19 + '+' + '-' * 17 + \
+           '+'
 
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.timings = {}
         self.col = self.__collector()
         next(self.col)                 # coroutine syntax
@@ -41,7 +45,7 @@ class Timing:
         while True:
             (name, t) = (yield)         # coroutine syntax
             if name in self.timings:
-                self.timings[name]['timings'] += [t]
+                self.timings[name]['timings'].append(t)
                 self.timings[name]['count'] += 1
                 self.timings[name]['total'] += t
             else:
@@ -56,24 +60,23 @@ class Timing:
             t1 = time.time()                # start time
             res = func(*arg, **kwargs)      # call the originating function
             t2 = time.time()                # stop time
-            t = (t2-t1)*1000.0              # time in milliseconds
+            t = (t2 - t1) * 1000.0          # time in milliseconds
             data = (func.__name__, t)
             self.col.send(data)             # collect the data
             return res
         return wrapper
 
     def __str__(self):
-        s = 'Timings:\n'
+        s = self.startl.format(name=self.name) + '\n'
         for key in self.timings.keys():
-            # s += '{timingKey:<30} | '.format(timingKey=key)
-            # ts = self.timings[key].timings
             count = self.timings[key].get('count', 0)
             if count == 0:
-                return
+                continue
             total = self.timings[key].get('total', 0)
-            # s += 'average: {avg:>10.3f} |'.format(avg=total / count)
-            # s += ' total: {tot:>10.3f} |'.format(tot=total)
-            # s += ' count: {cnt:>8d}'.format(cnt=count)
-            s += self.string(key=key, avg=total / count, tot=total, cnt=count)
+            if len(key) > 20:
+                k = key[:17] + '...'
+            else:
+                k = key
+            s += self.string(key=k, avg=total / count, tot=total, cnt=count)
         s += self.endl
         return s

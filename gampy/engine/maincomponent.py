@@ -7,7 +7,7 @@ import gampy.engine.render.util as render_util
 # import os
 import sdl2
 
-timings = time.Timing()
+timings = time.Timing('Main')
 
 
 class MainComponent:
@@ -114,8 +114,8 @@ class MainComponent:
         game.start()
 
     def __del__(self):
-        print("Main", timings)
-        print("Util", render_util.timings)
+        print(timings)
+        print(render_util.timings)
 
 
 if __name__ == '__main__':

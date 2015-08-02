@@ -5,7 +5,7 @@ from gampy.engine.objects.vectors import Matrix4
 from gampy.core import Matrix4 as NewMatrix4
 from gampy.engine.events.time import Timing
 
-timings = Timing()
+timings = Timing('Casting Util')
 
 
 @timings

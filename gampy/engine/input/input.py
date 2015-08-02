@@ -23,7 +23,7 @@ class Input:
         self._last_mouse = {}
         self._mouse_position = vectors.Vector2(0, 0)
         self._received_stop = False
-        sdl2.SDL_SetRelativeMouseMode(True)
+        # sdl2.SDL_SetRelativeMouseMode(True)
 
     def get_key(self, key_code):
         return self._event_keys.get(key_code, False)
@@ -54,9 +54,7 @@ class Input:
         self._last_keys = dict(self._event_keys)
         self._last_mouse = dict(self._event_mouse)
         while sdl2.SDL_PollEvent(ctypes.byref(self.events)) != 0:
-            if self.events.type == sdl2.SDL_QUIT or \
-                (self.events.type == sdl2.SDL_KEYDOWN and
-                 self.events.key.keysym.sym == sdl2.SDLK_ESCAPE):
+            if self.events.type == sdl2.SDL_QUIT:
                 self._received_stop = True
             elif self.events.type == sdl2.SDL_KEYDOWN:
                 self._event_keys[self.events.key.keysym.sym] = True

@@ -8,6 +8,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_library(${PROJECT_NAME} SHARED
     src/wrapper.cpp
+    src/wrappers/matrix.cpp
     src/math/matrix4.cpp
 )
 
@@ -17,6 +18,7 @@ add_library(${PROJECT_NAME} SHARED
 include_directories(
     include
     include/math
+    include/wrappers
     # ${SDL2_INCLUDE_DIRS}
     # ${GLEW_INCLUDE_DIRS}
 )

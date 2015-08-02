@@ -30,7 +30,6 @@ ffi.cdef("""
     Matrix4d* Matrix4d_InitScale(Matrix4d* m, double x, double y, double z);
     Matrix4d* Matrix4d_InitProjection(Matrix4d* m, double fov, int width, int height, double zNear, double zFar);
 
-    const double** Matrix4d_GetData(Matrix4d* m);
     const double Matrix4d_Get(Matrix4d* m, int row, int col);
     void Matrix4d_Set(Matrix4d* m, int row, int col, double value);
 

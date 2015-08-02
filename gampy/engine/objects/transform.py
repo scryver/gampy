@@ -5,7 +5,7 @@ from gampy.engine.objects.vectors import Vector3
 from gampy.core import Matrix4
 from gampy.engine.events.time import Timing
 
-timings = Timing()
+timings = Timing('Transform')
 
 
 class Transform:
@@ -93,4 +93,4 @@ class Transform:
         self.is_changed = True
 
     def __del__(self):
-        print("Transform", timings)
+        print(timings)
