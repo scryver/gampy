@@ -23,13 +23,13 @@ double Vector3d::Dot(const Vector3d& other) {
     return m_x * other.GetX() + m_y * other.GetY() + m_z * other.GetZ();
 }
 
-Vector3d Vector3d::Cross(const Vector3d& other) {
+Vector3d* Vector3d::Cross(const Vector3d& other) {
     double x, y, z;
     x = m_y * other.GetZ() - m_z * other.GetY();
     y = m_z * other.GetX() - m_x * other.GetZ();
     z = m_x * other.GetY() - m_y * other.GetX();
 
-    return Vector3d(x, y, z);
+    return new Vector3d(x, y, z);
 }
 
 Vector3d& Vector3d::Normalize() {
@@ -38,8 +38,14 @@ Vector3d& Vector3d::Normalize() {
     return *this;
 }
 
-Vector3d Vector3d::Normalized() {
-    return Vector3d(*this).Normalize()
+Vector3d* Vector3d::Normalized() {
+    return &((new Vector3d(*this))->Normalize());
+}
+
+Vector3d::Vector3d(const Vector3d& other) {
+    m_x = other.m_x;
+    m_y = other.m_y;
+    m_z = other.m_z;
 }
 
 Vector3d& Vector3d::operator=(const Vector3d& other) {

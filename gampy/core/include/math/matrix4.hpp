@@ -16,6 +16,7 @@ public:
     const double Get(int row, int col) const { return m_data[row][col]; };
     void Set(int row, int col, double value) { m_data[row][col] = value; };
 
+    Matrix4d(const Matrix4d& other);
     Matrix4d& operator=(const Matrix4d& other);
     Matrix4d& operator+=(const Matrix4d& other);
     Matrix4d& operator-=(const Matrix4d& other);

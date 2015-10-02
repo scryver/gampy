@@ -3,6 +3,7 @@ __author__ = 'michiel'
 import OpenGL.GL as gl
 from gampy.engine.objects.vectors import Vector3, Matrix4
 from gampy.core import Matrix4 as NewMatrix4
+from gampy.core import Vector3 as NewVector3
 from gampy.engine.objects.util import cast_matrix
 from gampy.engine.objects.util import timings as cast_timings
 import ctypes
@@ -107,7 +108,7 @@ class Shader:
                 gl.glUniform1i(self.uniforms.get(uniform), value)
             elif isinstance(value, float):
                 gl.glUniform1f(self.uniforms.get(uniform), value)
-            elif isinstance(value, Vector3):
+            elif isinstance(value, (NewVector3, Vector3)):
                 gl.glUniform3f(self.uniforms.get(uniform), value.x, value.y, value.z)
             elif isinstance(value, (NewMatrix4, Matrix4)):
                 gl.glUniformMatrix4fv(self.uniforms.get(uniform), 1, True, cast_matrix(value))

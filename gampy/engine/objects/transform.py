@@ -1,8 +1,8 @@
 __author__ = 'michiel'
 
-from gampy.engine.objects.vectors import Vector3
+# from gampy.engine.objects.vectors import Vector3
 # from gampy.engine.objects.vectors import Matrix4
-from gampy.core import Matrix4
+from gampy.core import Matrix4, Vector3
 from gampy.engine.events.time import Timing
 
 timings = Timing('Transform')
@@ -28,6 +28,7 @@ class Transform:
         self.rotation = Vector3(0., 0., 0.)
         self.scale = Vector3(1., 1., 1.)
         self.projMat = None
+        self.is_changed = True
 
     @timings
     def get_transformation(self):

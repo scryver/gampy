@@ -2,3 +2,5 @@ build/
 .idea/
 **__pycache__/
 Gampy.egg-info
+*.sublime-workspace
+*.so

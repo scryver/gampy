@@ -85,6 +85,14 @@ Matrix4d& Matrix4d::InitProjection(double fov, int width, int height, double zNe
     return *this;
 }
 
+Matrix4d::Matrix4d(const Matrix4d& other) {
+    for (int i = 4 - 1; i >= 0; i--) {
+        for (int j = 4 - 1; j >= 0; j--) {
+            m_data[i][j] = other.m_data[i][j];
+        }
+    }
+}
+
 Matrix4d& Matrix4d::operator=(const Matrix4d& other) {
     double value;
     if (this != &other) {

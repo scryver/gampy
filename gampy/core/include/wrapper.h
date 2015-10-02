@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "./wrappers/matrix.h"
+#include "./wrappers/vector.h"
 
 #ifdef __cplusplus
 }

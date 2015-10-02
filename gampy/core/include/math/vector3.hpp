@@ -10,17 +10,18 @@ public:
 
     double GetLength();
     double Dot(const Vector3d& other);
-    Vector3d Cross(const Vector3d& other);
-    void Normalize();
-    Vector3d Normalized();
+    Vector3d* Cross(const Vector3d& other);
+    Vector3d& Normalize();
+    Vector3d* Normalized();
 
-    double GetX() { return m_x; };
-    double GetY() { return m_y; };
-    double GetZ() { return m_z; };
-    double SetX(double x) { m_x = x; };
-    double SetY(double y) { m_y = y; };
-    double SetZ(double z) { m_z = z; };
+    double GetX() const { return m_x; }
+    double GetY() const { return m_y; }
+    double GetZ() const { return m_z; }
+    void SetX(double x) { m_x = x; }
+    void SetY(double y) { m_y = y; }
+    void SetZ(double z) { m_z = z; }
 
+    Vector3d(const Vector3d& other);
     Vector3d& operator=(const Vector3d& other);
     Vector3d& operator+=(const Vector3d& other);
     Vector3d& operator-=(const Vector3d& other);
@@ -63,6 +64,6 @@ private:
     double      m_x;
     double      m_y;
     double      m_z;
-};)
+};
 
 #endif // __VECTOR_3_HPP__

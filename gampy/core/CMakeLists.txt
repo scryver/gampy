@@ -10,6 +10,8 @@ add_library(${PROJECT_NAME} SHARED
     src/wrapper.cpp
     src/wrappers/matrix.cpp
     src/math/matrix4.cpp
+    src/wrappers/vector.cpp
+    src/math/vector3.cpp
 )
 
 # pkg_search_module(SDL2 REQUIRED sdl2)

@@ -1,6 +1,7 @@
 __author__ = 'michiel'
 
-from gampy.engine.objects.vectors import Vector3
+from gampy.core import Vector3
+# from gampy.engine.objects.vectors import Vector3
 import OpenGL.GL as gl
 from OpenGL.arrays import vbo
 from gampy.engine.events.time import Timing

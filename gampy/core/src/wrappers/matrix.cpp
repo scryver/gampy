@@ -75,5 +75,4 @@ extern "C" {
     void DeleteMatrix4d(Matrix4d* m) {
         delete m;
     }
-
 }
