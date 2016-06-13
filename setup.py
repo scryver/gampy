@@ -1,6 +1,9 @@
 __author__ = 'michiel'
 
-from distutils.core import setup
+try:
+    from distutils.core import setup
+except ImportError:
+    from setuptools import setup
 
 setup(
     name='Gampy',
@@ -16,5 +19,7 @@ setup(
     long_description=open('README.txt').read(),
     install_requires=[
         "PyOpenGL >= 3.1.0",
+        "numpy >= 1.11.0",
+        "pillow >= 3.2.0",
     ],
 )
