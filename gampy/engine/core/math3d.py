@@ -4,6 +4,10 @@ from math import radians, tan, sin, cos
 from numbers import Number
 import numpy
 
+import gampy.engine.core.time as timing
+
+timer = timing.Timing()
+
 
 __author__ = 'michiel'
 
@@ -64,12 +68,12 @@ class Vector(numpy.ndarray):
         return ~(self == other)
 
     def max_value(self):
-        max = self[0]
+        max_ = self[0]
         for i in range(1, self.size):
-            if self[i] > max:
-                max = self[i]
+            if self[i] > max_:
+                max_ = self[i]
 
-        return max
+        return max_
 
     @classmethod
     def max(cls, self, other):
@@ -220,6 +224,7 @@ class Vector3(Vector):
 
 class Matrix4(numpy.matrix):
 
+    @timer
     def __new__(subtype, data=None, dtype=numpy.float32):
         obj = numpy.zeros((4, 4), dtype=numpy.float32).view(Matrix4)
         if data is not None:
@@ -245,6 +250,7 @@ class Matrix4(numpy.matrix):
         self[2, 3] = z
         return self.view(Matrix4)
 
+    @timer
     def init_rotation(self, x, y, z=None):
         if isinstance(x, Vector3):
             if z is None:
@@ -295,6 +301,7 @@ class Matrix4(numpy.matrix):
 
         return self.view(Matrix4)
 
+    @timer
     def init_scale(self, x, y, z):
         self[0, 0] = x
         self[1, 1] = y
@@ -303,6 +310,7 @@ class Matrix4(numpy.matrix):
 
         return self.view(Matrix4)
 
+    @timer
     def init_perspective(self, fov, aspect_ratio, z_near, z_far):
         tan_half_fov = tan(fov / 2)
         z_range = z_near - z_far
@@ -319,6 +327,7 @@ class Matrix4(numpy.matrix):
         self[3, 2] = 1.
         return self.view(Matrix4)
 
+    @timer
     def init_orthographic(self, left, right, bottom, top, near, far):
         width = right - left
         height = top - bottom
@@ -334,21 +343,52 @@ class Matrix4(numpy.matrix):
 
         return self.view(Matrix4)
 
+    @timer
     def transform(self, other, w_offset=1.):
         return Vector3(self[i, 0] * other[0]
                        + self[i, 1] * other[1]
                        + self[i, 2] * other[2]
                        + self[i, 3] * w_offset for i in range(3))
 
+    @timer
+    def __eq__(self, other):
+        if isinstance(other, Matrix4):
+            equal = True
+            for i in range(4):
+                for j in range(4):
+                    if self[i, j] != other[i, j]:
+                        equal = False
+                        break
+                if not equal:
+                    break
+            return equal
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __lt__(self, other):
+        raise NotImplementedError()
+
+    def __le__(self, other):
+        raise NotImplementedError()
+
+    def __gt__(self, other):
+        raise NotImplementedError()
+
+    def __ge__(self, other):
+        raise NotImplementedError()
+
+    @timer
     def __mul__(self, other):
         if isinstance(other, Matrix4):
-            return Matrix4(
-                [
-                    [
-                        sum(self[i, k] * other[k, j] for k in range(4))
-                        for j in range(4)
-                    ] for i in range(4)
-                ])
+            # result = Matrix4()
+            # for i in range(4):
+            #     for j in range(4):
+            #         result[i, j] = sum(self[i, k] * other[k, j] for k in range(4))
+            # return result
+            return self @ other
 
         raise NotImplementedError()
 
@@ -357,6 +397,12 @@ class Matrix4(numpy.matrix):
 
     def set(self, x, y, value):
         self[x, y] = value
+
+    @classmethod
+    def print_timing(cls):
+        print('========MATRIX4======================================================================',
+              timer,
+              '=====================================================================================', sep='\n')
 
 
 class Quaternion(Vector):

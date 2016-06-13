@@ -3,15 +3,16 @@ __author__ = 'michiel'
 from gampy.engine.core.eventinterface import EventInterface
 from gampy.engine.core.transform import Transform
 
-# import gampy.engine.core.time as timing
-#
-# timer = timing.Timing()
+import gampy.engine.core.time as timing
+
+timer = timing.Timing()
+
 
 class Entity(EventInterface):
 
-    # _is_printed = False
+    _is_printed = False
 
-    # @timer
+    @timer
     def __init__(self, position=None, rotation=None, scale=None):
         self.children = []
         self.components = []
@@ -66,9 +67,10 @@ class Entity(EventInterface):
     def update(self, dt):
         [component.update(dt) for component in self.components]
 
-    # @timer
+    @timer
     def render(self, shader, render_engine, camera_view, camera_pos):
-        [component.render(shader, render_engine, camera_view, camera_pos) for component in self.components]
+        for component in self.components:
+            component.render(shader, render_engine, camera_view, camera_pos)
 
     # @timer
     def input_all(self, dt):
@@ -80,14 +82,14 @@ class Entity(EventInterface):
         self.update(dt)
         [child.update_all(dt) for child in self.children]
 
-    # @timer
+    @timer
     def render_all(self, shader, render_engine, camera_view, camera_pos):
         self.render(shader, render_engine, camera_view, camera_pos)
         [child.render_all(shader, render_engine, camera_view, camera_pos) for child in self.children]
 
-    # def __del__(self):
-    #     if not GameObject._is_printed:
-    #         GameObject._is_printed = True
-    #         print('========GAME OBJECT==================================================================',
-    #               timer,
-    #               '=====================================================================================', sep='\n')
+    def __del__(self):
+        if not Entity._is_printed:
+            Entity._is_printed = True
+            print('========ENTITY=======================================================================',
+                  timer,
+                  '=====================================================================================', sep='\n')

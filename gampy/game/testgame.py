@@ -46,12 +46,12 @@ class TestGame(Game):
         # self.add_to_scene(Entity(Vector3(0, -1, 5), scale=32.)
         #       .add_component(MeshRenderer(Mesh('terrain02.obj'), material)))
         #
-        # self.add_to_scene(Entity(Vector3(7, 0, 7)).add_component(light_components.PointLight(Vector3(0, 1, 0), 0.4,
-        #                                                                                      (0., 0., 1.))))
-        #
-        # self.add_to_scene(Entity(Vector3(20, -11, 5), Quaternion(Vector3(1, 0, 0), math.radians(-60)) *
-        #                          Quaternion(Vector3(0, 1, 0), math.radians(90)))
-        #       .add_component(light_components.SpotLight(Vector3(0, 1, 1), 0.4, (0., 0., 0.02), math.radians(91.1))))
+        self.add_to_scene(Entity(Vector3(7, 0, 7)).add_component(light_components.PointLight(Vector3(0, 1, 0), 0.4,
+                                                                                             (0., 0., 1.))))
+
+        self.add_to_scene(Entity(Vector3(20, -11, 5), Quaternion(Vector3(1, 0, 0), math.radians(-60)) *
+                                 Quaternion(Vector3(0, 1, 0), math.radians(90)))
+              .add_component(light_components.SpotLight(Vector3(0, 1, 1), 0.4, (0., 0., 0.02), math.radians(91.1))))
 
         self.add_to_scene(Entity(rotation=Quaternion(Vector3(1, 0, 0), math.radians(-45)))
               .add_component(light_components.DirectionalLight(Vector3(1, 1, 1), 0.4)))

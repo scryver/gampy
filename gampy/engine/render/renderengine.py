@@ -54,7 +54,7 @@ class RenderEngine(MappedValue):
         raise NotImplementedError('Set invalid rendering uniform type "{}" with name "{}"'.format(uniform_type, uniform_name))
 
     @timer
-    def render(self, object):
+    def render(self, object_):
         Window.bind_as_render_target()
         camera_view = self.main_camera.view_projection()
         camera_pos = self.main_camera.transform.transformed_position()
@@ -63,16 +63,18 @@ class RenderEngine(MappedValue):
         # todo: Add stencil buffer
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
-        [obj.render(self._forward_ambient, self, camera_view, camera_pos) for obj in object.all_generator()]
+        for obj in object_.all_generator():
+            obj.render(self._forward_ambient, self, camera_view, camera_pos)
 
         gl.glEnable(gl.GL_BLEND)                # Add colors together (will be disabled through gl.glDisable(gl.GL_BLEND)
         gl.glBlendFunc(gl.GL_ONE, gl.GL_ONE)    # One * color1 + One * color2
         gl.glDepthMask(gl.GL_FALSE)             # We don't need to check the depth again (already done by ambient light)
         gl.glDepthFunc(gl.GL_EQUAL)             # Only add color if the pixel is same as previous
 
-        # object_render = object.render_all
-        [[obj.render(light.shader, self, camera_view, camera_pos) for obj in object.all_generator()]
-            for light in self._render_lights()]
+        # object_render = object_.render_all
+        for light in self._render_lights():
+            for obj in object_.all_generator():
+                obj.render(light.shader, self, camera_view, camera_pos)
 
         gl.glDepthMask(gl.GL_TRUE)
         gl.glDepthFunc(gl.GL_LESS)

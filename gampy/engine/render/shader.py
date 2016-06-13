@@ -41,9 +41,12 @@ import gampy.engine.core.time as timing
 
 timer = timing.Timing()
 
+
 class Shader:
 
     loaded_shaders = dict()
+
+    _cache = dict()
 
     _instance = None
     INCLUDE_DIRECTIVE = '#include'
@@ -87,6 +90,21 @@ class Shader:
 
     @timer
     def _calc_vars(self, transform, camera_view):
+        # update = False
+        # if self._cache.get('transform', None) != transform:
+        #     self._cache.update({'transform': transform})
+        #     update = True
+        # if self._cache.get('camera_view', None) != camera_view:
+        #     self._cache.update({'camera_view': camera_view})
+        #     update = True
+
+        # if update:
+        #     self._cache.update({
+        #         'world': transform.transformation,
+        #         'cam_world': camera_view * transform.transformation,
+        #     })
+
+        # return self._cache.get('world'), self._cache.get('cam_world')
         world = transform.transformation
         return world, camera_view * world
 

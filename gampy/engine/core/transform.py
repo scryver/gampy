@@ -4,9 +4,9 @@ from numbers import Number
 
 from gampy.engine.core.math3d import Vector3, Matrix4, Quaternion
 
-# import gampy.engine.core.time as timing
-#
-# timer = timing.Timing()
+import gampy.engine.core.time as timing
+
+timer = timing.Timing()
 
 
 class Transform:
@@ -41,7 +41,7 @@ class Transform:
     def clear_has_changed(self):
         self._has_changed = False
 
-    # @timer
+    @timer
     def update(self):
         if self._old_position is not None:
             self._old_position = self._position.copy()
@@ -58,7 +58,7 @@ class Transform:
         self._has_changed = True
         return self
 
-    # @timer
+    @timer
     def has_changed(self):
         if self._has_changed:
             return True
@@ -99,7 +99,7 @@ class Transform:
                                              self._scale.z)
 
     @property
-    # @timer
+    @timer
     def transformation(self):
         if self._transformation is None or self.has_changed():
             if self._translation_m is None:
@@ -113,7 +113,7 @@ class Transform:
 
         return self._transformation
 
-    # @timer
+    @timer
     def _get_parent_matrix(self):
         if self._parent is not None and self._parent.has_changed():
             self._parent_matrix = self._parent.transformation
@@ -208,9 +208,8 @@ class Transform:
     def parent(self, parent):
         self._parent = parent
 
-    # def __del__(self):
-    #     if not Transform._is_printed:
-    #         Transform._is_printed = True
-    #         print('========Transform====================================================================',
-    #               timer,
-    #               '=====================================================================================', sep='\n')
+    @classmethod
+    def print_timing(self):
+        print('========Transform====================================================================',
+              timer,
+              '=====================================================================================', sep='\n')

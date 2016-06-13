@@ -87,7 +87,7 @@ class PointLight(BaseLight):
     def calc_range(self):
         a = self.exponent
         b = self.linear
-        c = self.constant - self.COLOR_DEPTH * self.intensity * self.color.max()
+        c = self.constant - self.COLOR_DEPTH * self.intensity * self.color.max_value()
         self.range = (-b + math.sqrt(b * b - 4 * a * c)) / (2 * a)
 
 
