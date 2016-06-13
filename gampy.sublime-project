@@ -1,0 +1,22 @@
+{
+	"build_systems":
+	[
+		{
+			"file_regex": "^[ ]*File \"(...*?)\", line ([0-9]*)",
+			"name": "Anaconda Python Builder",
+			"selector": "source.python",
+			"shell_cmd": "\"python\" -u \"$file\""
+		}
+	],
+	"folders":
+	[
+		{
+			"name": "Source",
+			"path": "."
+		},
+		{
+			"name": "Virt Env",
+			"path": "~/virtualenv/gampy/"
+		}
+	]
+}

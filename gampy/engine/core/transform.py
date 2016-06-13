@@ -25,14 +25,14 @@ class Transform:
             scale = Vector3(scale, scale, scale)
         self._position = position
         self._rotation = rotation
-        self._scale  = scale
+        self._scale = scale
         self._translation_m = None
         self._rotation_m = None
         self._scale_m = None
         self._transformation = None
         self._old_position = None
         self._old_rotation = None
-        self._old_scale  = None
+        self._old_scale = None
         self._parent = None
         self._parent_matrix = Matrix4().init_identity()
         self._transformed_parent_m = self._parent_matrix.copy()
@@ -84,9 +84,9 @@ class Transform:
 
     # @timer
     def _init_translation(self):
-         self._translation_m = Matrix4().init_translation(self._position.x,
-                                                          self._position.y,
-                                                          self._position.z)
+        self._translation_m = Matrix4().init_translation(self._position.x,
+                                                         self._position.y,
+                                                         self._position.z)
 
     # @timer
     def _init_rotation(self):
@@ -154,7 +154,7 @@ class Transform:
         except:
             x, y, z = value, None, None
 
-        if y == None and z == None and isinstance(x, Vector3):
+        if y is None and z is None and isinstance(x, Vector3):
             self._position = x
         else:
             self._position = Vector3(x, y, z)
@@ -172,7 +172,7 @@ class Transform:
         except:
             x, y, z, w = value, None, None, None
 
-        if y == None and z == None and w == None and isinstance(x, Quaternion):
+        if y is None and z is None and w is None and isinstance(x, Quaternion):
             self._rotation = x
         else:
             self._rotation = Quaternion(x, y, z, w)

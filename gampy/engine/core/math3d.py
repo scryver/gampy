@@ -1,21 +1,29 @@
-__author__ = 'michiel'
+#!/usr/bin/env python
 
 from math import radians, tan, sin, cos
 from numbers import Number
 import numpy
-from numpy import NaN
+
+
+__author__ = 'michiel'
+
 
 class Vector(numpy.ndarray):
 
-    def __new__(subtype, shape, data, dtype=numpy.float32, buffer=None, offset=0,
-                strides=None, order=None):
-        obj = numpy.ndarray.__new__(subtype, shape, dtype, buffer, offset, strides,
-                                    order)
-        obj[:] = data
+    def __new__(subtype, shape, data, dtype=numpy.float32, buffer=None,
+                offset=0, strides=None, order=None):
+        # print("New {}({})".format(subtype, data))
+        obj = numpy.ndarray.__new__(subtype, shape, dtype, buffer, offset,
+                                    strides, order)
+        try:
+            obj[:] = data
+        except TypeError:
+            obj[:] = list(data)
         return obj
 
     def __array_finalize__(self, obj):
-        if obj is None: return
+        if obj is None:
+            return
 
     @property
     def length(self):
@@ -34,7 +42,8 @@ class Vector(numpy.ndarray):
         return numpy.cross(self, other)
 
     def reflect(self, normal):
-        return (self - (normal * (numpy.dot(self, normal) * 2))).view(self.__class__)
+        return (self - (normal * (numpy.dot(self, normal) * 2))).view(
+            self.__class__)
 
     def __truediv__(self, other):
         if other == 0:
@@ -97,6 +106,7 @@ class Vector2(Vector):
     @property
     def y(self):
         return self[1]
+
     @y.setter
     def y(self, value):
         self[1] = value
@@ -106,10 +116,11 @@ class Vector2(Vector):
         cosine = cos(rad)
         sinus = sin(rad)
 
-        return Vector2(self.x * cosine - self.y * sinus, self.x * sinus + self.y * cosine)
+        return Vector2(self.x * cosine - self.y * sinus,
+                       self.x * sinus + self.y * cosine)
 
     def lerp(self, destination, lerp_factor):
-        return (destination - self) * lerp_factor + self # .normalized()
+        return (destination - self) * lerp_factor + self  # .normalized()
 
 
 class Vector3(Vector):
@@ -123,6 +134,7 @@ class Vector3(Vector):
     @property
     def x(self):
         return self[0]
+
     @x.setter
     def x(self, value):
         self[0] = value
@@ -130,6 +142,7 @@ class Vector3(Vector):
     @property
     def y(self):
         return self[1]
+
     @y.setter
     def y(self, value):
         self[1] = value
@@ -137,6 +150,7 @@ class Vector3(Vector):
     @property
     def z(self):
         return self[2]
+
     @z.setter
     def z(self, value):
         self[2] = value
@@ -152,18 +166,23 @@ class Vector3(Vector):
     @property
     def xy(self):
         return Vector2(self[0], self[1])
+
     @property
     def xz(self):
         return Vector2(self[0], self[2])
+
     @property
     def yx(self):
         return Vector2(self[1], self[0])
+
     @property
     def yz(self):
         return Vector2(self[1], self[2])
+
     @property
     def zx(self):
         return Vector2(self[2], self[0])
+
     @property
     def zy(self):
         return Vector2(self[2], self[1])
@@ -173,13 +192,30 @@ class Vector3(Vector):
             w = quat_or_axis * self * quat_or_axis.conjugate()
             return w[:3].view(Vector3)
         elif isinstance(quat_or_axis, Vector3):
-            rotate_vector_on_axis(self.view(numpy.ndarray), quat_or_axis, angle)
+            a = self
+            # b = a
+            # c = a
+            d = a
+            e = a
+            # b = [quat_or_axis[i] * -numpy.sin(angle) for i in range(3)]
+            # c = [a[i] * numpy.cos(angle) for i in range(3)]
+            d = [quat_or_axis[i] * 1 - numpy.cos(angle) for i in range(3)]
+            e = [quat_or_axis[i] * a.dot(d) for i in range(3)]
+            # b = quat_or_axis * -numpy.sin(angle) + a * numpy.cos(angle) \
+            #     + quat_or_axis * numpy.dot(a, quat_or_axis * (1 - numpy.cos(angle)))
+            # rotate on local x + rotate on local z + rotate on local y
+
+            # vec3_cross(a, e, self)
+            self = a.cross(e)
+            # self[0] = a[1] * e[2] - a[2] * e[1]
+            # self[1] = a[2] * e[0] - a[0] * e[2]
+            # self[2] = a[0] * e[1] - a[1] * e[0]
             return self.view(Vector3)
         else:
             return NotImplemented
 
     def lerp(self, destination, lerp_factor):
-        return (destination - self) * lerp_factor + self #.normalized()
+        return (destination - self) * lerp_factor + self  # .normalized()
 
 
 class Matrix4(numpy.matrix):
@@ -187,7 +223,11 @@ class Matrix4(numpy.matrix):
     def __new__(subtype, data=None, dtype=numpy.float32):
         obj = numpy.zeros((4, 4), dtype=numpy.float32).view(Matrix4)
         if data is not None:
-            obj[:,:] = data
+            if isinstance(data, (list, tuple)):
+                for i, row in enumerate(data):
+                    obj[i, :] = row
+            else:
+                obj[:, :] = data
         return obj
 
     @property
@@ -195,11 +235,14 @@ class Matrix4(numpy.matrix):
         return self.copy().view(Matrix4)
 
     def init_identity(self):
-        self[:,:] = numpy.eye(4, 4, dtype=numpy.float32)
+        self[:, :] = numpy.eye(4, 4, dtype=numpy.float32)
         return self.view(Matrix4)
 
     def init_translation(self, x, y, z):
-        matrix_translation(self.view(numpy.ndarray), x, y, z)
+        self[:, :] = numpy.eye(4, 4, dtype=numpy.float32)
+        self[0, 3] = x
+        self[1, 3] = y
+        self[2, 3] = z
         return self.view(Matrix4)
 
     def init_rotation(self, x, y, z=None):
@@ -213,7 +256,16 @@ class Matrix4(numpy.matrix):
                 f = x
                 u = y
                 r = z
-            matrix_rotation_3ax(self.view(numpy.ndarray), f.view(numpy.ndarray), u.view(numpy.ndarray), r.view(numpy.ndarray))
+            self[0, 0] = r[0]
+            self[0, 1] = r[1]
+            self[0, 2] = r[2]
+            self[1, 0] = u[0]
+            self[1, 1] = u[1]
+            self[1, 2] = u[2]
+            self[2, 0] = f[0]
+            self[2, 1] = f[1]
+            self[2, 2] = f[2]
+            self[3, 3] = 1
         else:
             rx = Matrix4().init_identity()
             ry = Matrix4().init_identity()
@@ -239,7 +291,7 @@ class Matrix4(numpy.matrix):
             ry._m[2, 2] = numpy.cos(y)
 
             tmp = rz * ry * rx
-            self[:,:] = tmp
+            self[:, :] = tmp
 
         return self.view(Matrix4)
 
@@ -252,7 +304,19 @@ class Matrix4(numpy.matrix):
         return self.view(Matrix4)
 
     def init_perspective(self, fov, aspect_ratio, z_near, z_far):
-        matrix_perspective(self, fov, aspect_ratio, z_near, z_far)
+        tan_half_fov = tan(fov / 2)
+        z_range = z_near - z_far
+
+        x = 1 / (tan_half_fov * aspect_ratio)
+        y = 1 / tan_half_fov
+        z = (-z_near - z_far) / z_range
+        zw = 2 * z_far * z_near / z_range
+
+        self[0, 0] = x
+        self[1, 1] = y
+        self[2, 2] = z
+        self[2, 3] = zw
+        self[3, 2] = 1.
         return self.view(Matrix4)
 
     def init_orthographic(self, left, right, bottom, top, near, far):
@@ -271,17 +335,22 @@ class Matrix4(numpy.matrix):
         return self.view(Matrix4)
 
     def transform(self, other, w_offset=1.):
-        result =  numpy.empty(3, dtype=numpy.float32)
-        matrix_transform(self.view(numpy.ndarray), other.view(numpy.ndarray), w_offset, result)
-        return Vector3(result)
+        return Vector3(self[i, 0] * other[0]
+                       + self[i, 1] * other[1]
+                       + self[i, 2] * other[2]
+                       + self[i, 3] * w_offset for i in range(3))
 
     def __mul__(self, other):
         if isinstance(other, Matrix4):
-            result =  numpy.empty((4, 4), dtype=numpy.float32)
-            matrix_mul(self.view(numpy.ndarray), other.view(numpy.ndarray), result)
-            return Matrix4(result)
+            return Matrix4(
+                [
+                    [
+                        sum(self[i, k] * other[k, j] for k in range(4))
+                        for j in range(4)
+                    ] for i in range(4)
+                ])
 
-        return NotImplemented
+        raise NotImplementedError()
 
     def get(self, x, y):
         return self[x, y]
@@ -308,13 +377,13 @@ class Quaternion(Vector):
         data = [0, 0, 0, 1]
         if x is not None:
             if isinstance(x, Matrix4):
-                data =  numpy.empty(4, dtype=numpy.float32)
-                quat_from_matrix(x.view(numpy.ndarray), data)
+                data = cls._from_matrix(x)
             elif isinstance(x, Vector3):
                 sin_half_angle = sin(y / 2)
                 cos_half_angle = cos(y / 2)
 
-                data = [x.x * sin_half_angle, x.y * sin_half_angle, x.z * sin_half_angle, cos_half_angle]
+                data = [x.x * sin_half_angle, x.y * sin_half_angle,
+                        x.z * sin_half_angle, cos_half_angle]
             elif isinstance(x, Quaternion):
                 data = x.copy()
             elif isinstance(x, numpy.ndarray):
@@ -328,11 +397,19 @@ class Quaternion(Vector):
         return Quaternion(-self.x, -self.y, -self.z, self.w)
 
     def to_rotation_matrix(self):
-        forward =  numpy.empty(3, dtype=numpy.float32)
-        up =  numpy.empty(3, dtype=numpy.float32)
-        right =  numpy.empty(3, dtype=numpy.float32)
-        quat_to_matrix(self.view(numpy.ndarray), forward, up, right)
-        return Matrix4().init_rotation(forward.view(Vector3), up.view(Vector3), right.view(Vector3))
+        forward = Vector3()
+        up = Vector3()
+        right = Vector3()
+        forward[0] = 2 * (self[0] * self[2] - self[3] * self[1])
+        forward[1] = 2 * (self[1] * self[2] + self[3] * self[0])
+        forward[2] = 1 - 2 * (self[0] * self[0] + self[1] * self[1])
+        up[0] = 2 * (self[0] * self[1] + self[3] * self[2])
+        up[1] = 1 - 2 * (self[0] * self[0] + self[2] * self[2])
+        up[2] = 2 * (self[1] * self[2] - self[3] * self[0])
+        right[0] = 1 - 2 * (self[1] * self[1] + self[2] * self[2])
+        right[1] = 2 * (self[0] * self[1] - self[3] * self[2])
+        right[2] = 2 * (self[0] * self[2] + self[3] * self[1])
+        return Matrix4().init_rotation(forward, up, right)
 
     def set(self, x, y=None, z=None, w=None):
         if isinstance(x, Quaternion):
@@ -345,6 +422,7 @@ class Quaternion(Vector):
     @property
     def x(self):
         return self[0]
+
     @x.setter
     def x(self, value):
         self[0] = value
@@ -352,6 +430,7 @@ class Quaternion(Vector):
     @property
     def y(self):
         return self[1]
+
     @y.setter
     def y(self, value):
         self[1] = value
@@ -359,6 +438,7 @@ class Quaternion(Vector):
     @property
     def z(self):
         return self[2]
+
     @z.setter
     def z(self, value):
         self[2] = value
@@ -366,6 +446,7 @@ class Quaternion(Vector):
     @property
     def w(self):
         return self[3]
+
     @w.setter
     def w(self, value):
         self[3] = value
@@ -396,12 +477,26 @@ class Quaternion(Vector):
 
     def __mul__(self, other):
         if isinstance(other, Quaternion):
-            result =  numpy.empty(4, dtype=numpy.float32)
-            quaternion_mult(self.view(numpy.ndarray), other.view(numpy.ndarray), result)
+            result = numpy.empty(4, dtype=numpy.float32)
+            result[0] = self[0] * other[3] + self[3] * other[0] \
+                + self[1] * other[2] - self[2] * other[1]
+            result[1] = self[1] * other[3] + self[3] * other[1] \
+                + self[2] * other[0] - self[0] * other[2]
+            result[2] = self[2] * other[3] + self[3] * other[2] \
+                + self[0] * other[1] - self[1] * other[0]
+            result[3] = self[3] * other[3] - self[0] * other[0] \
+                - self[1] * other[1] - self[2] * other[2]
             return Quaternion(result)
         elif isinstance(other, Vector3):
-            result =  numpy.empty(4, dtype=numpy.float32)
-            quat_vec3_mult(self.view(numpy.ndarray), other.view(numpy.ndarray), result)
+            result = numpy.empty(4, dtype=numpy.float32)
+            result[0] = self[3] * other[0] + self[1] * other[2] \
+                - self[2] * other[1]
+            result[1] = self[3] * other[1] + self[2] * other[0] \
+                - self[0] * other[2]
+            result[2] = self[3] * other[2] + self[0] * other[1] \
+                - self[1] * other[0]
+            result[3] = -self[0] * other[0] - self[1] * other[1] \
+                - self[2] * other[2]
             return Quaternion(result)
         elif isinstance(other, Number):
             return Quaternion(super().__mul__(other))
@@ -410,278 +505,77 @@ class Quaternion(Vector):
 
     # Normalized Linear Interpelation
     def nlerp(self, destination, lerp_factor, shortest=True):
-        result = numpy.ndarray(4, dtype=numpy.float32)
-        quat_nlerp(self.view(numpy.ndarray), destination.view(numpy.ndarray), lerp_factor, result, shortest)
-        return result.view(Quaternion).normalized()
+        corrected_dest = destination
+
+        if shortest and (self.dot(destination) < 0):
+            corrected_dest = [-destination[i] for i in range(4)]
+
+        a = corrected_dest - self
+
+        return Quaternion([a[i] * lerp_factor for i in range(4)] + self).normalized()
 
     def slerp(self, destination, lerp_factor, shortest=True):
-        return quat_slerp(self.view(numpy.ndarray), destination.view(numpy.ndarray), lerp_factor, Quaternion.EPSILON, shortest).view(Quaternion)
+        cosine = self.dot(destination)
+        corrected_dest = destination
 
-from numba import jit, float32
+        if shortest and cosine < 0:
+            cosine = -cosine
+            corrected_dest[0] = -destination[0]
+            corrected_dest[1] = -destination[1]
+            corrected_dest[2] = -destination[2]
+            corrected_dest[3] = -destination[3]
 
-@jit('void(f4[:,:], f4[:,:], f4[:,:])', nopython=True)
-def matrix_mul(A, B, result):
-    for i in range(4):
-        for j in range(4):
-            result[i, j] = 0.
-            for k in range(4):
-                result[i, j] += A[i, k] * B[k, j]
+        if abs(cosine) >= 1 - Quaternion.epsilon:
+            return self.nlerp(corrected_dest, lerp_factor, False)
 
-@jit('void(f4[:,:], f4[:], f4, f4[:])', nopython=True)
-def matrix_transform(A, B, offset, result):
-    for i in range(3):
-        result[i] = A[i, 0] * B[0] + A[i, 1] * B[1] + A[i, 2] * B[2] + A[i, 3] * offset
+        sine = numpy.sqrt(1 - cosine * cosine)
+        angle = numpy.arctan2(sine, cosine)
+        inv_sine = 1 / sine
 
-@jit('void(f4[:], f4[:], f4[:])', nopython=True)
-def quaternion_mult(a, b, result):
-    result[0] = a[0] * b[3] + a[3] * b[0] + a[1] * b[2] - a[2] * b[1]
-    result[1] = a[1] * b[3] + a[3] * b[1] + a[2] * b[0] - a[0] * b[2]
-    result[2] = a[2] * b[3] + a[3] * b[2] + a[0] * b[1] - a[1] * b[0]
-    result[3] = a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2]
+        src_factor = numpy.sin((1 - lerp_factor) * angle) * inv_sine
+        dest_factor = numpy.sin(lerp_factor * angle) * inv_sine
 
-@jit('void(f4[:], f4[:], f4[:])', nopython=True)
-def quat_vec3_mult(a, b, result):
-    result[0] =  a[3] * b[0] + a[1] * b[2] - a[2] * b[1]
-    result[1] =  a[3] * b[1] + a[2] * b[0] - a[0] * b[2]
-    result[2] =  a[3] * b[2] + a[0] * b[1] - a[1] * b[0]
-    result[3] = -a[0] * b[0] - a[1] * b[1] - a[2] * b[2]
+        return (self * src_factor
+                + corrected_dest * dest_factor).view(Quaternion)
 
-@jit('void(f4[:,:], f4[:])', nopython=True)
-def quat_from_matrix(M, result):
-    trace = M[0, 0]  + M[1, 1] + M[2, 2]
-    s = 0.
-    if trace > 0:
-        s = 0.5 / numpy.sqrt(trace + 1)
-        result[0] = (M[1, 2] - M[2, 1]) * s
-        result[1] = (M[2, 0] - M[0, 2]) * s
-        result[2] = (M[0, 1] - M[1, 0]) * s
-        result[3] = 0.25 / s
-    else:
-        s = 2 * numpy.sqrt(1 + M[0, 0] - M[1, 1] - M[2, 2])
-        if M[0, 0] > M[1, 1] and M[0, 0] > M[2, 2]:
-            result[0] = 0.25 * s
-            result[1] = (M[1, 0] + M[0, 1]) / s
-            result[2] = (M[2, 0] + M[0, 2]) / s
-            result[3] = (M[1, 2] - M[2, 1]) / s
-        elif M[1, 1] > M[2, 2]:
-            result[0] = (M[1, 0] + M[0, 1]) / s
-            result[1] = 0.25 * s
-            result[2] = (M[2, 1] + M[1, 2]) / s
-            result[3] = (M[2, 0] - M[0, 2]) / s
+    @classmethod
+    def _from_matrix(self, matrix):
+        result = [0.] * 4
+        trace = matrix[0, 0] + matrix[1, 1] + matrix[2, 2]
+        s = 0.
+
+        if trace <= 0:
+            s = 2 * numpy.sqrt(1 + matrix[0, 0] - matrix[1, 1] - matrix[2, 2])
+            if matrix[0, 0] > matrix[1, 1] and matrix[0, 0] > matrix[2, 2]:
+                result[0] = 0.25 * s
+                result[1] = (matrix[1, 0] + matrix[0, 1]) / s
+                result[2] = (matrix[2, 0] + matrix[0, 2]) / s
+                result[3] = (matrix[1, 2] - matrix[2, 1]) / s
+            elif matrix[1, 1] > matrix[2, 2]:
+                result[0] = (matrix[1, 0] + matrix[0, 1]) / s
+                result[1] = 0.25 * s
+                result[2] = (matrix[2, 1] + matrix[1, 2]) / s
+                result[3] = (matrix[2, 0] - matrix[0, 2]) / s
+            else:
+                result[0] = (matrix[2, 0] + matrix[0, 2]) / s
+                result[1] = (matrix[1, 2] + matrix[2, 1]) / s
+                result[2] = 0.25 * s
+                result[3] = (matrix[0, 1] - matrix[1, 0]) / s
         else:
-            result[0] = (M[2, 0] + M[0, 2]) / s
-            result[1] = (M[1, 2] + M[2, 1]) / s
-            result[2] = 0.25 * s
-            result[3] = (M[0, 1] - M[1, 0]) / s
+            s = 0.5 / numpy.sqrt(trace + 1)
+            result[0] = (matrix[1, 2] - matrix[2, 1]) * s
+            result[1] = (matrix[2, 0] - matrix[0, 2]) * s
+            result[2] = (matrix[0, 1] - matrix[1, 0]) * s
+            result[3] = 0.25 / s
 
-    summed = 0.
-    for i in range(4):
-        summed += result[i] * result[i]
-    length = numpy.sqrt(summed)
-
-    result[0] = result[0] / length
-    result[1] = result[1] / length
-    result[2] = result[2] / length
-    result[3] = result[3] / length
-    
-@jit('void(f4[:], f4[:], f4[:], f4[:])', nopython=True)
-def quat_to_matrix(quat, forward, up, right):
-    forward[0] = 2 * (quat[0] * quat[2] - quat[3] * quat[1])
-    forward[1] = 2 * (quat[1] * quat[2] + quat[3] * quat[0])
-    forward[2] = 1 - 2 * (quat[0] * quat[0] + quat[1] * quat[1])
-    up[0] = 2 * (quat[0] * quat[1] + quat[3] * quat[2])
-    up[1] = 1 - 2 * (quat[0] * quat[0] + quat[2] * quat[2])
-    up[2] = 2 * (quat[1] * quat[2] - quat[3] * quat[0])
-    right[0] = 1 - 2 * (quat[1] * quat[1] + quat[2] * quat[2])
-    right[1] = 2 * (quat[0] * quat[1] - quat[3] * quat[2])
-    right[2] = 2 * (quat[0] * quat[2] + quat[3] * quat[1])
-
-@jit('void(f4[:,:], f4, f4, f4)', nopython=True)
-def matrix_translation(M, x, y, z):
-    M[0, 0] = 1.
-    M[0, 1] = 0.
-    M[0, 2] = 0.
-    M[0, 3] = x
-    M[1, 0] = 0.
-    M[1, 1] = 1.
-    M[1, 2] = 0.
-    M[1, 3] = y
-    M[2, 0] = 0.
-    M[2, 1] = 0.
-    M[2, 2] = 1.
-    M[2, 3] = z
-    M[3, 0] = 0.
-    M[3, 1] = 0.
-    M[3, 2] = 0.
-    M[3, 3] = 1.
-
-@jit('void(f4[:,:], f4, f4, f4, f4)', nopython=True)
-def matrix_perspective(M, fov, aspect_ratio, z_near, z_far):
-    tan_half_fov = tan(fov / 2)
-    z_range = z_near - z_far
-
-    x = 1 / (tan_half_fov * aspect_ratio)
-    y = 1 / tan_half_fov
-    z = (-z_near - z_far) / z_range
-    zw = 2 * z_far * z_near / z_range
-
-    M[0, 0] = x
-    M[0, 1] = 0.
-    M[0, 2] = 0.
-    M[0, 3] = 0.
-    M[1, 0] = 0.
-    M[1, 1] = y
-    M[1, 2] = 0.
-    M[1, 3] = 0.
-    M[2, 0] = 0.
-    M[2, 1] = 0.
-    M[2, 2] = z
-    M[2, 3] = zw
-    M[3, 0] = 0.
-    M[3, 1] = 0.
-    M[3, 2] = 1.
-    M[3, 3] = 0.
-
-@jit('void(f4[:,:], f4[:], f4[:], f4[:])', nopython=True)
-def matrix_rotation_3ax(M, forward, up, right):
-    M[0, 0] = right[0]
-    M[0, 1] = right[1]
-    M[0, 2] = right[2]
-    M[0, 3] = 0.
-    M[1, 0] = up[0]
-    M[1, 1] = up[1]
-    M[1, 2] = up[2]
-    M[1, 3] = 0.
-    M[2, 0] = forward[0]
-    M[2, 1] = forward[1]
-    M[2, 2] = forward[2]
-    M[2, 3] = 0.
-    M[3, 0] = 0.
-    M[3, 1] = 0.
-    M[3, 2] = 0.
-    M[3, 3] = 1
-
-@jit('void(f4[:], f4[:], f4[:])', nopython=True)
-def vec3_cross(a, b, result):
-    result[0] = a[1] * b[2] - a[2] * b[1]
-    result[1] = a[2] * b[0] - a[0] * b[2]
-    result[2] = a[0] * b[1] - a[1] * b[0]
-
-@jit('void(f4[:], f4[:], f4[:])', nopython=True)
-def vec3_mul(a, b, result):
-    for i in range(3):
-        result[i] = a[i] * b[i]
-
-@jit('void(f4[:], f4[:], f4[:])', nopython=True)
-def vec4_mul(a, b, result):
-    for i in range(4):
-        result[i] = a[i] * b[i]
-
-@jit('void(f4[:], f4, f4[:])', nopython=True)
-def vec3_mul_scalar(a, b, result):
-    for i in range(3):
-        result[i] = a[i] * b
-
-@jit('void(f4[:], f4, f4[:])', nopython=True)
-def vec4_mul_scalar(a, b, result):
-    for i in range(4):
-        result[i] = a[i] * b
-
-@jit('f4(f4[:], f4[:])', nopython=True, locals=dict(result=float32))
-def vec3_dot(a, b):
-    result = 0.
-    for i in range(3):
-        result += a[i] * b[i]
-    return result
-
-@jit('f4(f4[:], f4[:])', nopython=True, locals=dict(result=float32))
-def vec4_dot(a, b):
-    result = 0.
-    for i in range(4):
-        result += a[i] * b[i]
-    return result
-
-@jit('void(f4[:], f4[:], f4[:])', nopython=True)
-def vec4_add(a, b, result):
-    for i in range(4):
-        result[i] = a[i] + b[i]
-
-@jit('void(f4[:], f4, f4[:])', nopython=True)
-def vec4_add_scalar(a, b, result):
-    for i in range(4):
-        result[i] = a[i] + b
-
-@jit('void(f4[:], f4[:], f4[:])', nopython=True)
-def vec4_sub(a, b, result):
-    for i in range(4):
-        result[i] = a[i] - b[i]
-
-@jit('void(f4[:], f4[:], f4)', nopython=True)
-def rotate_vector_on_axis(vec, axis, angle):
-    a = vec
-    b = a
-    c = a
-    d = a
-    e = a
-    vec3_mul_scalar(axis, -numpy.sin(angle), b)
-    vec3_mul_scalar(a, numpy.cos(angle), c)
-    vec3_mul_scalar(axis, 1 - numpy.cos(angle), d)
-    vec3_mul_scalar(axis, vec3_dot(a, d), e)
-    # b = axis * -numpy.sin(angle) + a * numpy.cos(angle) + axis * numpy.dot(a, axis * (1 - numpy.cos(angle)))
-    # rotate on local x + rotate on local z + rotate on local y
-    vec3_cross(a, e, vec)
-
-@jit('void(f4[:], f4[:], f4, f4[:], b1)', nopython=True, locals=dict(a=float32[:], b=float32[:]))
-def quat_nlerp(quat, destination, lerp_factor, result, shortest=True):
-    corrected_dest = destination
-
-    if shortest and (vec4_dot(quat, destination) < 0):
+        summed = 0.
         for i in range(4):
-            corrected_dest[i] = -destination[i]
+            summed += result[i] * result[i]
+        length = numpy.sqrt(summed)
 
-    a = destination
-    b = destination
-    vec4_sub(corrected_dest, quat, a)
-    vec4_mul_scalar(a, lerp_factor, b)
+        result[0] = result[0] / length
+        result[1] = result[1] / length
+        result[2] = result[2] / length
+        result[3] = result[3] / length
 
-    vec4_add(b, quat, result)
-
-@jit('f4[:](f4[:], f4[:], f4, f4, b1)')
-def quat_slerp(quat, destination, lerp_factor, epsilon, shortest=True):
-    cosine = vec4_dot(quat, destination)
-    corrected_dest = destination
-
-    if shortest and cosine < 0:
-        cosine = -cosine
-        corrected_dest[0] = -destination[0]
-        corrected_dest[1] = -destination[1]
-        corrected_dest[2] = -destination[2]
-        corrected_dest[3] = -destination[3]
-
-    if abs(cosine) >= 1 - epsilon:
-        quat_nlerp(quat, corrected_dest, lerp_factor, destination, False)
-        return destination
-
-    sine = numpy.sqrt(1 - cosine * cosine)
-    angle = numpy.arctan2(sine, cosine)
-    inv_sine = 1 / sine
-
-    src_factor = numpy.sin((1 - lerp_factor) * angle) * inv_sine
-    dest_factor = numpy.sin(lerp_factor * angle) * inv_sine
-
-    return quat * src_factor + corrected_dest * dest_factor
-
-@jit('b1(f4[:], f4[:], i4)', nopython=True)
-def vec_equal(a, b, size):
-    for i in range(size):
-        if a[i] != b[i]:
-            return False
-    return True
-
-@jit('b1(f4[:,:], f4[:,:])', nopython=True)
-def matrix44_equal(a, b):
-    for i in range(4):
-        for j in range(4):
-            if a[i, j] != b[i, j]:
-                return False
-    return True
+        return result
