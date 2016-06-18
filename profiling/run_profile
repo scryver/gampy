@@ -1,0 +1,4 @@
+#!/bin/bash
+
+python -m cProfile -o $1.cprof ../gampy/game/$1.py
+pyprof2calltree -k -i $1.cprof

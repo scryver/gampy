@@ -4,16 +4,9 @@ from numbers import Number
 
 from gampy.engine.core.math3d import Vector3, Matrix4, Quaternion
 
-import gampy.engine.core.time as timing
-
-timer = timing.Timing()
-
 
 class Transform:
 
-    # _is_printed = False
-
-    # @timer
     def __init__(self, position=None, rotation=None, scale=None):
         if position is None:
             position = Vector3(0, 0, 0)
@@ -41,7 +34,6 @@ class Transform:
     def clear_has_changed(self):
         self._has_changed = False
 
-    @timer
     def update(self):
         if self._old_position is not None:
             self._old_position = self._position.copy()
@@ -52,13 +44,11 @@ class Transform:
             self._old_rotation = Quaternion(0, 0, 0, 0).set(self._rotation) * 0.5
             self._old_scale  = Vector3(0, 0, 0).set(self._scale) + 1.
 
-    # @timer
     def rotate(self, axis, angle):
         self._rotation = (Quaternion(axis, angle) * self._rotation).view(Quaternion).normalized()
         self._has_changed = True
         return self
 
-    @timer
     def has_changed(self):
         if self._has_changed:
             return True
@@ -82,24 +72,20 @@ class Transform:
         self._has_changed = False
         return False
 
-    # @timer
     def _init_translation(self):
         self._translation_m = Matrix4().init_translation(self._position.x,
                                                          self._position.y,
                                                          self._position.z)
 
-    # @timer
     def _init_rotation(self):
         self._rotation_m = self._rotation.to_rotation_matrix()
 
-    # @timer
     def _init_scale(self):
         self._scale_m = Matrix4().init_scale(self._scale.x,
                                              self._scale.y,
                                              self._scale.z)
 
     @property
-    @timer
     def transformation(self):
         if self._transformation is None or self.has_changed():
             if self._translation_m is None:
@@ -113,19 +99,16 @@ class Transform:
 
         return self._transformation
 
-    @timer
     def _get_parent_matrix(self):
         if self._parent is not None and self._parent.has_changed():
             self._parent_matrix = self._parent.transformation
         return self._parent_matrix
 
-    # @timer
     def transformed_position(self):
         if self.has_changed():
             self._transformed_parent_m = self._get_parent_matrix().transform(self._position)
         return self._transformed_parent_m
 
-    # @timer
     def transformed_rotation(self):
         parent_rotation = Quaternion()
 
@@ -135,12 +118,10 @@ class Transform:
 
         return parent_rotation * self._rotation
 
-    # @timer
     def look_at(self, point, up):
         self._rotation = self.look_at_direction(point, up)
         self._has_changed = True
 
-    # @timer
     def look_at_direction(self, point, up):
         return Quaternion(Matrix4().init_rotation((point - self._position).normalized(), up))
 
@@ -207,9 +188,3 @@ class Transform:
     @parent.setter
     def parent(self, parent):
         self._parent = parent
-
-    @classmethod
-    def print_timing(self):
-        print('========Transform====================================================================',
-              timer,
-              '=====================================================================================', sep='\n')

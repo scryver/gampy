@@ -5,10 +5,6 @@ import math
 from gampy.engine.core.math3d import Matrix4
 from gampy.engine.core.coreengine import Window
 from gampy.engine.components.entitycomponent import EntityComponent
-import gampy.engine.core.time as timing
-
-
-timer = timing.Timing()
 
 
 class Camera(EntityComponent):
@@ -32,7 +28,6 @@ class Camera(EntityComponent):
 
         self._transformation = None
 
-    @timer
     def view_projection(self):
         if self._transformation is None or self.transform.has_changed():
             camera_rotation = self.transform.transformed_rotation().conjugate().to_rotation_matrix()
@@ -46,10 +41,3 @@ class Camera(EntityComponent):
 
     def add_to_engine(self, engine):
         engine.render_engine.add_camera(self)
-
-    def __del__(self):
-        if not Camera._is_printed:
-            Camera._is_printed = True
-            print('========CAMERA=======================================================================',
-                  timer,
-                  '=====================================================================================', sep='\n')

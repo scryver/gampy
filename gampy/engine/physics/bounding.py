@@ -1,9 +1,10 @@
-__author__ = 'michiel'
-
-
 from gampy.engine.core.math3d import Vector3
 from gampy.engine.physics.intersections import IntersectData
 from gampy.engine.physics.collisions import Collider
+
+
+__author__ = 'michiel'
+
 
 class BoundingSphere(Collider):
 
@@ -34,15 +35,16 @@ class BoundingSphere(Collider):
     def transform(self, translation):
         if not isinstance(translation, Vector3):
             translation = Vector3(translation)
-        self._center + translation
+        self._center += translation
         return self
 
 
-class AABB:
+class AABB(Collider):
     """
     Axis Aligned Bounding Box
     """
     def __init__(self, extents):
+        super().__init__('aabb')
         min_extents, max_extents = extents
         if not isinstance(min_extents, Vector3):
             min_extents = Vector3(min_extents)
@@ -62,9 +64,16 @@ class AABB:
         distances1 = other.min_extents - self._max_extents
         distances2 = self._min_extents - other.max_extents
         distances = Vector3.max(distances1, distances2)
-        max_distance= distances.max_value()
+        max_distance = distances.max_value()
 
         return IntersectData(max_distance < 0., distances)
+
+    def transform(self, translation):
+        if not isinstance(translation, Vector3):
+            translation = Vector3(translation)
+        self._min_extents += translation
+        self._max_extents += translation
+        return self
 
 
 class Plane:

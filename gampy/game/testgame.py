@@ -16,18 +16,13 @@ from gampy.engine.tkinter.window import Window
 from gampy.engine.components.inputs import FreeLook, FreeMove
 import gampy.engine.components.lights as light_components
 import gampy.engine.components.physics as physics_components
-import gampy.engine.core.time as timing
 import gampy.engine.physics.bounding as bounding
 import gampy.engine.physics.physicsengine as physicsengine
 from gampy.engine.physics.physicsengine import PhysicsObject, PhysicsEngine, BoundingSphere
 
 
-timer = timing.Timing()
-
-
 class TestGame(Game):
 
-    # @timer
     def init(self):
         bounding.test()
         physicsengine.test()
@@ -85,23 +80,14 @@ class TestGame(Game):
 
         self.add_to_scene(Entity().add_component(physics_engine_component))
 
-
-    @timer
     def input(self, dt):
         super().input(dt)
 
-    @timer
     def update(self, dt):
         super().update(dt)
 
-    @timer
     def render(self, render_engine):
         super().render(render_engine)
-
-    def __del__(self):
-        print('========GAME=========================================================================',
-              timer,
-              '=====================================================================================', sep='\n')
 
 
 class LookAtComponent(EntityComponent):

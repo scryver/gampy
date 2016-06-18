@@ -26,6 +26,8 @@ class Collider(ReferenceCounter):
     def intersect(self, other):
         if self._type == other.type == Collider.types['sphere']:
             return self.intersect_sphere(other)
+        elif self._type == other.type == Collider.types['aabb']:
+            return self.intersect_AABB(other)
 
         raise NotImplementedError('Type {} and {} are not compatible for intersection'.format(type(self), type(other)))
 

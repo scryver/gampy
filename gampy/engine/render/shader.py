@@ -37,11 +37,6 @@ class UniformAddError(ShaderException):
         super(UniformAddError, self).__init__(message)
 
 
-import gampy.engine.core.time as timing
-
-timer = timing.Timing()
-
-
 class Shader:
 
     loaded_shaders = dict()
@@ -88,7 +83,6 @@ class Shader:
     def unbind(self):
         gl.glUseProgram(0)
 
-    @timer
     def _calc_vars(self, transform, camera_view):
         # update = False
         # if self._cache.get('transform', None) != transform:
@@ -108,30 +102,29 @@ class Shader:
         world = transform.transformation
         return world, camera_view * world
 
-    @timer
     def update_uniforms(self, transform, material, render_engine, camera_view, camera_pos):
         world_matrix, MVP_matrix = self._calc_vars(transform, camera_view)
         for uniform_name in self.resource.uniform_names:
-            type = self.resource.uniform_types[uniform_name]
+            type_ = self.resource.uniform_types[uniform_name]
 
             if uniform_name.startswith('R_'):
                 name = uniform_name[2:]
                 if name == 'lightMatrix':
                     self.set_uniform(uniform_name, render_engine.light_matrix * world_matrix)
-                elif type == 'sampler2D':
+                elif type_ == 'sampler2D':
                     sampler_slot = render_engine.sampler_slot(name)
                     render_engine.get_mapped_value(name, 'tex').bind(sampler_slot)
                     self.set_uniform(uniform_name, sampler_slot)
-                elif type == 'vec3' or type == 'float':
-                    self.set_uniform(uniform_name, render_engine.get_mapped_value(name, type))
-                elif type == 'DirectionalLight':
+                elif type_ == 'vec3' or type_ == 'float':
+                    self.set_uniform(uniform_name, render_engine.get_mapped_value(name, type_))
+                elif type_ == 'DirectionalLight':
                     self.set_uniform_dl(uniform_name, render_engine.active_light)
-                elif type == 'PointLight':
+                elif type_ == 'PointLight':
                     self.set_uniform_pl(uniform_name, render_engine.active_light)
-                elif type == 'SpotLight':
+                elif type_ == 'SpotLight':
                     self.set_uniform_sl(uniform_name, render_engine.active_light)
                 else:
-                    render_engine.update_uniform_struct(transform, material, self, uniform_name, type)
+                    render_engine.update_uniform_struct(transform, material, self, uniform_name, type_)
             elif uniform_name.startswith('T_'):
                 if uniform_name == 'T_MVP':
                     self.set_uniform(uniform_name, MVP_matrix)
@@ -139,7 +132,7 @@ class Shader:
                     self.set_uniform(uniform_name, world_matrix)
                 else:
                     raise ShaderException('Set invalid transform uniform "{}"'.format(uniform_name))
-            elif type == 'sampler2D':
+            elif type_ == 'sampler2D':
                 sampler_slot = render_engine.sampler_slot(uniform_name)
                 material.get_mapped_value(uniform_name, 'tex').bind(sampler_slot)
                 self.set_uniform(uniform_name, sampler_slot)
@@ -149,10 +142,10 @@ class Shader:
                 else:
                     raise ShaderException('Set invalid camera uniform "{}"'.format(uniform_name))
             else:
-                if type == 'vec3' or type == 'float':
-                    self.set_uniform(uniform_name, material.get_mapped_value(uniform_name, type))
+                if type_ == 'vec3' or type_ == 'float':
+                    self.set_uniform(uniform_name, material.get_mapped_value(uniform_name, type_))
                 else:
-                    raise ShaderException('Set invalid material uniform type"{}" with name "{}"'.format(type, uniform_name))
+                    raise ShaderException('Set invalid material uniform type "{}" with name "{}"'.format(type_, uniform_name))
 
     def _add_all_attributes(self, shader_txt: str):
         attribute_start_location = shader_txt.find(Shader.ATTRIBUTE_KEYWORD)
@@ -332,33 +325,41 @@ class Shader:
 
         gl.glAttachShader(self.resource.program, shader)
 
-    @timer
     def set_uniform(self, uniform, value):
-        if uniform in self.resource.uniforms.keys():
-            if isinstance(value, int):
-                gl.glUniform1i(self.resource.uniforms.get(uniform), value)
-            elif isinstance(value, float):
-                gl.glUniform1f(self.resource.uniforms.get(uniform), value)
-            elif isinstance(value, Vector3):
-                gl.glUniform3f(self.resource.uniforms.get(uniform), value.x, value.y, value.z)
-            elif isinstance(value, Matrix4):
-                gl.glUniformMatrix4fv(self.resource.uniforms.get(uniform), 1, True, value.m.view(numpy.ndarray))
-            else:
-                raise AttributeError('Uniform "{}" with value "{}" is not an int, float, Vector3 or Matrix'.format(uniform, value))
-        else:
+        try:
+            uniform_id = self.resource.uniforms[uniform]
+        except KeyError:
             raise AttributeError('Uniform "{}" is not added to the list'.format(uniform))
 
-    @timer
+        try:
+            gl.glUniform3f(uniform_id, value.x, value.y, value.z)
+        except AttributeError:
+            pass
+        else:
+            return
+
+        try:
+            gl.glUniformMatrix4fv(uniform_id, 1, True, value.view(numpy.ndarray))
+        except AttributeError:
+            pass
+        else:
+            return
+
+        if isinstance(value, int):
+            gl.glUniform1i(uniform_id, value)
+        elif isinstance(value, float):
+            gl.glUniform1f(uniform_id, value)
+        else:
+            raise AttributeError('Uniform "{}" with value "{}" is not an int, float, Vector3 or Matrix'.format(uniform, value))
+
     def set_uniform_bl(self, uniform, value):
         self.set_uniform(uniform + '.base.color', value.color)
         self.set_uniform(uniform + '.base.intensity', value.intensity)
 
-    @timer
     def set_uniform_dl(self, uniform, value):
         self.set_uniform_bl(uniform, value)
         self.set_uniform(uniform + '.direction', value.direction)
 
-    @timer
     def set_uniform_pl(self, uniform, value):
         self.set_uniform_bl(uniform, value)
         self.set_uniform(uniform + '.attenuation.constant', value.constant)
@@ -367,7 +368,6 @@ class Shader:
         self.set_uniform(uniform + '.position', value.transform.transformed_position())
         self.set_uniform(uniform + '.range', value.range)
 
-    @timer
     def set_uniform_sl(self, uniform, value):
         self.set_uniform_pl(uniform + '.pointLight', value)
         self.set_uniform(uniform + '.direction', value.direction)
@@ -396,17 +396,9 @@ class Shader:
             cls._instance = cls()
         return cls._instance
 
-    _is_printed = False
-
     def __del__(self):
         if self.resource.remove_reference() and self._filename is not None:
             Shader.loaded_shaders.pop(self._filename)
-
-            if not Shader._is_printed:
-                Shader._is_printed = True
-                print('========SHADER=======================================================================',
-                      timer,
-                      '=====================================================================================', sep='\n')
 
 
 class Attenuation(numpy.ndarray):

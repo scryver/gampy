@@ -1,7 +1,10 @@
-__author__ = 'michiel'
+#!/usr/bin/env python
 
 import numpy
 import numbers
+
+__author__ = 'michiel'
+
 
 def cast_object_vertexes(vertices):
     # size = len(vertices)
@@ -9,11 +12,13 @@ def cast_object_vertexes(vertices):
 
     return numpy.array(vertices, dtype=numpy.float32)
 
+
 def cast_object_indices(indices):
     return numpy.array(indices, dtype=numpy.uint32)
 
+
 def remove_empty_strings(data):
-    return [data[i] for i in range(len(data)) if data[i] != '']
+    return [d for d in data if d != '']
 
 
 class ReferenceCounter:

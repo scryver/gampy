@@ -6,15 +6,10 @@ from gampy.engine.core.math3d import Vector3, Matrix4
 from gampy.engine.render.mapper import MappedValue
 from gampy.engine.render.shader import Shader
 from gampy.engine.tkinter.window import Window
-import gampy.engine.core.time as timing
-
-
-timer = timing.Timing()
 
 
 class RenderEngine(MappedValue):
 
-    @timer
     def __init__(self):
         super().__init__()
         self._sampler_map = {'diffuse': 0, 'normalMap': 1, 'dispMap': 2}
@@ -42,18 +37,15 @@ class RenderEngine(MappedValue):
         gl.glEnable(gl.GL_DEPTH_CLAMP)
         gl.glEnable(gl.GL_TEXTURE_2D)
 
-    @timer
     def add_light(self, light):
         self.lights.append(light)
 
-    @timer
     def add_camera(self, camera):
         self.main_camera = camera
 
     def update_uniform_struct(self, transform, material, shader, uniform_name, uniform_type):
         raise NotImplementedError('Set invalid rendering uniform type "{}" with name "{}"'.format(uniform_type, uniform_name))
 
-    @timer
     def render(self, object_):
         Window.bind_as_render_target()
         camera_view = self.main_camera.view_projection()
@@ -83,18 +75,11 @@ class RenderEngine(MappedValue):
     def sampler_slot(self, sampler_name: str):
         return self._sampler_map[sampler_name]
 
-    @timer
     def _render_lights(self):
         for light in self.lights:
             self.active_light = light
             yield light
 
     @classmethod
-    # @timer
     def open_gl_version(cls):
         return gl.glGetString(gl.GL_VERSION).decode()
-
-    def __del__(self):
-        print('========RENDER ENGINE================================================================',
-              timer,
-              '=====================================================================================', sep='\n')
